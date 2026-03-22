@@ -1,20 +1,20 @@
-# MANIFEST.yaml — Canonical version ledger + sync anchor
+# MANIFEST.yaml â€” Canonical version ledger + sync anchor
 # Authority: updated ONLY by sync-main.sh at integration gate
 # Neither device writes this mid-session
-# Merge: .gitattributes → merge=ours (sync-main.sh owns this file)
+# Merge: .gitattributes â†’ merge=ours (sync-main.sh owns this file)
 
 schema_version: "2.0.0"
-last_sync: "2026-03-22T20:56:10Z"
-last_sync_commit: "92f2128"
-synced_by: "sync-main.sh [macbook]"
+last_sync: "2026-03-22T22:31:29Z"
+last_sync_commit: "e3f9240"
+synced_by: "sync-main.ps1 [main]"
 
-# ── Live deployed versions ───────────────────────────────────────────────────
+# â”€â”€ Live deployed versions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 live_versions:
   zemla:       "v1.6.2"
   mim2000:     "v1.5.5"
   bodyterapie: "v1.1.5"
 
-# ── Hotfix track ─────────────────────────────────────────────────────────────
+# â”€â”€ Hotfix track â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 pending_releases:
   - tag: "v1.6.3"
     site: zemla
@@ -37,7 +37,7 @@ pending_releases:
     status: prepared
     release_note: "3-fold-path/releases/RELEASE-bodyterapie-v1.1.6-HOTFIX-GAL-D01.md"
 
-# ── Device fingerprints ──────────────────────────────────────────────────────
+# â”€â”€ Device fingerprints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 devices:
   MacBook:
     ssh_key: "SHA256:J7xkMdGfpsTbw7tCNrnAMc0yfOnm/O4QRrT+4l+1MPQ"
@@ -51,7 +51,7 @@ devices:
     last_commit: "8ceff7f"
     last_active: "2026-03-22"
 
-# ── Task registry integrity ──────────────────────────────────────────────────
+# â”€â”€ Task registry integrity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 task_registry:
   source: "TASKS-shared.yaml"
   schema_version: "2.0.0"
@@ -60,7 +60,7 @@ task_registry:
   last_integrity_run: "2026-03-22"
   last_integrity_result: "pending-first-run"
 
-# ── Infrastructure stack versions ────────────────────────────────────────────
+# â”€â”€ Infrastructure stack versions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 infra_stack:
   elasticsearch: "8.13.0"
   kibana: "8.13.0"
