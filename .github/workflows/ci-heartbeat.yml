@@ -2,13 +2,39 @@ name: CI Heartbeat
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, macbook, thinkpad ]
   pull_request:
     branches: [ main, develop ]
   schedule:
     - cron: '0 */6 * * *'  # Every 6 hours
 
 jobs:
+
+  # ── Task integrity check — runs first, gates all other jobs on main ─────────
+  task-integrity-check:
+    name: Task Registry Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: pip install pyyaml pytest
+
+      - name: Run task integrity checks
+        run: pytest _tests/test_task_integrity.py -v --tb=short
+
+      - name: Upload integrity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-integrity-report
+          path: .pytest_cache/
+
   cpp-build-test:
     name: C++ Build & Test
     runs-on: ubuntu-latest
@@ -263,7 +289,7 @@ jobs:
 
   summary-notification:
     name: CI Summary
-    needs: [cpp-build-test, rust-build-test, scala-build-test, pascal-build-test, fortran-build-test, react-test, db-connectivity-test, browser-chrome-test, browser-firefox-test]
+    needs: [task-integrity-check, cpp-build-test, rust-build-test, scala-build-test, pascal-build-test, fortran-build-test, react-test, db-connectivity-test, browser-chrome-test, browser-firefox-test]
     runs-on: ubuntu-latest
     if: always()
 
@@ -271,12 +297,13 @@ jobs:
       - name: Check job status
         run: |
           echo "=== CI Heartbeat Summary ==="
-          echo "C++ Build: ${{ needs.cpp-build-test.result }}"
-          echo "Rust Build: ${{ needs.rust-build-test.result }}"
-          echo "Scala Build: ${{ needs.scala-build-test.result }}"
-          echo "Pascal Build: ${{ needs.pascal-build-test.result }}"
-          echo "Fortran Build: ${{ needs.fortran-build-test.result }}"
-          echo "React Tests: ${{ needs.react-test.result }}"
+          echo "Task Integrity:        ${{ needs.task-integrity-check.result }}"
+          echo "C++ Build:             ${{ needs.cpp-build-test.result }}"
+          echo "Rust Build:            ${{ needs.rust-build-test.result }}"
+          echo "Scala Build:           ${{ needs.scala-build-test.result }}"
+          echo "Pascal Build:          ${{ needs.pascal-build-test.result }}"
+          echo "Fortran Build:         ${{ needs.fortran-build-test.result }}"
+          echo "React Tests:           ${{ needs.react-test.result }}"
           echo "Database Connectivity: ${{ needs.db-connectivity-test.result }}"
           echo "Browser Chrome:        ${{ needs.browser-chrome-test.result }}"
           echo "Browser Firefox:       ${{ needs.browser-firefox-test.result }}"
@@ -284,6 +311,7 @@ jobs:
 
       - name: Notify on failure
         if: |
+          needs.task-integrity-check.result == 'failure' ||
           needs.cpp-build-test.result == 'failure' ||
           needs.rust-build-test.result == 'failure' ||
           needs.scala-build-test.result == 'failure' ||
@@ -299,6 +327,7 @@ jobs:
 
       - name: Notify on success
         if: |
+          needs.task-integrity-check.result == 'success' &&
           needs.cpp-build-test.result == 'success' &&
           needs.rust-build-test.result == 'success' &&
           needs.scala-build-test.result == 'success' &&

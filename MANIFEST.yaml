@@ -1,0 +1,72 @@
+# MANIFEST.yaml — Canonical version ledger + sync anchor
+# Authority: updated ONLY by sync-main.sh at integration gate
+# Neither device writes this mid-session
+# Merge: .gitattributes → merge=ours (sync-main.sh owns this file)
+
+schema_version: "2.0.0"
+last_sync: "2026-03-22T14:30:00+01:00"
+last_sync_commit: "1d29cf2"
+synced_by: "MacBook / sync-main.sh"
+
+# ── Live deployed versions ───────────────────────────────────────────────────
+live_versions:
+  zemla:       "v1.6.2"
+  mim2000:     "v1.5.5"
+  bodyterapie: "v1.1.5"
+
+# ── Hotfix track ─────────────────────────────────────────────────────────────
+pending_releases:
+  - tag: "v1.6.3"
+    site: zemla
+    type: hotfix
+    tracks: GAL-D01
+    status: prepared
+    release_note: "3-fold-path/releases/RELEASE-zemla-v1.6.3-HOTFIX-GAL-D01.md"
+
+  - tag: "v1.5.6"
+    site: mim2000
+    type: hotfix
+    tracks: GAL-D01
+    status: prepared
+    release_note: "3-fold-path/releases/RELEASE-mim2000-v1.5.6-HOTFIX-GAL-D01.md"
+
+  - tag: "v1.1.6"
+    site: bodyterapie
+    type: hotfix
+    tracks: GAL-D01
+    status: prepared
+    release_note: "3-fold-path/releases/RELEASE-bodyterapie-v1.1.6-HOTFIX-GAL-D01.md"
+
+# ── Device fingerprints ──────────────────────────────────────────────────────
+devices:
+  MacBook:
+    ssh_key: "SHA256:J7xkMdGfpsTbw7tCNrnAMc0yfOnm/O4QRrT+4l+1MPQ"
+    branch: macbook
+    last_commit: "1d29cf2"
+    last_active: "2026-03-22"
+
+  ThinkPad:
+    ssh_key: "SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24"
+    branch: thinkpad
+    last_commit: "8ceff7f"
+    last_active: "2026-03-22"
+
+# ── Task registry integrity ──────────────────────────────────────────────────
+task_registry:
+  source: "TASKS-shared.yaml"
+  schema_version: "2.0.0"
+  task_count: 72
+  integrity_check: "pytest _tests/test_task_integrity.py"
+  last_integrity_run: "2026-03-22"
+  last_integrity_result: "pending-first-run"
+
+# ── Infrastructure stack versions ────────────────────────────────────────────
+infra_stack:
+  elasticsearch: "8.13.0"
+  kibana: "8.13.0"
+  fluent_bit: "3.0"
+  tensorflow_serving: "latest"
+  postgresql: "16"
+  mongodb: "7"
+  node: "lts"
+  python: "3.11"

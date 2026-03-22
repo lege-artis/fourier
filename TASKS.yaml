@@ -5,16 +5,19 @@
 # MacBook CoWork session 2026-03-22: GAL-D01 hotfix + MOB-E01 epic added
 
 meta:
-  workspace_version: "1.3.0"
+  workspace_version: "1.4.0"
   last_updated: "2026-03-22"
-  updated_by: "MacBook / CoWork session 2026-03-22"
-  sync_status: "macbook-session-merged"
+  updated_by: "MacBook / CoWork session 2026-03-22 (continue)"
+  sync_status: "macbook-session-active"
   projects:
     - 3-fold-path
     - 4-step-noble-steps-to-MI-M-T
     - 6th-element-chain
     - Generic
     - databases
+    - log-infra
+    - ml-infra
+    - oauth2
     - platform-sources
     - sandboxes
     - 8gsp
@@ -361,9 +364,13 @@ projects:
         title: "MacBook GitHub connection setup"
         priority: high
         device: MacBook
-        status: pending
+        status: done
         tags: [github, ssh, macbook, sync]
-        notes: "Guide: _config/MACBOOK-GITHUB-SETUP.md. Clone repo, configure SSH, set macbook branch."
+        notes: |
+          Completed 2026-03-22. SSH key MacBook-dev-2026 (ED25519 SHA256:J7xkMdGfpsTbw7tCNrnAMc0yfOnm/O4QRrT+4l+1MPQ).
+          Repo cloned: ~/Documents/VibeCodeProjects. Branch macbook created + pushed.
+          Merge conflict resolved via checkout --ours. Main: 8ceff7f.
+          Auto-conflict resolution: pull.rebase=true, TASKS.yaml merge=union, GIT_EDITOR=true.
 
       - id: GEN-009
         title: "Gate 4: PostgreSQL + MongoDB local dev instances"
@@ -424,6 +431,294 @@ projects:
         status: pending
         depends_on: [DB-001, DB-002]
         tags: [ci-cd, testing]
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: log-infra
+  # Hybrid log stack: MongoDB vibedev.logs + Elasticsearch
+  # Shipper: Fluent Bit | Dashboard: Kibana
+  # Design: infra/LOG-ARCHITECTURE.md
+  # ─────────────────────────────────────────────
+
+  log-infra:
+    description: "Hybrid log stack — MongoDB app runtime logs + Elasticsearch CI/test/DB diagnostics. Fluent Bit shipper, Kibana dashboard."
+    status: pending-implementation
+    reference_docs:
+      - "infra/LOG-ARCHITECTURE.md"
+      - "infra/connectors/LOG-CONNECTOR-SPEC.md"
+    tasks:
+
+      - id: LOG-001
+        title: "Deploy ES + Kibana + Fluent Bit stack via Docker Compose"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-011]
+        tags: [elasticsearch, kibana, fluent-bit, docker, infra]
+        notes: |
+          File: infra/docker/elasticsearch/docker-compose.yml
+          ES 8.13.0 (port 9200), Kibana (port 5601), Fluent Bit 3.0 (port 24224, 2020).
+          Validate: curl http://localhost:9200/_cluster/health → green/yellow.
+
+      - id: LOG-002
+        title: "Implement log-connector-node (Winston → MongoDB + ES)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-001, DB-002]
+        tags: [nodejs, winston, mongodb, elasticsearch, connector]
+        notes: |
+          Path: infra/connectors/log-connector-node/
+          Spec: infra/connectors/LOG-CONNECTOR-SPEC.md (Connector A).
+          Deps: winston, mongodb, @elastic/elasticsearch
+          Transports: MongoTransport (vibedev.logs) + ESTransport (app-logs-YYYY.MM.DD)
+
+      - id: LOG-003
+        title: "Implement log-connector-python (logging → MongoDB + ES)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-001, DB-002]
+        tags: [python, pymongo, elasticsearch, connector]
+        notes: |
+          Path: infra/connectors/log-connector-python/
+          Spec: infra/connectors/LOG-CONNECTOR-SPEC.md (Connector B).
+          Deps: pymongo, elasticsearch, python-json-logger
+          Handlers: MongoHandler + ESHandler. Logger adapter with app/session_id.
+
+      - id: LOG-004
+        title: "Implement log-connector-github-actions (composite action → ES)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-001]
+        tags: [github-actions, elasticsearch, ci-cd, connector]
+        notes: |
+          Path: infra/connectors/log-connector-github-actions/
+          Spec: infra/connectors/LOG-CONNECTOR-SPEC.md (Connector C).
+          Ships to: test-results-YYYY.MM.DD index via curl POST.
+          Inputs: es_host, suite, status, duration_ms.
+
+      - id: LOG-005
+        title: "CI log-infra-test job: ES ingestion smoke test"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-004, GEN-010]
+        tags: [ci-cd, github-actions, elasticsearch, smoke-test]
+        notes: |
+          Add job log-infra-test to .github/workflows/ci-heartbeat.yml.
+          Steps: docker compose up ES stack → wait health → ship test event → verify COUNT > 0.
+          Design: infra/LOG-ARCHITECTURE.md (CI/CD Integration section).
+
+      - id: LOG-006
+        title: "MongoDB TTL index + retention policy on vibedev.logs"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [DB-002]
+        tags: [mongodb, index, retention, ttl]
+        notes: |
+          Create indexes: timestamp-1, level+timestamp, app+timestamp, session_id.
+          TTL: expireAfterSeconds 2592000 (30 days rolling).
+          Ref: infra/LOG-ARCHITECTURE.md (MongoDB Log Schema section).
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: ml-infra
+  # TF Serving microservice + training pipeline
+  # Design: infra/ML-ARCHITECTURE.md
+  # ─────────────────────────────────────────────
+
+  ml-infra:
+    description: "TF Serving Docker microservice (REST 8501 / gRPC 8500) + Python training pipeline + 4-language connectors (Node.js, Scala, Rust-REST, Rust-gRPC)."
+    status: pending-implementation
+    reference_docs:
+      - "infra/ML-ARCHITECTURE.md"
+      - "infra/connectors/TF-CONNECTOR-SPEC.md"
+    tasks:
+
+      - id: TF-001
+        title: "Deploy TF Serving Docker stack + model registry scaffold"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-011]
+        tags: [tensorflow, docker, model-registry, infra]
+        notes: |
+          File: infra/docker/tensorflow-serving/docker-compose.yml
+          Image: tensorflow/serving:latest (ports 8500 gRPC, 8501 REST).
+          Mount: ml/models/ → /models:ro
+          Create: ml/models/models.config (protobuf model config).
+          Validate: GET http://localhost:8501/v1/models/default → state AVAILABLE.
+
+      - id: TF-002
+        title: "Python training pipeline + model validation scripts"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001]
+        tags: [python, tensorflow, training, validation]
+        notes: |
+          Path: ml/training/pipeline.py (smoke-test mode flag).
+          Path: ml/validation/validate_model.py (--threshold=0.80).
+          Req: ml/training/requirements.txt (TF 2.x + deps).
+          Output: SavedModel in ml/models/{name}/{version}/
+
+      - id: TF-003
+        title: "Implement tf-connector-node (REST, native fetch, Node 18+)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001]
+        tags: [nodejs, tensorflow, rest, connector]
+        notes: |
+          Path: infra/connectors/tf-connector/node-rest/
+          Spec: infra/connectors/TF-CONNECTOR-SPEC.md (Connector A).
+          Zero deps — Node.js built-in fetch. TFClient class: predict() + status().
+          Test: node-rest/test.js → assert state === AVAILABLE.
+
+      - id: TF-004
+        title: "Implement tf-connector-scala-grpc (ScalaPB + grpc-netty)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-003]
+        tags: [scala, grpc, tensorflow, scalapb, connector]
+        notes: |
+          Path: infra/connectors/tf-connector/scala-grpc/
+          Spec: infra/connectors/TF-CONNECTOR-SPEC.md (Connector B).
+          Deps: grpc-netty 1.62.2, scalapb-runtime-grpc, grpc-stub.
+          Proto stubs: tensorflow_serving/apis/prediction_service.proto.
+          Build: sbt PB.generate → scalapb stubs in sourceManaged.
+
+      - id: TF-005
+        title: "Implement tf-connector-rust-rest (reqwest + serde_json + tokio)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-002]
+        tags: [rust, reqwest, tensorflow, rest, connector]
+        notes: |
+          Path: infra/connectors/tf-connector/rust-rest/
+          Spec: infra/connectors/TF-CONNECTOR-SPEC.md (Connector C).
+          Deps: reqwest 0.12 (json feature), serde 1.0, serde_json, tokio.
+          Structs: PredictRequest, PredictResponse. TFClient: predict() + status().
+
+      - id: TF-006
+        title: "Implement tf-connector-rust-grpc (tonic + prost + tonic-build)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-002]
+        tags: [rust, grpc, tonic, prost, tensorflow, connector]
+        notes: |
+          Path: infra/connectors/tf-connector/rust-grpc/
+          Spec: infra/connectors/TF-CONNECTOR-SPEC.md (Connector D).
+          Deps: tonic 0.11, prost 0.12, tokio, tonic-build (build-dep).
+          build.rs: tonic_build::compile → prediction_service.proto stubs.
+          Proto: infra/connectors/tf-connector/rust-grpc/proto/
+
+      - id: TF-007
+        title: "CI ml-train-validate + ml-serve-test jobs in ci-heartbeat.yml"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-002, TF-003, TF-004, TF-005, GEN-010]
+        tags: [ci-cd, github-actions, tensorflow, training, smoke-test]
+        notes: |
+          Add 2 jobs to .github/workflows/ci-heartbeat.yml:
+          1. ml-train-validate: setup-python 3.11 → pip install → pipeline.py smoke-test → validate_model.py → upload-artifact.
+          2. ml-serve-test: needs ml-train-validate → docker compose TF → wait ready → node/rust/scala connector tests.
+          Design: infra/ML-ARCHITECTURE.md (CI/CD Integration section).
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: oauth2
+  # Authorization + authentication layer
+  # Cross-project: WordPress / Node.js / Python
+  # ─────────────────────────────────────────────
+
+  oauth2:
+    description: "OAuth2.0 authorization + authentication components for future projects. Covers provider selection, Node.js/Python backend integration, WordPress SSO, and GitHub Actions OIDC."
+    status: pending-scoping
+    tasks:
+
+      - id: AUTH-001
+        title: "OAuth2.0 provider evaluation and selection"
+        priority: P3-medium
+        device: any
+        status: pending
+        tags: [oauth2, auth, planning, provider]
+        notes: |
+          Evaluate options: Keycloak (self-hosted), Auth0 (SaaS), GitHub OAuth App, custom PKCE.
+          Decision criteria: self-hosted vs managed, cost, WP plugin availability, Node.js/Python SDK maturity.
+          Output: ADR (Architecture Decision Record) in infra/auth/AUTH-PROVIDER-ADR.md.
+
+      - id: AUTH-002
+        title: "OAuth2.0 Node.js integration module (passport.js or native PKCE)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [AUTH-001]
+        tags: [oauth2, nodejs, passport, pkce, connector]
+        notes: |
+          Path: infra/connectors/auth-connector-node/
+          Implement: Authorization Code + PKCE flow. Token refresh. Scope: read:profile, read:email.
+          Lib options: passport-oauth2 (express) or openid-client (framework-agnostic, preferred).
+          Protect routes via middleware. Token stored in-memory / Redis (no localStorage).
+
+      - id: AUTH-003
+        title: "OAuth2.0 Python integration module (authlib or python-jose)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [AUTH-001]
+        tags: [oauth2, python, authlib, jwt, connector]
+        notes: |
+          Path: infra/connectors/auth-connector-python/
+          Lib: authlib (Flask/FastAPI integration). JWT verification: python-jose or authlib.
+          Implement: token exchange, introspection endpoint, decorator @require_auth.
+          Target frameworks: Flask (existing scripts) + FastAPI (future ML API wrapper).
+
+      - id: AUTH-004
+        title: "WordPress OAuth2.0 SSO plugin integration (3-fold-path sites)"
+        priority: P3-medium
+        device: MacBook
+        status: pending
+        depends_on: [AUTH-001]
+        tags: [oauth2, wordpress, sso, 3-fold-path]
+        notes: |
+          Plugin candidates: WP OAuth Server, miniOrange OAuth, or custom WP-Login filter.
+          Scope: admin-only SSO (no public login on 3-fold-path sites required).
+          Apply to: zemla.org + mim2000.cz + bodyterapie.com via shared 3-fold-path base.
+          Non-breaking constraint: existing WP user table preserved.
+
+      - id: AUTH-005
+        title: "GitHub Actions OIDC token integration (keyless auth for CI/CD)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-010]
+        tags: [oauth2, github-actions, oidc, ci-cd, security]
+        notes: |
+          Use GitHub Actions OIDC to authenticate to cloud/services without static secrets.
+          permissions: id-token: write in workflow. Exchange OIDC token at provider.
+          Replaces PAT-based authentication for CI artifact uploads + deployment.
+          Add to ci-heartbeat.yml after GEN-010 (GitHub Actions secrets) is done.
+
+      - id: AUTH-006
+        title: "Auth integration smoke tests (token flow end-to-end per connector)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [AUTH-002, AUTH-003, AUTH-005]
+        tags: [oauth2, testing, integration, smoke-test]
+        notes: |
+          Test: token acquisition → introspection → protected resource access → refresh.
+          Node.js: npm test in auth-connector-node/.
+          Python: pytest in auth-connector-python/.
+          CI: add auth-integration-test job to ci-heartbeat.yml.
 
 
   # ─────────────────────────────────────────────
@@ -560,11 +855,37 @@ device_queues:
       - GEN-003
       - GEN-007
     pending:
-      - GEN-008
+      # Gates (ordered dependency chain)
       - GEN-009
       - GEN-010
       - GEN-011
       - GEN-012
+      # Database setup
+      - DB-001
+      - DB-002
+      - DB-003
+      # Log infra (after GEN-011 + DB-002)
+      - LOG-001
+      - LOG-002
+      - LOG-003
+      - LOG-004
+      - LOG-005
+      - LOG-006
+      # ML infra (after GEN-011)
+      - TF-001
+      - TF-002
+      - TF-003
+      - TF-004
+      - TF-005
+      - TF-006
+      - TF-007
+      # OAuth2.0 (after AUTH-001 ADR)
+      - AUTH-001
+      - AUTH-002
+      - AUTH-003
+      - AUTH-005
+      - AUTH-006
+      # Platform source tests
       - PLT-001
       - PLT-002
       - PLT-003
@@ -572,9 +893,7 @@ device_queues:
       - PLT-005
       - PLT-006
       - PLT-007
-      - DB-001
-      - DB-002
-      - DB-003
+      # Sandboxes
       - SBX-001
       - SBX-002
     done:
@@ -585,11 +904,11 @@ device_queues:
       - GEN-006
 
   MacBook:
-    current_session: "2026-03-22 — CoWork brainstorm + GAL-D01 hotfix package + MOB-E01 epic (see 8gsp/8GSP-SESSION-HANDOFF-2026-03-21.md)"
-    next_session_priority: "GAL-D01-INV (P1 hotfix — DevTools investigation) + GEN-008 (clone repo via macbook-bootstrap.sh)"
-    active: []
-    pending:
+    current_session: "2026-03-22 — CoWork session continuing: GAL-D01 hotfix + TASKS v1.4.0"
+    next_session_priority: "GAL-D01-INV (P1 hotfix — DevTools investigation)"
+    active:
       - GAL-D01-INV
+    pending:
       - GAL-D01-FIX
       - GAL-D01-TEST
       - GAL-D01-REL
@@ -600,7 +919,11 @@ device_queues:
       - 8GSP-UPL-02
       - 8GSP-UPL-03
       - 8GSP-UPL-04
+      # OAuth2.0 WordPress integration (MacBook)
+      - AUTH-004
+    done:
       - GEN-008
+      - MAC-S01
     blocked:
       - C-00
       - B-02
