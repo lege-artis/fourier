@@ -1,4 +1,4 @@
-# sync-main.ps1 — Merge gate for ThinkPad (Windows PowerShell)
+# sync-main.ps1 â€” Merge gate for ThinkPad (Windows PowerShell)
 # Pre-requisite: all local changes must be committed before running.
 # Usage: cd ~\Documents\VibeCodeProjects ; .\_config\sync-main.ps1
 
@@ -142,4 +142,4 @@ Write-Host ""
 Write-Host "sync-main complete." -ForegroundColor Green
 Write-Host "  main:     $(git rev-parse --short origin/main)"
 $mb = git rev-parse --short origin/macbook  2>$null; if ($mb) { Write-Host "  macbook:  $mb" }
-$tp = git rev-parse --short origin/thinkpad 2>$null; if ($tp) { Write-Host "  thinkpad: $tp" }
+try { $tp = git rev-parse --short origin/thinkpad 2>$null } catch { $tp = $null }; if ($tp) { Write-Host "  thinkpad: $tp" }
