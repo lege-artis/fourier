@@ -1,12 +1,14 @@
 # Master Task List — Cross-Device Workspace
 # Sync: Git (origin/main) | Devices: ThinkPad + MacBook
-# Format: YAML | Owner: MacBook (source of truth) | Last sync: 2026-03-21
+# Format: YAML | Owner: shared | Last sync: 2026-03-22
+# MacBook session merged: 8GSP-SESSION-HANDOFF-2026-03-21.md
+# MacBook CoWork session 2026-03-22: GAL-D01 hotfix + MOB-E01 epic added
 
 meta:
-  workspace_version: "1.1.0"
+  workspace_version: "1.3.0"
   last_updated: "2026-03-22"
-  updated_by: "ThinkPad / session-github-auth"
-  sync_status: "pending-macbook-merge"
+  updated_by: "MacBook / CoWork session 2026-03-22"
+  sync_status: "macbook-session-merged"
   projects:
     - 3-fold-path
     - 4-step-noble-steps-to-MI-M-T
@@ -15,29 +17,288 @@ meta:
     - databases
     - platform-sources
     - sandboxes
+    - 8gsp
 
 # ─────────────────────────────────────────────
 # PROJECT: 3-fold-path
+# Sites: zemla.org / mim2000.cz / bodyterapie.com
 # ─────────────────────────────────────────────
 projects:
 
   3-fold-path:
-    description: "[pending — import from MacBook]"
-    status: stub
-    tasks: []
+    description: "WordPress multi-site ecosystem — zemla.org, mim2000.cz, bodyterapie.com — shared 3-fold-path base library"
+    status: active
+    current_versions:
+      zemla: "v1.6.2 LIVE"
+      mim2000: "v1.5.5 LIVE"
+      bodyterapie: "v1.1.5 LIVE"
+
+    tasks:
+
+      # ── HOTFIX TRACK (P1 Critical — deploy independently) ─────────────────
+
+      - id: GAL-D01-INV
+        title: "Gallery contracted layout — root cause confirmation (DevTools)"
+        priority: P1-critical
+        device: MacBook
+        status: open
+        tags: [hotfix, gallery, css, all-sites]
+        notes: |
+          Inspect .gallery / .wp-block-gallery / figure.wp-block-gallery.
+          Check: width, max-width, flex-basis, grid-column.
+          Evidence: ~440px container, dead space right side, captions invisible.
+          Ref: hotfix/HOTFIX-GAL-D01-defect-report.md
+
+      - id: GAL-D01-FIX
+        title: "Apply CSS fix to 3-fold-path shared base stylesheet"
+        priority: P1-critical
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-INV]
+        tags: [hotfix, gallery, css, all-sites]
+        notes: |
+          Fix gallery width + caption visibility in shared style.css / gallery.css.
+          Do NOT apply per-site overrides — single patch resolves all three sites.
+          Spec: hotfix/HOTFIX-GAL-D01-defect-report.md (FIX-1, FIX-2, FIX-3)
+
+      - id: GAL-D01-TEST
+        title: "Cross-browser / cross-device / all-locale gallery regression test"
+        priority: P1-critical
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-FIX]
+        tags: [hotfix, gallery, testing, safari, chrome, firefox]
+        notes: |
+          Test: Safari macOS+iOS, Chrome desktop+Android, Firefox.
+          Viewports: 1440px, 1024px, 860px, 480px.
+          All locales: CS/EN/JA/DE/IT where applicable.
+          Checklist: hotfix/HOTFIX-GAL-D01-defect-report.md
+
+      - id: GAL-D01-REL
+        title: "Release hotfix: zemla v1.6.3 / mim2000 v1.5.6 / bodyterapie v1.1.6"
+        priority: P1-critical
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-TEST]
+        tags: [hotfix, release, github]
+        notes: |
+          Release notes ready:
+            releases/RELEASE-zemla-v1.6.3-HOTFIX-GAL-D01.md
+            releases/RELEASE-mim2000-v1.5.6-HOTFIX-GAL-D01.md
+            releases/RELEASE-bodyterapie-v1.1.6-HOTFIX-GAL-D01.md
+
+      # ── GITHUB UPLOAD CHECKLIST ────────────────────────────────────────────
+
+      - id: GH-UPL-01
+        title: "Upload zemla-theme-v1.6.2.zip to GitHub Release v1.6.2"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [github, release, zemla]
+        notes: "Release notes: releases/RELEASE-zemla-v1.6.2.md. Tag: v1.6.2"
+
+      - id: GH-UPL-02
+        title: "Upload mim2000-theme-v1.5.5.zip to GitHub Release v1.5.5"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [github, release, mim2000]
+        notes: "Release notes: releases/RELEASE-mim2000-v1.5.5.md. Tag: v1.5.5"
+
+      - id: GH-UPL-03
+        title: "Upload bodyterapie-theme-v1.1.5.zip to GitHub Release v1.1.5"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [github, release, bodyterapie]
+        notes: "Release notes: releases/RELEASE-bodyterapie-v1.1.5.md. Tag: v1.1.5"
+
+      # ── SPRINT BACKLOG (after GAL-D01 closed) ─────────────────────────────
+
+      - id: Z-MOB-02
+        title: "zemla.org mobile baseline regression audit (confirm v1.6.2 clean)"
+        priority: P2-high
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-REL]
+        tags: [mobile, audit, zemla]
+
+      - id: Z-MOB-01
+        title: "Extract zemla mobile patterns into 3-fold-path library"
+        priority: P2-high
+        device: MacBook
+        status: open
+        depends_on: [Z-MOB-02]
+        tags: [mobile, library, zemla]
+
+      - id: M-MOB-02
+        title: "mim2000.cz mobile fine-tuning (post v1.2.1 edge cases)"
+        priority: P2-high
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-REL]
+        tags: [mobile, audit, mim2000]
+
+      - id: M-MOB-01
+        title: "Extract mim2000 mobile patterns into 3-fold-path library"
+        priority: P2-high
+        device: MacBook
+        status: open
+        depends_on: [M-MOB-02]
+        tags: [mobile, library, mim2000]
+
+      - id: B-MOB-04
+        title: "Align bodyterapie breakpoints to 3-fold-path CSS variables"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [Z-MOB-01, M-MOB-01]
+        tags: [mobile, css, bodyterapie]
+
+      - id: B-MOB-01
+        title: "Port fp-mobile-nav grid from mim2000 v1.2.1 to bodyterapie"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [B-MOB-04]
+        tags: [mobile, nav, bodyterapie]
+
+      - id: B-MOB-02
+        title: "Typography and spacing alignment at 480px/860px on bodyterapie"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [B-MOB-04]
+        tags: [mobile, typography, bodyterapie]
+
+      - id: B-MOB-03
+        title: "Mobile functionality fine-tune (forms, language switcher, booking)"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [B-MOB-01, B-MOB-02]
+        tags: [mobile, ux, bodyterapie]
+
+      - id: B-MOB-05
+        title: "Full cross-browser / cross-device / 4-language regression test (bodyterapie)"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [B-MOB-03]
+        tags: [testing, regression, bodyterapie, safari, chrome]
+
+      # ── GITHUB UPLOAD — 8GSP DOCS ─────────────────────────────────────────
+
+      - id: 8GSP-UPL-01
+        title: "Upload 3fold-path-devref-v159.docx to documentation repo"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, documentation, upload]
+
+      - id: 8GSP-UPL-02
+        title: "Upload 8gsp-b01-cv-audit-v1.0.docx"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, cv, upload]
+
+      - id: 8GSP-UPL-03
+        title: "Upload 8gsp-sprint-v02.docx (current sprint spec)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, sprint, upload]
+
+      - id: 8GSP-UPL-04
+        title: "Upload CV-Zemla-B-Technical-DE.docx (German B-track)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, cv, german, upload]
+
+      # ── MACBOOK SESSION 2026-03-22 DELIVERABLES (ready to commit) ──────────
+
+      - id: MAC-S01
+        title: "CoWork session deliverables staged for VibeCodeProjects commit"
+        priority: P2-high
+        device: MacBook
+        status: done
+        tags: [macbook, session, commit-ready]
+        notes: |
+          Files staged in VibeCodeProjects/:
+            3-fold-path/backlog/PROJECT-PLAN-3fold-path-active-backlog.md
+            3-fold-path/backlog/BACKLOG-MOB-E01-mobile-optimization-bodyterapie.md
+            3-fold-path/hotfix/HOTFIX-GAL-D01-defect-report.md
+            3-fold-path/releases/RELEASE-zemla-v1.6.3-HOTFIX-GAL-D01.md
+            3-fold-path/releases/RELEASE-mim2000-v1.5.6-HOTFIX-GAL-D01.md
+            3-fold-path/releases/RELEASE-bodyterapie-v1.1.6-HOTFIX-GAL-D01.md
+            8gsp/8GSP-SESSION-HANDOFF-2026-03-21.md
+            _config/MACBOOK-GITHUB-SETUP.md
+            _config/macbook-bootstrap.sh
+            TASKS.yaml (v1.3.0)
+          Commit after GEN-008 (MacBook GitHub clone) is complete.
+
+      # ── BLOCKED ───────────────────────────────────────────────────────────
+
+      - id: C-00
+        title: "Sci and Buddha Keynote baseline recovery"
+        priority: P1-critical
+        device: any
+        status: blocked
+        tags: [keynote, content]
+        notes: "Blocked: awaiting source files from user. Unblocks C-02a/b/c/d."
+
+      - id: B-02
+        title: "LinkedIn profile alignment (R-07)"
+        priority: P2-high
+        device: any
+        status: blocked
+        tags: [linkedin, cv]
+        notes: "Requires manual LinkedIn write access by user."
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: 4-step-noble-steps-to-MI-M-T
+  # ─────────────────────────────────────────────
 
   4-step-noble-steps-to-MI-M-T:
-    description: "[pending — import from MacBook]"
-    status: stub
-    tasks: []
+    description: "MI-M-T module — Step 1 implemented in zemla v1.6.2 (D-01). Steps 2-4 pending."
+    status: active
+    tasks:
+      - id: MI-M-T-D01
+        title: "Step 1 complete — zemla v1.6.2 (D-01)"
+        priority: P3-medium
+        device: MacBook
+        status: done
+        tags: [mi-m-t, zemla, step-1]
+        notes: "Mermaid classDiagram, 5-locale seeder, page template delivered in v1.6.2."
+
+      - id: MI-M-T-D02
+        title: "Step 2 — scope TBD, decoded from backlog carry-forward"
+        priority: P3-medium
+        device: MacBook
+        status: pending
+        tags: [mi-m-t, step-2]
+        notes: "Carry forward from zemla v1.6.2. Scope to be confirmed next sprint."
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: 6th-element-chain
+  # ─────────────────────────────────────────────
 
   6th-element-chain:
-    description: "[pending — import from MacBook]"
+    description: "[pending — scope to be defined in sprint planning]"
     status: stub
     tasks: []
 
+
+  # ─────────────────────────────────────────────
+  # PROJECT: Generic
+  # ─────────────────────────────────────────────
+
   Generic:
-    description: "Shared templates, reusable assets, cross-project utilities"
+    description: "Shared templates, reusable assets, cross-project utilities, workspace infrastructure"
     status: active
     tasks:
       - id: GEN-001
@@ -46,15 +307,15 @@ projects:
         device: ThinkPad
         status: done
         tags: [setup, infrastructure]
-        notes: "Complete — 2026-03-22. All dirs, configs, platform tests, CI/CD created."
+        notes: "Complete 2026-03-22. All dirs, configs, platform tests, CI/CD created."
 
       - id: GEN-002
         title: "Import and merge MacBook master task list"
         priority: high
-        device: MacBook
-        status: blocked
+        device: ThinkPad
+        status: done
         tags: [sync, setup]
-        notes: "Awaiting user to paste MacBook task list content into ThinkPad session"
+        notes: "Done 2026-03-22. MacBook archive merged into TASKS.yaml v1.2.0."
 
       - id: GEN-003
         title: "Configure shared Git remote for cross-device sync"
@@ -62,7 +323,7 @@ projects:
         device: ThinkPad
         status: in-progress
         tags: [git, sync, infrastructure]
-        notes: "SSH key ThinkPad-dev-2026 added to GitHub. Run _config/github-init.ps1 after Git installed."
+        notes: "SSH key active. Repo petr-yamyang/VibeCodeProjects needs creation on GitHub."
 
       - id: GEN-004
         title: "GitHub SSH key registered"
@@ -70,7 +331,7 @@ projects:
         device: ThinkPad
         status: done
         tags: [github, ssh, auth]
-        notes: "ED25519 key ThinkPad-dev-2026 added to github.com/petr-yamyang — 2026-03-22. Fingerprint: SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24"
+        notes: "ED25519 ThinkPad-dev-2026 added. Fingerprint: SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24"
 
       - id: GEN-005
         title: "GitHub PAT generated and encrypted"
@@ -78,33 +339,155 @@ projects:
         device: ThinkPad
         status: done
         tags: [github, pat, auth, security]
-        notes: "Token ThinkPad-vibedev-2026 (scopes: repo, workflow, read:org, admin:public_key). Encrypted at ~/.github_pat.enc. Key at ~/.pat_key.env (chmod 600). Never committed."
+        notes: "Token ThinkPad-vibedev-2026 encrypted at ~/.github_pat.enc."
 
       - id: GEN-006
-        title: "Run windows-setup.ps1 to install dev tools"
+        title: "Dev toolchain fully installed on ThinkPad"
         priority: high
         device: ThinkPad
-        status: pending
+        status: done
         tags: [windows, setup, install]
-        notes: "Run as Administrator: ./_config/windows-setup.ps1. Installs Rust, GFortran, FPC, Scala/SBT, Docker, gh CLI."
+        notes: "gfortran 15.2, fpc 3.2.2, sbt 1.12.6, node, rust, java, docker, gh — all on PATH."
 
       - id: GEN-007
-        title: "Run github-init.ps1 to push workspace to GitHub"
+        title: "Push workspace to GitHub (Gate 3)"
+        priority: high
+        device: ThinkPad
+        status: in-progress
+        tags: [github, git, init]
+        notes: "Commit 468b993 done (30 files). Repo petr-yamyang/VibeCodeProjects creation in progress."
+
+      - id: GEN-008
+        title: "MacBook GitHub connection setup"
+        priority: high
+        device: MacBook
+        status: pending
+        tags: [github, ssh, macbook, sync]
+        notes: "Guide: _config/MACBOOK-GITHUB-SETUP.md. Clone repo, configure SSH, set macbook branch."
+
+      - id: GEN-009
+        title: "Gate 4: PostgreSQL + MongoDB local dev instances"
         priority: high
         device: ThinkPad
         status: pending
-        tags: [github, git, init]
-        notes: "Run after Git installed. Creates repo at github.com/petr-yamyang/VibeCodeProjects and pushes scaffold."
+        tags: [database, postgresql, mongodb]
+
+      - id: GEN-010
+        title: "Gate 5: Environment variables + GitHub Actions secrets"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [env, ci-cd, github-actions]
+
+      - id: GEN-011
+        title: "Gate 6: Docker Desktop first launch + act local runner"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [docker, act, ci-cd]
+
+      - id: GEN-012
+        title: "Gate 7: LibreOffice + TexLive migrate to D:\\"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [libreoffice, texlive, migration]
+        notes: "Run _config/libreoffice-migrate-to-D.ps1 -Phase restore"
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: databases
+  # ─────────────────────────────────────────────
 
   databases:
-    description: "[pending — import from MacBook]"
-    status: stub
-    tasks: []
+    description: "Local PostgreSQL 16 + MongoDB 7 dev instances on ThinkPad"
+    status: active
+    tasks:
+      - id: DB-001
+        title: "PostgreSQL: initdb, create vibedev DB, start service"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [postgresql, setup]
+
+      - id: DB-002
+        title: "MongoDB: create data dir, start mongod, create vibedev DB"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [mongodb, setup]
+
+      - id: DB-003
+        title: "CI heartbeat DB connectivity test"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        depends_on: [DB-001, DB-002]
+        tags: [ci-cd, testing]
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: platform-sources
+  # ─────────────────────────────────────────────
 
   platform-sources:
-    description: "[pending — import from MacBook]"
-    status: stub
-    tasks: []
+    description: "Multi-language hello-world test suite: C++, Rust, Scala, Pascal, Fortran, React"
+    status: active
+    tasks:
+      - id: PLT-001
+        title: "C++ hello_test — compile and run (g++ / MSYS2)"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [cpp, testing]
+
+      - id: PLT-002
+        title: "Rust hello_test — cargo test"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [rust, testing]
+
+      - id: PLT-003
+        title: "Scala HelloTest — sbt test"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [scala, sbt, testing]
+
+      - id: PLT-004
+        title: "Pascal hello_test — fpc compile"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [pascal, fpc, testing]
+
+      - id: PLT-005
+        title: "Fortran hello_test — gfortran compile"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [fortran, gfortran, testing]
+
+      - id: PLT-006
+        title: "React hello_test — npm test + Playwright"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [react, playwright, testing, chrome, firefox]
+
+      - id: PLT-007
+        title: "CI heartbeat — first run of all 9 Actions jobs"
+        priority: high
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-007]
+        tags: [ci-cd, github-actions]
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: sandboxes
+  # ─────────────────────────────────────────────
 
   sandboxes:
     description: "ThinkPad-hosted test infrastructure — Docker, local services, emulators"
@@ -115,8 +498,7 @@ projects:
         priority: medium
         device: ThinkPad
         status: pending
-        tags: [sandbox, infrastructure, inventory]
-        notes: ""
+        tags: [sandbox, infrastructure]
 
       - id: SBX-002
         title: "Define Windows Chrome test runner configuration"
@@ -124,7 +506,47 @@ projects:
         device: ThinkPad
         status: pending
         tags: [chrome, windows, testing]
-        notes: ""
+
+
+  # ─────────────────────────────────────────────
+  # PROJECT: 8gsp (Sprint Management)
+  # ─────────────────────────────────────────────
+
+  8gsp:
+    description: "8GSP sprint coordination — CV ecosystem + 3-fold-path dev reference"
+    status: active
+    sprint_iteration: "v0.2"
+    reference_docs:
+      - "8gsp/8GSP-SESSION-HANDOFF-2026-03-21.md"
+    tasks:
+      - id: 8GSP-UPL-01
+        title: "Upload 3fold-path-devref-v159.docx to documentation repo"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, documentation, upload]
+
+      - id: 8GSP-UPL-02
+        title: "Upload 8gsp-b01-cv-audit-v1.0.docx"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, cv, upload]
+
+      - id: 8GSP-UPL-03
+        title: "Upload 8gsp-sprint-v02.docx (current sprint spec)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, sprint, upload]
+
+      - id: 8GSP-UPL-04
+        title: "Upload CV-Zemla-B-Technical-DE.docx (German B-track)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, cv, german, upload]
+
 
 # ─────────────────────────────────────────────
 # DEVICE-SPECIFIC QUEUES
@@ -133,19 +555,52 @@ projects:
 device_queues:
 
   ThinkPad:
-    current_session: "2026-03-21 — workspace init"
+    current_session: "2026-03-22 — macbook-merge + gates 3-7"
     active:
-      - GEN-001
-    pending:
       - GEN-003
+      - GEN-007
+    pending:
+      - GEN-008
+      - GEN-009
+      - GEN-010
+      - GEN-011
+      - GEN-012
+      - PLT-001
+      - PLT-002
+      - PLT-003
+      - PLT-004
+      - PLT-005
+      - PLT-006
+      - PLT-007
+      - DB-001
+      - DB-002
+      - DB-003
       - SBX-001
       - SBX-002
-    blocked:
-      - GEN-002  # waiting on MacBook sync
+    done:
+      - GEN-001
+      - GEN-002
+      - GEN-004
+      - GEN-005
+      - GEN-006
 
   MacBook:
-    current_session: "[unknown — sync pending]"
+    current_session: "2026-03-22 — CoWork brainstorm + GAL-D01 hotfix package + MOB-E01 epic (see 8gsp/8GSP-SESSION-HANDOFF-2026-03-21.md)"
+    next_session_priority: "GAL-D01-INV (P1 hotfix — DevTools investigation) + GEN-008 (clone repo via macbook-bootstrap.sh)"
     active: []
     pending:
-      - GEN-002
-    blocked: []
+      - GAL-D01-INV
+      - GAL-D01-FIX
+      - GAL-D01-TEST
+      - GAL-D01-REL
+      - GH-UPL-01
+      - GH-UPL-02
+      - GH-UPL-03
+      - 8GSP-UPL-01
+      - 8GSP-UPL-02
+      - 8GSP-UPL-03
+      - 8GSP-UPL-04
+      - GEN-008
+    blocked:
+      - C-00
+      - B-02
