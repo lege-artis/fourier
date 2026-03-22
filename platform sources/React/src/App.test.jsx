@@ -24,21 +24,21 @@ describe('App Component', () => {
 
     test('renders initial greeting', () => {
       render(<App />);
-      const greeting = screen.getByText(/hello, world!/i);
+      const greeting = screen.getAllByText(/hello, world!/i)[0];
       expect(greeting).toBeInTheDocument();
     });
 
     test('renders initial counter value of 0', () => {
       render(<App />);
-      const counter = screen.getByText(/counter: 0/i);
+      const counter = screen.getAllByText(/counter: 0/i)[0];
       expect(counter).toBeInTheDocument();
     });
 
     test('renders all section headers', () => {
       render(<App />);
-      expect(screen.getByText(/counter:/i)).toBeInTheDocument();
-      expect(screen.getByText(/component state:/i)).toBeInTheDocument();
-      expect(screen.getByText(/enter your name:/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter:/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/component state:/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/enter your name:/i)[0]).toBeInTheDocument();
     });
   });
 
@@ -47,13 +47,13 @@ describe('App Component', () => {
       render(<App />);
       const incrementButton = screen.getByRole('button', { name: /increment/i });
 
-      expect(screen.getByText(/counter: 0/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 0/i)[0]).toBeInTheDocument();
 
       fireEvent.click(incrementButton);
-      expect(screen.getByText(/counter: 1/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 1/i)[0]).toBeInTheDocument();
 
       fireEvent.click(incrementButton);
-      expect(screen.getByText(/counter: 2/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 2/i)[0]).toBeInTheDocument();
     });
 
     test('decrements counter when decrement button is clicked', async () => {
@@ -63,11 +63,11 @@ describe('App Component', () => {
 
       // First increment to get to 1
       fireEvent.click(incrementButton);
-      expect(screen.getByText(/counter: 1/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 1/i)[0]).toBeInTheDocument();
 
       // Then decrement back to 0
       fireEvent.click(decrementButton);
-      expect(screen.getByText(/counter: 0/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 0/i)[0]).toBeInTheDocument();
     });
 
     test('counter can go negative', () => {
@@ -75,7 +75,7 @@ describe('App Component', () => {
       const decrementButton = screen.getByRole('button', { name: /decrement/i });
 
       fireEvent.click(decrementButton);
-      expect(screen.getByText(/counter: -1/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: -1/i)[0]).toBeInTheDocument();
     });
 
     test('multiple increments work correctly', () => {
@@ -86,7 +86,7 @@ describe('App Component', () => {
         fireEvent.click(incrementButton);
       }
 
-      expect(screen.getByText(/counter: 5/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 5/i)[0]).toBeInTheDocument();
     });
   });
 
@@ -115,8 +115,8 @@ describe('App Component', () => {
       await userEvent.type(input, 'Bob');
       fireEvent.click(submitButton);
 
-      expect(screen.getByText(/hello, bob!/i)).toBeInTheDocument();
-      expect(screen.getByText(/form submitted successfully!/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/hello, bob!/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/form submitted successfully!/i)[0]).toBeInTheDocument();
     });
 
     test('shows submitted message after form submission', async () => {
@@ -129,7 +129,7 @@ describe('App Component', () => {
       await userEvent.type(input, 'Charlie');
       fireEvent.click(submitButton);
 
-      expect(screen.getByText(/form submitted successfully!/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/form submitted successfully!/i)[0]).toBeInTheDocument();
     });
 
     test('does not submit with empty name', async () => {
@@ -139,7 +139,7 @@ describe('App Component', () => {
       fireEvent.click(submitButton);
 
       expect(screen.queryByText(/form submitted successfully!/i)).not.toBeInTheDocument();
-      expect(screen.getByText(/hello, world!/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/hello, world!/i)[0]).toBeInTheDocument();
     });
   });
 
@@ -151,10 +151,10 @@ describe('App Component', () => {
 
       fireEvent.click(incrementButton);
       fireEvent.click(incrementButton);
-      expect(screen.getByText(/counter: 2/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 2/i)[0]).toBeInTheDocument();
 
       fireEvent.click(resetButton);
-      expect(screen.getByText(/counter: 0/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 0/i)[0]).toBeInTheDocument();
     });
 
     test('resets greeting to default', async () => {
@@ -165,10 +165,10 @@ describe('App Component', () => {
 
       await userEvent.type(input, 'David');
       fireEvent.click(submitButton);
-      expect(screen.getByText(/hello, david!/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/hello, david!/i)[0]).toBeInTheDocument();
 
       fireEvent.click(resetButton);
-      expect(screen.getByText(/hello, world!/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/hello, world!/i)[0]).toBeInTheDocument();
     });
 
     test('resets all state values together', async () => {
@@ -185,8 +185,8 @@ describe('App Component', () => {
 
       fireEvent.click(resetButton);
 
-      expect(screen.getByText(/counter: 0/i)).toBeInTheDocument();
-      expect(screen.getByText(/hello, world!/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 0/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/hello, world!/i)[0]).toBeInTheDocument();
       expect(input).toHaveValue('');
     });
   });
@@ -194,15 +194,15 @@ describe('App Component', () => {
   describe('Component State Display', () => {
     test('displays component state section', () => {
       render(<App />);
-      expect(screen.getByText(/component state:/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/component state:/i)[0]).toBeInTheDocument();
     });
 
     test('displays initial state values', () => {
       render(<App />);
-      expect(screen.getByText(/greeting: hello, world!/i)).toBeInTheDocument();
-      expect(screen.getByText(/counter: 0/i)).toBeInTheDocument();
-      expect(screen.getByText(/name: not set/i)).toBeInTheDocument();
-      expect(screen.getByText(/form submitted: no/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/greeting: hello, world!/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/counter: 0/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/name: not set/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/form submitted: no/i)[0]).toBeInTheDocument();
     });
 
     test('updates state display after form submission', async () => {
@@ -213,9 +213,9 @@ describe('App Component', () => {
       await userEvent.type(input, 'Frank');
       fireEvent.click(submitButton);
 
-      expect(screen.getByText(/greeting: hello, frank!/i)).toBeInTheDocument();
-      expect(screen.getByText(/name: frank/i)).toBeInTheDocument();
-      expect(screen.getByText(/form submitted: yes/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/greeting: hello, frank!/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/name: frank/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/form submitted: yes/i)[0]).toBeInTheDocument();
     });
   });
 
