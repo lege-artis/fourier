@@ -1,0 +1,58 @@
+# queue-macbook.yaml — MacBook session queue
+# Authority: MacBook ONLY — ThinkPad must never write this file
+# Contains: session-local active/pending state for MacBook-assigned tasks
+# Merge: .gitattributes → merge=ours (MacBook always wins on this file)
+# Cross-ref: task specs live in TASKS-shared.yaml
+
+meta:
+  device: MacBook
+  schema_version: "2.0.0"
+  current_session: "2026-03-22 — git-workflow migration + TASKS split"
+  ssh_key_fingerprint: "SHA256:J7xkMdGfpsTbw7tCNrnAMc0yfOnm/O4QRrT+4l+1MPQ"
+  last_sync_commit: "1d29cf2"
+
+# ── Session state ────────────────────────────────────────────────────────────
+# active: being worked on RIGHT NOW in this session (max 1-2 at a time)
+# pending: queued for this device, not yet started
+# done: completed on this device (canonical status updated in TASKS-shared.yaml)
+# blocked: waiting on external input or another task
+
+session:
+  active:
+    - id: GW-001
+      note: "TASKS split migration — in progress this session"
+
+  pending:
+    # P1 hotfix track (highest priority, unblocked)
+    - GAL-D01-INV
+    - GAL-D01-FIX
+    - GAL-D01-TEST
+    - GAL-D01-REL
+    # GitHub uploads
+    - GH-UPL-01
+    - GH-UPL-02
+    - GH-UPL-03
+    # 8GSP docs
+    - 8GSP-UPL-01
+    - 8GSP-UPL-02
+    - 8GSP-UPL-03
+    - 8GSP-UPL-04
+    # OAuth2.0 WordPress integration (MacBook-assigned)
+    - AUTH-004
+    # git-workflow validation
+    - GW-006
+
+  done:
+    - GEN-008
+    - MAC-S01
+    - MI-M-T-D01
+    - GW-001
+    - GW-002
+    - GW-003
+    - GW-004
+
+  blocked:
+    - id: C-00
+      reason: "Awaiting source files from user"
+    - id: B-02
+      reason: "Requires manual LinkedIn write access"

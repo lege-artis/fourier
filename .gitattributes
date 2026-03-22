@@ -1,1 +1,18 @@
-TASKS.yaml merge=union
+# .gitattributes — merge strategies per file pattern
+# task-integrity-check CI job validates TASKS-shared.yaml on every push
+
+# ── Semantic merge driver (requires _config/merge-tasks.py + git config) ─────
+# Register on each device:
+#   git config merge.tasks-merge.name "Semantic YAML task merge"
+#   git config merge.tasks-merge.driver "_config/merge-tasks.py %O %A %B %L"
+TASKS-shared.yaml   merge=tasks-merge
+
+# ── Device-exclusive queue files (each device always wins on its own file) ───
+queue-macbook.yaml  merge=ours
+queue-thinkpad.yaml merge=ours
+
+# ── MANIFEST: sync-main.sh owns this — always use the post-merge version ─────
+MANIFEST.yaml       merge=ours
+
+# ── Legacy alias: keep union merge on TASKS.yaml during transition period ─────
+TASKS.yaml          merge=union

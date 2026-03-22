@@ -1,0 +1,79 @@
+# queue-thinkpad.yaml — ThinkPad session queue
+# Authority: ThinkPad ONLY — MacBook must never write this file
+# Contains: session-local active/pending state for ThinkPad-assigned tasks
+# Merge: .gitattributes → merge=ours (ThinkPad always wins on this file)
+# Cross-ref: task specs live in TASKS-shared.yaml
+
+meta:
+  device: ThinkPad
+  schema_version: "2.0.0"
+  current_session: "2026-03-22 — macbook-merge + gates 3-7"
+  ssh_key_fingerprint: "SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24"
+  last_sync_commit: "8ceff7f"
+
+# ── Session state ────────────────────────────────────────────────────────────
+
+session:
+  active:
+    - id: GEN-003
+      note: "SSH key active, repo sync in progress"
+    - id: GEN-007
+      note: "Commit 468b993 done (30 files). Repo creation in progress."
+
+  pending:
+    # Gates (ordered dependency chain)
+    - GEN-009
+    - GEN-010
+    - GEN-011
+    - GEN-012
+    # Database setup (unblocks log-infra)
+    - DB-001
+    - DB-002
+    - DB-003
+    # Log infra (after GEN-011 + DB-002)
+    - LOG-001
+    - LOG-002
+    - LOG-003
+    - LOG-004
+    - LOG-005
+    - LOG-006
+    # ML infra (after GEN-011)
+    - TF-001
+    - TF-002
+    - TF-003
+    - TF-004
+    - TF-005
+    - TF-006
+    - TF-007
+    # OAuth2.0 backend connectors
+    - AUTH-001
+    - AUTH-002
+    - AUTH-003
+    - AUTH-005
+    - AUTH-006
+    # Platform source tests
+    - PLT-001
+    - PLT-002
+    - PLT-003
+    - PLT-004
+    - PLT-005
+    - PLT-006
+    - PLT-007
+    # Sandboxes
+    - SBX-001
+    - SBX-002
+    # git-workflow (register merge driver + validate)
+    - GW-005
+    - GW-006
+    - GW-007
+    - GW-008
+    - GW-009
+
+  done:
+    - GEN-001
+    - GEN-002
+    - GEN-004
+    - GEN-005
+    - GEN-006
+
+  blocked: []

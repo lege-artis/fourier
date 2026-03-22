@@ -1,0 +1,815 @@
+# TASKS-shared.yaml — Canonical project task registry
+# Authority: shared (both devices read/write via semantic merge driver)
+# Merge: _config/merge-tasks.py (semantic, field-level, ID-keyed)
+# Integrity: _tests/test_task_integrity.py (CI: task-integrity-check job)
+# DO NOT store session-local queue state here — use queue-macbook.yaml / queue-thinkpad.yaml
+# Version history: MANIFEST.yaml
+
+meta:
+  schema_version: "2.0.0"
+  last_updated: "2026-03-22"
+  updated_by: "MacBook / CoWork session 2026-03-22 (split migration)"
+  task_registry_version: "1.4.0"
+  valid_statuses:    [pending, open, in-progress, done, blocked, stub]
+  valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
+  valid_devices:     [MacBook, ThinkPad, any]
+  projects:
+    - 3-fold-path
+    - 4-step-noble-steps-to-MI-M-T
+    - 6th-element-chain
+    - Generic
+    - databases
+    - log-infra
+    - ml-infra
+    - oauth2
+    - platform-sources
+    - sandboxes
+    - 8gsp
+    - git-workflow
+
+
+# ═══════════════════════════════════════════════════════
+# PROJECT: 3-fold-path
+# Sites: zemla.org / mim2000.cz / bodyterapie.com
+# ═══════════════════════════════════════════════════════
+
+projects:
+
+  3-fold-path:
+    description: "WordPress multi-site ecosystem — zemla.org, mim2000.cz, bodyterapie.com — shared 3-fold-path base library"
+    status: active
+    current_versions:
+      zemla:       "v1.6.2 LIVE"
+      mim2000:     "v1.5.5 LIVE"
+      bodyterapie: "v1.1.5 LIVE"
+    tasks:
+
+      # ── HOTFIX TRACK ──────────────────────────────────────────────────────────
+
+      - id: GAL-D01-INV
+        title: "Gallery contracted layout — root cause confirmation (DevTools)"
+        priority: P1-critical
+        device: MacBook
+        status: open
+        tags: [hotfix, gallery, css, all-sites]
+        notes: |
+          Inspect .gallery / .wp-block-gallery / figure.wp-block-gallery.
+          Check width, max-width, flex-basis, grid-column.
+          Evidence: ~440px container, dead space right side, captions invisible.
+          Tool: 3-fold-path/hotfix/GAL-D01-devtools-diagnostic.js
+          Ref:  3-fold-path/hotfix/HOTFIX-GAL-D01-defect-report.md
+
+      - id: GAL-D01-FIX
+        title: "Apply CSS fix to 3-fold-path shared base stylesheet"
+        priority: P1-critical
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-INV]
+        tags: [hotfix, gallery, css, all-sites]
+        notes: |
+          Fix gallery width + caption visibility in shared style.css / gallery.css.
+          Single patch resolves all three sites.
+          Spec: 3-fold-path/hotfix/HOTFIX-GAL-D01-defect-report.md (FIX-1, FIX-2, FIX-3)
+
+      - id: GAL-D01-TEST
+        title: "Cross-browser / cross-device / all-locale gallery regression test"
+        priority: P1-critical
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-FIX]
+        tags: [hotfix, gallery, testing, safari, chrome, firefox]
+        notes: |
+          Test: Safari macOS+iOS, Chrome desktop+Android, Firefox.
+          Viewports: 1440px / 1024px / 860px / 480px. All locales.
+          Checklist: 3-fold-path/hotfix/HOTFIX-GAL-D01-defect-report.md
+
+      - id: GAL-D01-REL
+        title: "Release hotfix: zemla v1.6.3 / mim2000 v1.5.6 / bodyterapie v1.1.6"
+        priority: P1-critical
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-TEST]
+        tags: [hotfix, release, github]
+        notes: |
+          Stubs ready:
+            3-fold-path/releases/RELEASE-zemla-v1.6.3-HOTFIX-GAL-D01.md
+            3-fold-path/releases/RELEASE-mim2000-v1.5.6-HOTFIX-GAL-D01.md
+            3-fold-path/releases/RELEASE-bodyterapie-v1.1.6-HOTFIX-GAL-D01.md
+
+      # ── GITHUB UPLOADS ────────────────────────────────────────────────────────
+
+      - id: GH-UPL-01
+        title: "Upload zemla-theme-v1.6.2.zip to GitHub Release v1.6.2"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [github, release, zemla]
+
+      - id: GH-UPL-02
+        title: "Upload mim2000-theme-v1.5.5.zip to GitHub Release v1.5.5"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [github, release, mim2000]
+
+      - id: GH-UPL-03
+        title: "Upload bodyterapie-theme-v1.1.5.zip to GitHub Release v1.1.5"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [github, release, bodyterapie]
+
+      # ── SPRINT BACKLOG: MOB-E01 ───────────────────────────────────────────────
+
+      - id: Z-MOB-02
+        title: "zemla.org mobile baseline regression audit (confirm v1.6.2 clean)"
+        priority: P2-high
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-REL]
+        tags: [mobile, audit, zemla]
+
+      - id: Z-MOB-01
+        title: "Extract zemla mobile patterns into 3-fold-path library"
+        priority: P2-high
+        device: MacBook
+        status: open
+        depends_on: [Z-MOB-02]
+        tags: [mobile, library, zemla]
+
+      - id: M-MOB-02
+        title: "mim2000.cz mobile fine-tuning (post v1.2.1 edge cases)"
+        priority: P2-high
+        device: MacBook
+        status: open
+        depends_on: [GAL-D01-REL]
+        tags: [mobile, audit, mim2000]
+
+      - id: M-MOB-01
+        title: "Extract mim2000 mobile patterns into 3-fold-path library"
+        priority: P2-high
+        device: MacBook
+        status: open
+        depends_on: [M-MOB-02]
+        tags: [mobile, library, mim2000]
+
+      - id: B-MOB-04
+        title: "Align bodyterapie breakpoints to 3-fold-path CSS variables"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [Z-MOB-01, M-MOB-01]
+        tags: [mobile, css, bodyterapie]
+
+      - id: B-MOB-01
+        title: "Port fp-mobile-nav grid from mim2000 v1.2.1 to bodyterapie"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [B-MOB-04]
+        tags: [mobile, nav, bodyterapie]
+
+      - id: B-MOB-02
+        title: "Typography and spacing alignment at 480px/860px on bodyterapie"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [B-MOB-04]
+        tags: [mobile, typography, bodyterapie]
+
+      - id: B-MOB-03
+        title: "Mobile functionality fine-tune (forms, language switcher, booking)"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [B-MOB-01, B-MOB-02]
+        tags: [mobile, ux, bodyterapie]
+
+      - id: B-MOB-05
+        title: "Full cross-browser / cross-device / 4-language regression test (bodyterapie)"
+        priority: P3-medium
+        device: MacBook
+        status: open
+        depends_on: [B-MOB-03]
+        tags: [testing, regression, bodyterapie, safari, chrome]
+
+      # ── 8GSP DOCS UPLOAD ──────────────────────────────────────────────────────
+
+      - id: 8GSP-UPL-01
+        title: "Upload 3fold-path-devref-v159.docx to documentation repo"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, documentation, upload]
+
+      - id: 8GSP-UPL-02
+        title: "Upload 8gsp-b01-cv-audit-v1.0.docx"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, cv, upload]
+
+      - id: 8GSP-UPL-03
+        title: "Upload 8gsp-sprint-v02.docx (current sprint spec)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, sprint, upload]
+
+      - id: 8GSP-UPL-04
+        title: "Upload CV-Zemla-B-Technical-DE.docx (German B-track)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [8gsp, cv, german, upload]
+
+      # ── MACBOOK SESSION DELIVERABLES ──────────────────────────────────────────
+
+      - id: MAC-S01
+        title: "CoWork session deliverables staged for VibeCodeProjects commit"
+        priority: P2-high
+        device: MacBook
+        status: done
+        tags: [macbook, session, commit-ready]
+
+      # ── BLOCKED ───────────────────────────────────────────────────────────────
+
+      - id: C-00
+        title: "Sci and Buddha Keynote baseline recovery"
+        priority: P1-critical
+        device: any
+        status: blocked
+        tags: [keynote, content]
+        notes: "Blocked: awaiting source files from user. Unblocks C-02a/b/c/d."
+
+      - id: B-02
+        title: "LinkedIn profile alignment (R-07)"
+        priority: P2-high
+        device: any
+        status: blocked
+        tags: [linkedin, cv]
+        notes: "Requires manual LinkedIn write access by user."
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: 4-step-noble-steps-to-MI-M-T
+  # ═══════════════════════════════════════════════════════
+
+  4-step-noble-steps-to-MI-M-T:
+    description: "MI-M-T module — Step 1 implemented in zemla v1.6.2 (D-01). Steps 2-4 pending."
+    status: active
+    tasks:
+
+      - id: MI-M-T-D01
+        title: "Step 1 complete — zemla v1.6.2 (D-01)"
+        priority: P3-medium
+        device: MacBook
+        status: done
+        tags: [mi-m-t, zemla, step-1]
+        notes: "Mermaid classDiagram, 5-locale seeder, page template delivered in v1.6.2."
+
+      - id: MI-M-T-D02
+        title: "Step 2 — scope TBD, decoded from backlog carry-forward"
+        priority: P3-medium
+        device: MacBook
+        status: pending
+        tags: [mi-m-t, step-2]
+        notes: "Carry forward from zemla v1.6.2. Scope to be confirmed next sprint."
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: 6th-element-chain
+  # ═══════════════════════════════════════════════════════
+
+  6th-element-chain:
+    description: "[pending — scope to be defined in sprint planning]"
+    status: stub
+    tasks: []
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: Generic
+  # ═══════════════════════════════════════════════════════
+
+  Generic:
+    description: "Shared templates, reusable assets, cross-project utilities, workspace infrastructure"
+    status: active
+    tasks:
+
+      - id: GEN-001
+        title: "Set up workspace scaffold on ThinkPad"
+        priority: high
+        device: ThinkPad
+        status: done
+        tags: [setup, infrastructure]
+
+      - id: GEN-002
+        title: "Import and merge MacBook master task list"
+        priority: high
+        device: ThinkPad
+        status: done
+        tags: [sync, setup]
+
+      - id: GEN-003
+        title: "Configure shared Git remote for cross-device sync"
+        priority: high
+        device: ThinkPad
+        status: in-progress
+        tags: [git, sync, infrastructure]
+
+      - id: GEN-004
+        title: "GitHub SSH key registered (ThinkPad)"
+        priority: high
+        device: ThinkPad
+        status: done
+        tags: [github, ssh, auth]
+        notes: "ED25519 ThinkPad-dev-2026. Fingerprint: SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24"
+
+      - id: GEN-005
+        title: "GitHub PAT generated and encrypted (ThinkPad)"
+        priority: high
+        device: ThinkPad
+        status: done
+        tags: [github, pat, auth, security]
+
+      - id: GEN-006
+        title: "Dev toolchain fully installed on ThinkPad"
+        priority: high
+        device: ThinkPad
+        status: done
+        tags: [windows, setup, install]
+        notes: "gfortran 15.2, fpc 3.2.2, sbt 1.12.6, node, rust, java, docker, gh — all on PATH."
+
+      - id: GEN-007
+        title: "Push workspace to GitHub (Gate 3)"
+        priority: high
+        device: ThinkPad
+        status: in-progress
+        tags: [github, git, init]
+
+      - id: GEN-008
+        title: "MacBook GitHub connection setup"
+        priority: high
+        device: MacBook
+        status: done
+        tags: [github, ssh, macbook, sync]
+        notes: |
+          Completed 2026-03-22. SSH key MacBook-dev-2026 ED25519.
+          Fingerprint: SHA256:J7xkMdGfpsTbw7tCNrnAMc0yfOnm/O4QRrT+4l+1MPQ
+          Repo cloned ~/Documents/VibeCodeProjects. Branch macbook created.
+          Auto-conflict: pull.rebase=true, merge=union, GIT_EDITOR=true.
+
+      - id: GEN-009
+        title: "Gate 4: PostgreSQL + MongoDB local dev instances"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [database, postgresql, mongodb]
+
+      - id: GEN-010
+        title: "Gate 5: Environment variables + GitHub Actions secrets"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [env, ci-cd, github-actions]
+
+      - id: GEN-011
+        title: "Gate 6: Docker Desktop first launch + act local runner"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [docker, act, ci-cd]
+
+      - id: GEN-012
+        title: "Gate 7: LibreOffice + TexLive migrate to D:\\"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [libreoffice, texlive, migration]
+        notes: "Run _config/libreoffice-migrate-to-D.ps1 -Phase restore"
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: databases
+  # ═══════════════════════════════════════════════════════
+
+  databases:
+    description: "Local PostgreSQL 16 + MongoDB 7 dev instances on ThinkPad"
+    status: active
+    tasks:
+
+      - id: DB-001
+        title: "PostgreSQL: initdb, create vibedev DB, start service"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [postgresql, setup]
+
+      - id: DB-002
+        title: "MongoDB: create data dir, start mongod, create vibedev DB"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [mongodb, setup]
+
+      - id: DB-003
+        title: "CI heartbeat DB connectivity test"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        depends_on: [DB-001, DB-002]
+        tags: [ci-cd, testing]
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: log-infra
+  # Hybrid log stack: MongoDB vibedev.logs + Elasticsearch
+  # Design: infra/LOG-ARCHITECTURE.md
+  # ═══════════════════════════════════════════════════════
+
+  log-infra:
+    description: "Hybrid log stack — MongoDB app runtime logs + Elasticsearch CI/test/DB diagnostics. Fluent Bit shipper, Kibana dashboard."
+    status: pending-implementation
+    reference_docs:
+      - "infra/LOG-ARCHITECTURE.md"
+      - "infra/connectors/LOG-CONNECTOR-SPEC.md"
+    tasks:
+
+      - id: LOG-001
+        title: "Deploy ES + Kibana + Fluent Bit stack via Docker Compose"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-011]
+        tags: [elasticsearch, kibana, fluent-bit, docker, infra]
+        notes: |
+          ES 8.13.0 (9200), Kibana (5601), Fluent Bit 3.0 (24224/2020).
+          Validate: curl http://localhost:9200/_cluster/health → green/yellow.
+
+      - id: LOG-002
+        title: "Implement log-connector-node (Winston → MongoDB + ES)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-001, DB-002]
+        tags: [nodejs, winston, mongodb, elasticsearch, connector]
+
+      - id: LOG-003
+        title: "Implement log-connector-python (logging → MongoDB + ES)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-001, DB-002]
+        tags: [python, pymongo, elasticsearch, connector]
+
+      - id: LOG-004
+        title: "Implement log-connector-github-actions (composite action → ES)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-001]
+        tags: [github-actions, elasticsearch, ci-cd, connector]
+
+      - id: LOG-005
+        title: "CI log-infra-test job: ES ingestion smoke test"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-004, GEN-010]
+        tags: [ci-cd, github-actions, elasticsearch, smoke-test]
+
+      - id: LOG-006
+        title: "MongoDB TTL index + retention policy on vibedev.logs"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [DB-002]
+        tags: [mongodb, index, retention, ttl]
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: ml-infra
+  # TF Serving microservice + training pipeline
+  # Design: infra/ML-ARCHITECTURE.md
+  # ═══════════════════════════════════════════════════════
+
+  ml-infra:
+    description: "TF Serving Docker microservice (REST 8501 / gRPC 8500) + Python training pipeline + 4-language connectors."
+    status: pending-implementation
+    reference_docs:
+      - "infra/ML-ARCHITECTURE.md"
+      - "infra/connectors/TF-CONNECTOR-SPEC.md"
+    tasks:
+
+      - id: TF-001
+        title: "Deploy TF Serving Docker stack + model registry scaffold"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-011]
+        tags: [tensorflow, docker, model-registry, infra]
+
+      - id: TF-002
+        title: "Python training pipeline + model validation scripts"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001]
+        tags: [python, tensorflow, training, validation]
+
+      - id: TF-003
+        title: "Implement tf-connector-node (REST, native fetch, Node 18+)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001]
+        tags: [nodejs, tensorflow, rest, connector]
+
+      - id: TF-004
+        title: "Implement tf-connector-scala-grpc (ScalaPB + grpc-netty)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-003]
+        tags: [scala, grpc, tensorflow, scalapb, connector]
+
+      - id: TF-005
+        title: "Implement tf-connector-rust-rest (reqwest + serde_json + tokio)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-002]
+        tags: [rust, reqwest, tensorflow, rest, connector]
+
+      - id: TF-006
+        title: "Implement tf-connector-rust-grpc (tonic + prost + tonic-build)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-002]
+        tags: [rust, grpc, tonic, prost, tensorflow, connector]
+
+      - id: TF-007
+        title: "CI ml-train-validate + ml-serve-test jobs in ci-heartbeat.yml"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-002, TF-003, TF-004, TF-005, GEN-010]
+        tags: [ci-cd, github-actions, tensorflow, training, smoke-test]
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: oauth2
+  # Authorization + authentication layer
+  # ═══════════════════════════════════════════════════════
+
+  oauth2:
+    description: "OAuth2.0 authorization + authentication components. Node.js/Python backends, WordPress SSO, GitHub Actions OIDC."
+    status: pending-scoping
+    tasks:
+
+      - id: AUTH-001
+        title: "OAuth2.0 provider evaluation and ADR"
+        priority: P3-medium
+        device: any
+        status: pending
+        tags: [oauth2, auth, planning, provider]
+        notes: "Output: infra/auth/AUTH-PROVIDER-ADR.md. Options: Keycloak, Auth0, GitHub OAuth, PKCE."
+
+      - id: AUTH-002
+        title: "OAuth2.0 Node.js integration module (openid-client + PKCE)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [AUTH-001]
+        tags: [oauth2, nodejs, pkce, connector]
+
+      - id: AUTH-003
+        title: "OAuth2.0 Python integration module (authlib + FastAPI/Flask)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [AUTH-001]
+        tags: [oauth2, python, authlib, jwt, connector]
+
+      - id: AUTH-004
+        title: "WordPress OAuth2.0 SSO plugin integration (3-fold-path sites)"
+        priority: P3-medium
+        device: MacBook
+        status: pending
+        depends_on: [AUTH-001]
+        tags: [oauth2, wordpress, sso, 3-fold-path]
+
+      - id: AUTH-005
+        title: "GitHub Actions OIDC token integration (keyless CI/CD auth)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-010]
+        tags: [oauth2, github-actions, oidc, ci-cd, security]
+
+      - id: AUTH-006
+        title: "Auth integration smoke tests (token flow end-to-end per connector)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [AUTH-002, AUTH-003, AUTH-005]
+        tags: [oauth2, testing, integration, smoke-test]
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: platform-sources
+  # ═══════════════════════════════════════════════════════
+
+  platform-sources:
+    description: "Multi-language hello-world test suite: C++, Rust, Scala, Pascal, Fortran, React"
+    status: active
+    tasks:
+
+      - id: PLT-001
+        title: "C++ hello_test — compile and run (g++ / MSYS2)"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [cpp, testing]
+
+      - id: PLT-002
+        title: "Rust hello_test — cargo test"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [rust, testing]
+
+      - id: PLT-003
+        title: "Scala HelloTest — sbt test"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [scala, sbt, testing]
+
+      - id: PLT-004
+        title: "Pascal hello_test — fpc compile"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [pascal, fpc, testing]
+
+      - id: PLT-005
+        title: "Fortran hello_test — gfortran compile"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [fortran, gfortran, testing]
+
+      - id: PLT-006
+        title: "React hello_test — npm test + Playwright"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [react, playwright, testing, chrome, firefox]
+
+      - id: PLT-007
+        title: "CI heartbeat — first run of all Actions jobs"
+        priority: high
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-007]
+        tags: [ci-cd, github-actions]
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: sandboxes
+  # ═══════════════════════════════════════════════════════
+
+  sandboxes:
+    description: "ThinkPad-hosted test infrastructure — Docker, local services, emulators"
+    status: active
+    tasks:
+
+      - id: SBX-001
+        title: "Inventory existing sandbox environments"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [sandbox, infrastructure]
+
+      - id: SBX-002
+        title: "Define Windows Chrome test runner configuration"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [chrome, windows, testing]
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: 8gsp
+  # ═══════════════════════════════════════════════════════
+
+  8gsp:
+    description: "8GSP sprint coordination — CV ecosystem + 3-fold-path dev reference"
+    status: active
+    sprint_iteration: "v0.2"
+    reference_docs:
+      - "8gsp/8GSP-SESSION-HANDOFF-2026-03-21.md"
+    tasks: []
+    # Tasks tracked under 3-fold-path (8GSP-UPL-01..04) — cross-referenced above
+
+
+  # ═══════════════════════════════════════════════════════
+  # PROJECT: git-workflow
+  # Cross-device conflict elimination
+  # Pattern: file-split + semantic merge + TDD integrity
+  # ═══════════════════════════════════════════════════════
+
+  git-workflow:
+    description: "Robust dual-device Git workflow: concern-level file split, semantic YAML merge driver, TDD project integrity checks."
+    status: active
+    reference_docs:
+      - "_config/merge-tasks.py"
+      - "_config/sync-main.sh"
+      - "_tests/test_task_integrity.py"
+    tasks:
+
+      - id: GW-001
+        title: "Migrate TASKS.yaml → TASKS-shared + queue-macbook + queue-thinkpad + MANIFEST"
+        priority: P1-critical
+        device: MacBook
+        status: done
+        tags: [git-workflow, migration, yaml]
+        notes: "Completed 2026-03-22 CoWork session. TASKS.yaml retained as legacy alias."
+
+      - id: GW-002
+        title: "Deploy semantic merge driver _config/merge-tasks.py"
+        priority: P1-critical
+        device: MacBook
+        status: done
+        tags: [git-workflow, merge-driver, python]
+        notes: "Registered in .gitattributes. Requires Python 3.8+ on both devices."
+
+      - id: GW-003
+        title: "Deploy sync-main.sh merge gate — replace direct macbook:main push"
+        priority: P1-critical
+        device: both
+        status: done
+        tags: [git-workflow, sync, shell]
+        notes: |
+          chmod +x _config/sync-main.sh
+          Add alias: git config --global alias.sync-main '!~/Documents/VibeCodeProjects/_config/sync-main.sh'
+
+      - id: GW-004
+        title: "Deploy _tests/test_task_integrity.py + CI task-integrity-check job"
+        priority: P1-critical
+        device: MacBook
+        status: done
+        tags: [git-workflow, testing, ci-cd, tdd]
+        notes: "Runs on push to macbook/thinkpad/main. Blocks sync-main if fails."
+
+      - id: GW-005
+        title: "Register merge driver on ThinkPad (git config + .gitattributes pull)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [GW-002]
+        tags: [git-workflow, thinkpad, merge-driver]
+        notes: |
+          Run on ThinkPad after pulling main:
+            git config merge.tasks-merge.name "Semantic YAML task merge"
+            git config merge.tasks-merge.driver "_config/merge-tasks.py %O %A %B %L"
+
+      - id: GW-006
+        title: "Validate integrity check green on both device branches"
+        priority: P2-high
+        device: both
+        status: pending
+        depends_on: [GW-004, GW-005]
+        tags: [git-workflow, validation, ci-cd]
+        notes: "pytest _tests/test_task_integrity.py must pass locally before first sync-main.sh run."
+
+      - id: GW-007
+        title: "Extend integrity checks: circular dependency detection"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [GW-004]
+        tags: [git-workflow, testing, graph, tdd]
+        notes: "Add test_no_circular_dependencies() using DFS cycle detection on depends_on graph."
+
+      - id: GW-008
+        title: "Extend integrity checks: version monotonicity across MANIFEST + release notes"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [GW-004]
+        tags: [git-workflow, testing, versioning, tdd]
+        notes: "Cross-validate MANIFEST.yaml versions against release note filenames in 3-fold-path/releases/."
+
+      - id: GW-009
+        title: "Add CI-authored status events: completed platform tests auto-close PLT-* tasks"
+        priority: P4-low
+        device: ThinkPad
+        status: pending
+        depends_on: [GW-004, PLT-007]
+        tags: [git-workflow, event-sourcing, ci-cd, automation]
+        notes: |
+          Post-green CI run: GitHub Actions job updates queue-thinkpad.yaml task status to done.
+          Prototype of event-sourcing lite pattern. Unblocks auto-advancement of task state.
