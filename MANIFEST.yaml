@@ -4,9 +4,9 @@
 # Merge: .gitattributes → merge=ours (sync-main.sh owns this file)
 
 schema_version: "2.0.0"
-last_sync: "2026-03-22T14:30:00+01:00"
-last_sync_commit: "1d29cf2"
-synced_by: "MacBook / sync-main.sh"
+last_sync: "2026-03-22T20:56:10Z"
+last_sync_commit: "92f2128"
+synced_by: "sync-main.sh [macbook]"
 
 # ── Live deployed versions ───────────────────────────────────────────────────
 live_versions:
