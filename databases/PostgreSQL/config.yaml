@@ -1,0 +1,43 @@
+# PostgreSQL — Dev Instance Configuration
+# Target: Windows ThinkPad local install
+# Licence: PostgreSQL Licence (free, open source)
+
+instance:
+  version: "16.x"
+  host: "127.0.0.1"
+  port: 5432
+  data_dir: "C:\\Users\\vitez\\Documents\\VibeCodeProjects\\databases\\PostgreSQL\\data"
+  log_dir:  "C:\\Users\\vitez\\Documents\\VibeCodeProjects\\databases\\PostgreSQL\\logs"
+
+databases:
+  - name: vibedev
+    owner: vibedev_user
+    encoding: UTF8
+    collation: en_US.UTF-8
+
+users:
+  - name: vibedev_user
+    role: CREATEDB
+    note: "password stored in local .env — never committed"
+
+auth:
+  localhost: md5
+  socket: peer
+
+connection_string_template: "postgresql://vibedev_user:<password>@127.0.0.1:5432/vibedev"
+
+connectors:
+  python:   "psycopg2-binary / SQLAlchemy"
+  node:     "pg / node-postgres"
+  rust:     "tokio-postgres / diesel"
+  scala:    "doobie / slick"
+
+startup:
+  windows_service: "postgresql-x64-16"
+  start_cmd: "net start postgresql-x64-16"
+  stop_cmd:  "net stop postgresql-x64-16"
+  status_cmd: "pg_ctl status -D C:\\Users\\vitez\\Documents\\VibeCodeProjects\\databases\\PostgreSQL\\data"
+
+heartbeat_query: "SELECT version(), now();"
+
+github_secret_name: "DB_PASSWORD"

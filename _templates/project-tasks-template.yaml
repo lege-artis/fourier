@@ -1,0 +1,27 @@
+# Project Task Template
+# Copy to: <project-name>/TASKS.yaml and fill in fields
+# Sync via Git — MacBook is source of truth for task status
+
+project:
+  name: "<project-name>"
+  codename: "<codename-if-any>"
+  description: "<one-liner>"
+  status: active  # active | paused | completed | archived
+  owner_device: MacBook  # MacBook (analytics lead) | ThinkPad (dev lead)
+  platforms:
+    - web-chrome-windows    # ThinkPad test target
+    - web-safari-macos      # MacBook test target
+    - api-backend           # both
+    - electron-desktop      # both
+
+tasks:
+  - id: "<PRJ>-001"
+    title: "<task title>"
+    priority: medium        # critical | high | medium | low
+    device: ThinkPad        # ThinkPad | MacBook | both
+    status: pending         # pending | in-progress | blocked | review | done
+    tags: []
+    depends_on: []
+    notes: ""
+    created: "YYYY-MM-DD"
+    updated: "YYYY-MM-DD"

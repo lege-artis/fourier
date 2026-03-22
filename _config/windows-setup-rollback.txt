@@ -1,0 +1,41 @@
+﻿ROLLBACK PROCEDURE NOTES:
+
+To uninstall all installed tools, use the following commands:
+
+1. VS Code:
+   winget uninstall Microsoft.VisualStudioCode
+
+2. Git:
+   winget uninstall Git.Git
+
+3. Node.js LTS:
+   winget uninstall OpenJS.NodeJS.LTS
+
+4. Rust:
+   winget uninstall Rustlang.Rust.MSVC
+   # Also remove: C:\Users\{username}\.cargo and C:\Users\{username}\.rustup
+
+5. Free Pascal:
+   winget uninstall FreePascal.FreePascal
+
+6. OpenJDK 17:
+   winget uninstall EclipseAdoptium.Temurin.17.JDK
+
+7. SBT:
+   winget uninstall Lightbend.SBT
+
+8. MSYS2/GFortran:
+   winget uninstall msys2.msys2
+   # Manually delete: C:\msys64
+
+9. Docker Desktop:
+   winget uninstall Docker.DockerDesktop
+
+10. GitHub CLI:
+    winget uninstall GitHub.cli
+
+NOTES:
+- Some tools may require system restart to fully uninstall
+- Environment PATH variables may need manual cleanup
+- User directories (.cargo, .rustup, .sbt, .gradle) may need manual deletion
+- Docker Desktop may require additional cleanup in Windows Services

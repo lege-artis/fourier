@@ -1,0 +1,151 @@
+# Master Task List — Cross-Device Workspace
+# Sync: Git (origin/main) | Devices: ThinkPad + MacBook
+# Format: YAML | Owner: MacBook (source of truth) | Last sync: 2026-03-21
+
+meta:
+  workspace_version: "1.1.0"
+  last_updated: "2026-03-22"
+  updated_by: "ThinkPad / session-github-auth"
+  sync_status: "pending-macbook-merge"
+  projects:
+    - 3-fold-path
+    - 4-step-noble-steps-to-MI-M-T
+    - 6th-element-chain
+    - Generic
+    - databases
+    - platform-sources
+    - sandboxes
+
+# ─────────────────────────────────────────────
+# PROJECT: 3-fold-path
+# ─────────────────────────────────────────────
+projects:
+
+  3-fold-path:
+    description: "[pending — import from MacBook]"
+    status: stub
+    tasks: []
+
+  4-step-noble-steps-to-MI-M-T:
+    description: "[pending — import from MacBook]"
+    status: stub
+    tasks: []
+
+  6th-element-chain:
+    description: "[pending — import from MacBook]"
+    status: stub
+    tasks: []
+
+  Generic:
+    description: "Shared templates, reusable assets, cross-project utilities"
+    status: active
+    tasks:
+      - id: GEN-001
+        title: "Set up workspace scaffold on ThinkPad"
+        priority: high
+        device: ThinkPad
+        status: done
+        tags: [setup, infrastructure]
+        notes: "Complete — 2026-03-22. All dirs, configs, platform tests, CI/CD created."
+
+      - id: GEN-002
+        title: "Import and merge MacBook master task list"
+        priority: high
+        device: MacBook
+        status: blocked
+        tags: [sync, setup]
+        notes: "Awaiting user to paste MacBook task list content into ThinkPad session"
+
+      - id: GEN-003
+        title: "Configure shared Git remote for cross-device sync"
+        priority: high
+        device: ThinkPad
+        status: in-progress
+        tags: [git, sync, infrastructure]
+        notes: "SSH key ThinkPad-dev-2026 added to GitHub. Run _config/github-init.ps1 after Git installed."
+
+      - id: GEN-004
+        title: "GitHub SSH key registered"
+        priority: high
+        device: ThinkPad
+        status: done
+        tags: [github, ssh, auth]
+        notes: "ED25519 key ThinkPad-dev-2026 added to github.com/petr-yamyang — 2026-03-22. Fingerprint: SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24"
+
+      - id: GEN-005
+        title: "GitHub PAT generated and encrypted"
+        priority: high
+        device: ThinkPad
+        status: done
+        tags: [github, pat, auth, security]
+        notes: "Token ThinkPad-vibedev-2026 (scopes: repo, workflow, read:org, admin:public_key). Encrypted at ~/.github_pat.enc. Key at ~/.pat_key.env (chmod 600). Never committed."
+
+      - id: GEN-006
+        title: "Run windows-setup.ps1 to install dev tools"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [windows, setup, install]
+        notes: "Run as Administrator: ./_config/windows-setup.ps1. Installs Rust, GFortran, FPC, Scala/SBT, Docker, gh CLI."
+
+      - id: GEN-007
+        title: "Run github-init.ps1 to push workspace to GitHub"
+        priority: high
+        device: ThinkPad
+        status: pending
+        tags: [github, git, init]
+        notes: "Run after Git installed. Creates repo at github.com/petr-yamyang/VibeCodeProjects and pushes scaffold."
+
+  databases:
+    description: "[pending — import from MacBook]"
+    status: stub
+    tasks: []
+
+  platform-sources:
+    description: "[pending — import from MacBook]"
+    status: stub
+    tasks: []
+
+  sandboxes:
+    description: "ThinkPad-hosted test infrastructure — Docker, local services, emulators"
+    status: active
+    tasks:
+      - id: SBX-001
+        title: "Inventory existing sandbox environments"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [sandbox, infrastructure, inventory]
+        notes: ""
+
+      - id: SBX-002
+        title: "Define Windows Chrome test runner configuration"
+        priority: medium
+        device: ThinkPad
+        status: pending
+        tags: [chrome, windows, testing]
+        notes: ""
+
+# ─────────────────────────────────────────────
+# DEVICE-SPECIFIC QUEUES
+# ─────────────────────────────────────────────
+
+device_queues:
+
+  ThinkPad:
+    current_session: "2026-03-21 — workspace init"
+    active:
+      - GEN-001
+    pending:
+      - GEN-003
+      - SBX-001
+      - SBX-002
+    blocked:
+      - GEN-002  # waiting on MacBook sync
+
+  MacBook:
+    current_session: "[unknown — sync pending]"
+    active: []
+    pending:
+      - GEN-002
+    blocked: []

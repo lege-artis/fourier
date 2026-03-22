@@ -1,0 +1,36 @@
+# MongoDB — Dev Instance Configuration
+# Target: Windows ThinkPad local install
+# Licence: SSPL (Server Side Public Licence) — free for local dev use
+
+instance:
+  version: "7.x Community Edition"
+  host: "127.0.0.1"
+  port: 27017
+  data_dir: "C:\\Users\\vitez\\Documents\\VibeCodeProjects\\databases\\MongoDB\\data"
+  log_path:  "C:\\Users\\vitez\\Documents\\VibeCodeProjects\\databases\\MongoDB\\logs\\mongod.log"
+
+auth:
+  enabled: false        # local dev only — enable for staging/prod
+  note: "enable auth when promoting to shared/staging environment"
+
+databases:
+  - name: vibedev
+    note: "primary dev database"
+
+connection_string: "mongodb://127.0.0.1:27017/vibedev"
+
+connectors:
+  python:   "pymongo / motor (async)"
+  node:     "mongodb / mongoose"
+  rust:     "mongodb (official async driver)"
+  scala:    "mongo-scala-driver"
+
+startup:
+  windows_service: "MongoDB"
+  start_cmd: "net start MongoDB"
+  stop_cmd:  "net stop MongoDB"
+  mongod_manual: "mongod --dbpath C:\\Users\\vitez\\Documents\\VibeCodeProjects\\databases\\MongoDB\\data"
+
+heartbeat_query: "db.runCommand({ ping: 1 })"
+
+github_secret_name: "MONGODB_URI"
