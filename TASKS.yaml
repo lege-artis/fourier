@@ -383,14 +383,14 @@ projects:
         title: "Gate 6: Docker Desktop first launch + act local runner"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
         tags: [docker, act, ci-cd]
 
       - id: GEN-012
         title: "Gate 7: LibreOffice + TexLive migrate to D:\\"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
         tags: [libreoffice, texlive, migration]
         notes: "Run _config/libreoffice-migrate-to-D.ps1 -Phase restore"
 
@@ -604,3 +604,265 @@ device_queues:
     blocked:
       - C-00
       - B-02
+
+# ─────────────────────────────────────────────
+# PROJECT: local-webserver (appended 2026-03-22)
+# ─────────────────────────────────────────────
+# Appended inline — will be moved to projects block on next full TASKS.yaml rewrite
+
+  local-webserver:
+    description: "Local HTTP/PHP/WordPress dev server stack for ThinkPad development sessions"
+    status: pending
+    tasks:
+      - id: WEB-001
+        title: "Install Laragon — WordPress/PHP/Apache local dev (no Docker)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        tags: [webserver, laragon, wordpress, php, apache]
+        notes: |
+          winget install leoMoon.Laragon
+          Auto-creates *.test vhosts per project. Drop WordPress themes in C:\laragon\www\.
+          Unblocks: GAL-D01 hotfix local dev + all 3-fold-path theme work.
+
+      - id: WEB-002
+        title: "Install DDEV — Docker-based WordPress dev (production-parity)"
+        priority: P3-medium
+        device: ThinkPad
+        status: done
+        depends_on: [GEN-011]
+        tags: [webserver, ddev, docker, wordpress]
+        notes: |
+          winget install DDEV.DDEV (requires Docker Desktop — Gate 6 first).
+          Use for pre-deployment environment parity testing.
+
+      - id: WEB-003
+        title: "Configure Laragon vhosts for 3-fold-path projects"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [WEB-001]
+        tags: [laragon, vhost, zemla, mim2000, bodyterapie]
+        notes: |
+          Create: zemla.test / mim2000.test / bodyterapie.test
+          Point each to unpacked theme zip under laragon/www/.
+          Enable PHP version matching production (check zemla hosting panel).
+
+# ─────────────────────────────────────────────
+# PROJECT: log-infra (appended 2026-03-22)
+# Hybrid log stack: MongoDB (app logs) + Elasticsearch (CI/test/DB)
+# ─────────────────────────────────────────────
+
+  log-infra:
+    description: "Hybrid log infrastructure — MongoDB app logs + Elasticsearch CI/test/DB diagnostics + Kibana + Fluent Bit"
+    status: pending
+    reference_docs:
+      - "infra/LOG-ARCHITECTURE.md"
+      - "infra/connectors/LOG-CONNECTOR-SPEC.md"
+    tasks:
+
+      - id: LOG-001
+        title: "Design + create MongoDB log schema (indexes + TTL on vibedev.logs)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: []
+        tags: [logging, mongodb, schema]
+        notes: "Run index creation script against vibedev. TTL 30 days. Ref: LOG-ARCHITECTURE.md"
+
+      - id: LOG-002
+        title: "Create Elasticsearch + Kibana + Fluent Bit Docker Compose stack"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-011]
+        tags: [logging, elasticsearch, docker]
+        notes: "File: infra/docker/elasticsearch/docker-compose.yml. ES 8.13, Kibana 8.13, Fluent Bit 3.0."
+
+      - id: LOG-003
+        title: "Configure Fluent Bit: PG slow query + MongoDB log tail → ES"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-002]
+        tags: [logging, fluent-bit, postgresql, mongodb]
+        notes: "File: infra/docker/elasticsearch/fluent-bit.conf. Tail pgdata/pg.log + mongodata/mongod.log."
+
+      - id: LOG-004
+        title: "Implement log-connector-node (Winston → MongoDB + ES dual transport)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-001, LOG-002]
+        tags: [logging, nodejs, connector]
+        notes: "File: infra/connectors/log-connector-node/index.js. Spec: LOG-CONNECTOR-SPEC.md"
+
+      - id: LOG-005
+        title: "Implement log-connector-python (logging handler → MongoDB + ES)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-001, LOG-002]
+        tags: [logging, python, connector]
+        notes: "File: infra/connectors/log-connector-python/log_connector.py. Spec: LOG-CONNECTOR-SPEC.md"
+
+      - id: LOG-006
+        title: "Implement log-connector-github-actions (composite action → ES via Fluent Bit)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-002]
+        tags: [logging, github-actions, connector, ci-cd]
+        notes: "File: infra/connectors/log-connector-github-actions/action.yml"
+
+      - id: LOG-007
+        title: "Add log-infra-test CI job to ci-heartbeat.yml"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-002, LOG-006]
+        tags: [logging, ci-cd, github-actions]
+        notes: "Start ES stack, ship test event, verify ingestion count > 0."
+
+      - id: LOG-008
+        title: "Create Kibana dashboards: test results, CI job timeline, DB slow query"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-002, LOG-003]
+        tags: [logging, kibana, dashboard]
+        notes: "Export dashboard JSON to infra/docker/elasticsearch/kibana-dashboards/"
+
+      - id: LOG-009
+        title: "Create production Docker image template for log stack"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [LOG-007]
+        tags: [logging, docker, production-template]
+        notes: "Add TLS + xpack.security.enabled=true variant. Document in LOG-ARCHITECTURE.md."
+
+
+# ─────────────────────────────────────────────
+# PROJECT: ml-stack (appended 2026-03-22)
+# TensorFlow training + serving + multi-language connectors
+# ─────────────────────────────────────────────
+
+  ml-stack:
+    description: "TensorFlow MLOps stack — training pipeline + TF Serving (Docker) + Scala/Rust/Node connectors + CI/CD integration"
+    status: pending
+    reference_docs:
+      - "infra/ML-ARCHITECTURE.md"
+      - "infra/connectors/TF-CONNECTOR-SPEC.md"
+    tasks:
+
+      - id: ML-001
+        title: "Install TensorFlow Python environment (training pipeline)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        tags: [ml, tensorflow, python]
+        notes: "pip install tensorflow==2.16.* + deps. Create ml/training/requirements.txt."
+
+      - id: ML-002
+        title: "Create training pipeline scaffold (pipeline.py + smoke-test mode)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-001]
+        tags: [ml, training, pipeline]
+        notes: "File: ml/training/pipeline.py. Modes: full (local), smoke-test (CI — tiny dataset)."
+
+      - id: ML-003
+        title: "Create model validation script (accuracy + latency thresholds)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-002]
+        tags: [ml, validation, testing]
+        notes: "File: ml/validation/validate_model.py. Threshold param: --threshold=0.80."
+
+      - id: ML-004
+        title: "Configure TF Serving Docker Compose + model registry layout"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [GEN-011]
+        tags: [ml, tensorflow-serving, docker]
+        notes: "File: infra/docker/tensorflow-serving/docker-compose.yml + models.config."
+
+      - id: ML-005
+        title: "Configure Git LFS for ml/models/ directory"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: []
+        tags: [ml, git-lfs, models]
+        notes: |
+          git lfs install
+          git lfs track 'ml/models/**/*.pb' 'ml/models/**/*.index' 'ml/models/**/*.data-*'
+          Add .gitattributes entry.
+
+      - id: ML-006
+        title: "Implement tf-connector-node (REST client, fetch-based)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-004]
+        tags: [ml, connector, nodejs]
+        notes: "File: infra/connectors/tf-connector/node-rest/index.js. Spec: TF-CONNECTOR-SPEC.md"
+
+      - id: ML-007
+        title: "Implement tf-connector-rust-rest (reqwest async REST client)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-004]
+        tags: [ml, connector, rust, rest]
+        notes: "File: infra/connectors/tf-connector/rust-rest/src/lib.rs. Spec: TF-CONNECTOR-SPEC.md"
+
+      - id: ML-008
+        title: "Implement tf-connector-rust-grpc (tonic + prost gRPC client)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-004]
+        tags: [ml, connector, rust, grpc]
+        notes: "File: infra/connectors/tf-connector/rust-grpc/. Proto files from TF Serving repo."
+
+      - id: ML-009
+        title: "Implement tf-connector-scala-grpc (ScalaPB stubs + PredictionService client)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-004]
+        tags: [ml, connector, scala, grpc]
+        notes: "File: infra/connectors/tf-connector/scala-grpc/. build.sbt with ScalaPB + grpc-netty."
+
+      - id: ML-010
+        title: "Add ml-train-validate CI job to ci-heartbeat.yml"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-002, ML-003]
+        tags: [ml, ci-cd, github-actions]
+        notes: "Python smoke-test train → validate → upload artifact. Ref: ML-ARCHITECTURE.md"
+
+      - id: ML-011
+        title: "Add ml-serve-test CI job (TF Serving + connector integration tests)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-004, ML-006, ML-007, ML-010]
+        tags: [ml, ci-cd, github-actions, connector]
+        notes: "Start TF Serving Docker, run Node + Rust REST connector tests. Ref: ML-ARCHITECTURE.md"
+
+      - id: ML-012
+        title: "Create production Docker image template for TF Serving"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [ML-011]
+        tags: [ml, docker, production-template]
+        notes: "Add batching config, Prometheus metrics endpoint, nginx TLS reverse proxy variant."
+
