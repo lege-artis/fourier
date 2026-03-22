@@ -1,11 +1,6 @@
 # sync-main.ps1 — Merge gate for ThinkPad (Windows PowerShell)
-# Merges origin/macbook and origin/thinkpad into local main, then pushes.
 # Pre-requisite: all local changes must be committed before running.
-#
-# Usage:
-#   cd ~\Documents\VibeCodeProjects ; .\_config\sync-main.ps1
-# Or via alias:
-#   git config --global alias.sync-main '!powershell -ExecutionPolicy Bypass -File ~/Documents/VibeCodeProjects/_config/sync-main.ps1'
+# Usage: cd ~\Documents\VibeCodeProjects ; .\_config\sync-main.ps1
 
 $ErrorActionPreference = "Stop"
 
@@ -18,18 +13,18 @@ $RepoRoot = git rev-parse --show-toplevel 2>$null
 if (-not $RepoRoot) { Fail "Not inside a git repository." }
 Set-Location $RepoRoot
 
-# ── 0. Pre-flight ─────────────────────────────────────────────────────────────
+# 0. Pre-flight
 Log "Pre-flight checks..."
 $dirty = git status --porcelain
 if ($dirty) {
-    Write-Host "[sync-main] FAIL Uncommitted changes — commit or stash first:" -ForegroundColor Red
+    Write-Host "[sync-main] FAIL Uncommitted changes - commit or stash first:" -ForegroundColor Red
     $dirty | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
     exit 1
 }
 $CurrentBranch = git rev-parse --abbrev-ref HEAD
 Log "On branch: $CurrentBranch"
 
-# ── 1. Integrity check ────────────────────────────────────────────────────────
+# 1. Integrity check
 Log "Running task integrity checks..."
 $pytest = Get-Command pytest -ErrorAction SilentlyContinue
 if ($pytest) {
@@ -37,78 +32,78 @@ if ($pytest) {
     if ($LASTEXITCODE -ne 0) { Fail "Integrity check failed. Fix before syncing." }
     Ok "Integrity check passed."
 } else {
-    Warn "pytest not found — skipping. CI will validate on push."
+    Warn "pytest not found - skipping. CI will validate on push."
 }
 
-# ── 2. Fetch ──────────────────────────────────────────────────────────────────
+# 2. Fetch
 Log "Fetching all remotes..."
 git fetch --all --prune
 if ($LASTEXITCODE -ne 0) { Fail "git fetch failed." }
 Ok "Fetch complete."
 
-# ── 3. Rebase main onto origin ────────────────────────────────────────────────
+# 3. Rebase main onto origin
 Log "Rebasing main onto origin/main..."
 git checkout main
 git pull --rebase origin main
 if ($LASTEXITCODE -ne 0) { Fail "git pull --rebase failed. Resolve and retry." }
 Ok "main is current with origin."
 
-# ── Helper: merge a device branch into main ───────────────────────────────────
+# Helper: merge a device branch into main
 function Merge-DeviceBranch {
-    param(
-        [string]$Branch,        # e.g. "macbook" or "thinkpad"
-        [string]$OwnedFile      # file that branch owns on conflict, e.g. "queue-macbook.yaml"
-    )
+    param([string]$Branch, [string]$OwnedFile)
 
     $ref = (git ls-remote --heads origin $Branch) -replace '\s.*', ''
     if (-not $ref) {
-        Warn "origin/$Branch not found — skipping."
+        Warn "origin/$Branch not found - skipping."
         return
     }
 
     Log "Merging origin/$Branch -> main..."
-    git merge --no-ff origin/$Branch --no-edit `
-        -m "sync: merge $Branch -> main [$(Get-Date -Format 'yyyy-MM-dd')]"
+    git merge --no-ff origin/$Branch --no-edit -m "sync: merge $Branch -> main [$(Get-Date -Format 'yyyy-MM-dd')]"
 
     if ($LASTEXITCODE -eq 0) {
         Ok "$Branch merged cleanly."
         return
     }
 
-    Warn "Conflict detected — applying ownership rules..."
+    Warn "Conflict detected - applying ownership rules..."
 
     # Branch owns its queue file: prefer MERGE_HEAD version
-    if ($OwnedFile -and (git ls-files --error-unmatch $OwnedFile 2>$null; $?)) {
-        try { git checkout MERGE_HEAD -- $OwnedFile } catch { Warn "Could not restore $OwnedFile from MERGE_HEAD." }
-        git add $OwnedFile
+    if ($OwnedFile) {
+        git ls-files --error-unmatch $OwnedFile 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            try { git checkout MERGE_HEAD -- $OwnedFile }
+            catch { Warn "Could not restore $OwnedFile from MERGE_HEAD." }
+            git add $OwnedFile
+        }
     }
 
-    # All other conflicts: keep main (HEAD) — explicit, not via strategy flag
+    # All other conflicts: keep main (HEAD)
     $conflicted = git diff --name-only --diff-filter=U 2>$null
     foreach ($f in $conflicted) {
         git checkout HEAD -- $f
         git add $f
     }
 
-    git commit --no-edit -m "sync: resolve $Branch conflicts — ownership applied [$(Get-Date -Format 'yyyy-MM-dd')]"
-    if ($LASTEXITCODE -ne 0) { Fail "Auto-resolution of $Branch merge failed. Fix manually and re-run." }
+    git commit --no-edit -m "sync: resolve $Branch conflicts - ownership applied [$(Get-Date -Format 'yyyy-MM-dd')]"
+    if ($LASTEXITCODE -ne 0) { Fail "Auto-resolution of $Branch failed. Fix manually and re-run." }
     Ok "$Branch merged (conflicts resolved by ownership rules)."
 }
 
-# ── 4 & 5. Merge device branches ─────────────────────────────────────────────
-Merge-DeviceBranch -Branch "macbook"   -OwnedFile "queue-macbook.yaml"
-Merge-DeviceBranch -Branch "thinkpad"  -OwnedFile "queue-thinkpad.yaml"
+# 4 & 5. Merge device branches
+Merge-DeviceBranch -Branch "macbook"  -OwnedFile "queue-macbook.yaml"
+Merge-DeviceBranch -Branch "thinkpad" -OwnedFile "queue-thinkpad.yaml"
 
-# ── 6. Update MANIFEST.yaml ───────────────────────────────────────────────────
+# 6. Update MANIFEST.yaml
 Log "Updating MANIFEST.yaml sync anchor..."
 if (-not (Test-Path "MANIFEST.yaml")) {
-    Warn "MANIFEST.yaml not found — skipping."
+    Warn "MANIFEST.yaml not found - skipping."
 } else {
     $SyncCommit = git rev-parse --short HEAD
     $SyncTs     = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
     $manifest   = Get-Content MANIFEST.yaml -Raw
 
-    $updates = @{
+    $updates = [ordered]@{
         "last_sync"        = "`"$SyncTs`""
         "last_sync_commit" = "`"$SyncCommit`""
         "synced_by"        = "`"sync-main.ps1 [$CurrentBranch]`""
@@ -121,8 +116,8 @@ if (-not (Test-Path "MANIFEST.yaml")) {
         }
     }
 
-    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-    [System.IO.File]::WriteAllText((Resolve-Path "MANIFEST.yaml").Path, $manifest, $utf8NoBom)
+    $utf8 = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText((Resolve-Path "MANIFEST.yaml").Path, $manifest, $utf8)
     git add MANIFEST.yaml
     if (git diff --staged --name-only) {
         git commit -m "chore(manifest): update sync anchor [$SyncCommit]"
@@ -130,14 +125,14 @@ if (-not (Test-Path "MANIFEST.yaml")) {
     Ok "MANIFEST.yaml updated."
 }
 
-# ── 7. Push main ──────────────────────────────────────────────────────────────
+# 7. Push main
 Log "Pushing main to origin..."
 git push origin main
 if ($LASTEXITCODE -ne 0) { Fail "git push failed." }
 $mainHead = git rev-parse --short HEAD
 Ok "main pushed: $mainHead"
 
-# ── 8. Restore working branch ─────────────────────────────────────────────────
+# 8. Restore working branch
 if ($CurrentBranch -ne "main") {
     git checkout $CurrentBranch
     Ok "Restored to $CurrentBranch."
