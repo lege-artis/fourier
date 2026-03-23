@@ -1,4 +1,4 @@
-// Playwright configuration — local Chrome (primary) + Firefox (crosscheck)
+// Playwright configuration â€” local Chrome (primary) + Firefox (crosscheck)
 // ThinkPad: Chrome = dev test target | Firefox = crosscheck
 // MacBook:  Safari via separate config (safari-playwright.config.js)
 
@@ -22,7 +22,7 @@ module.exports = defineConfig({
   },
 
   projects: [
-    // ── Primary: Chrome on Windows (ThinkPad dev target) ─────────────────────
+    // â”€â”€ Primary: Chrome on Windows (ThinkPad dev target) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     {
       name: 'chromium',
       use: {
@@ -34,7 +34,7 @@ module.exports = defineConfig({
       },
     },
 
-    // ── Crosscheck: Firefox ───────────────────────────────────────────────────
+    // â”€â”€ Crosscheck: Firefox â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     {
       name: 'firefox',
       use: {
@@ -45,18 +45,18 @@ module.exports = defineConfig({
       },
     },
 
-    // ── Mobile crosscheck (Chrome Android emulation) ──────────────────────────
+    // â”€â”€ Mobile crosscheck (Chrome Android emulation) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
     },
   ],
 
-  // Local dev server — start React before running browser tests
+  // Local dev server â€” start React before running browser tests
   webServer: {
-    command: 'npm start',
+    command: process.env.CI ? 'BROWSER=none npm start' : 'npm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    timeout: 120_000,
   },
 });

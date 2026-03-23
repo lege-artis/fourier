@@ -47,28 +47,28 @@ MANIFEST_PATH  = REPO_ROOT / "MANIFEST.yaml"
 @pytest.fixture(scope="session")
 def shared():
     assert SHARED_PATH.exists(), f"TASKS-shared.yaml not found at {SHARED_PATH}"
-    with open(SHARED_PATH) as f:
+    with open(SHARED_PATH, encoding='utf-8') as f:
         return yaml.safe_load(f)
 
 @pytest.fixture(scope="session")
 def queue_macbook():
     if not MACBOOK_QUEUE.exists():
         return {}
-    with open(MACBOOK_QUEUE) as f:
+    with open(MACBOOK_QUEUE, encoding='utf-8') as f:
         return yaml.safe_load(f) or {}
 
 @pytest.fixture(scope="session")
 def queue_thinkpad():
     if not THINKPAD_QUEUE.exists():
         return {}
-    with open(THINKPAD_QUEUE) as f:
+    with open(THINKPAD_QUEUE, encoding='utf-8') as f:
         return yaml.safe_load(f) or {}
 
 @pytest.fixture(scope="session")
 def manifest():
     if not MANIFEST_PATH.exists():
         return {}
-    with open(MANIFEST_PATH) as f:
+    with open(MANIFEST_PATH, encoding='utf-8') as f:
         return yaml.safe_load(f) or {}
 
 @pytest.fixture(scope="session")
@@ -110,7 +110,7 @@ class TestSchemaValidity:
 
     def test_shared_yaml_is_valid_yaml(self):
         """TASKS-shared.yaml must be parseable YAML — no syntax errors."""
-        with open(SHARED_PATH) as f:
+        with open(SHARED_PATH, encoding='utf-8') as f:
             doc = yaml.safe_load(f)
         assert doc is not None, "TASKS-shared.yaml parsed as empty"
         assert 'projects' in doc, "Missing top-level 'projects' key"
@@ -388,7 +388,7 @@ class TestQueueIntegrity:
             qfile = REPO_ROOT / queue_path
             if not qfile.exists():
                 continue
-            with open(qfile) as f:
+            with open(qfile, encoding='utf-8') as f:
                 qdoc = yaml.safe_load(f) or {}
             pending_ids = [
                 (e if isinstance(e, str) else e['id'])

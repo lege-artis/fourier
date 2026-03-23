@@ -12,7 +12,7 @@ meta:
   task_registry_version: "1.4.0"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
-  valid_devices:     [MacBook, ThinkPad, any]
+  valid_devices:     [MacBook, ThinkPad, any, both]
   projects:
     - 3-fold-path
     - 4-step-noble-steps-to-MI-M-T
@@ -25,7 +25,9 @@ meta:
     - platform-sources
     - sandboxes
     - 8gsp
+
     - git-workflow
+    - kh-sim
 
 
 # ═══════════════════════════════════════════════════════
@@ -486,78 +488,6 @@ projects:
         depends_on: [DB-002]
         tags: [mongodb, index, retention, ttl]
 
-
-  # ═══════════════════════════════════════════════════════
-  # PROJECT: ml-infra
-  # TF Serving microservice + training pipeline
-  # Design: infra/ML-ARCHITECTURE.md
-  # ═══════════════════════════════════════════════════════
-
-  ml-infra:
-    description: "TF Serving Docker microservice (REST 8501 / gRPC 8500) + Python training pipeline + 4-language connectors."
-    status: pending-implementation
-    reference_docs:
-      - "infra/ML-ARCHITECTURE.md"
-      - "infra/connectors/TF-CONNECTOR-SPEC.md"
-    tasks:
-
-      - id: TF-001
-        title: "Deploy TF Serving Docker stack + model registry scaffold"
-        priority: P3-medium
-        device: ThinkPad
-        status: pending
-        depends_on: [GEN-011]
-        tags: [tensorflow, docker, model-registry, infra]
-
-      - id: TF-002
-        title: "Python training pipeline + model validation scripts"
-        priority: P3-medium
-        device: ThinkPad
-        status: pending
-        depends_on: [TF-001]
-        tags: [python, tensorflow, training, validation]
-
-      - id: TF-003
-        title: "Implement tf-connector-node (REST, native fetch, Node 18+)"
-        priority: P3-medium
-        device: ThinkPad
-        status: pending
-        depends_on: [TF-001]
-        tags: [nodejs, tensorflow, rest, connector]
-
-      - id: TF-004
-        title: "Implement tf-connector-scala-grpc (ScalaPB + grpc-netty)"
-        priority: P3-medium
-        device: ThinkPad
-        status: pending
-        depends_on: [TF-001, PLT-003]
-        tags: [scala, grpc, tensorflow, scalapb, connector]
-
-      - id: TF-005
-        title: "Implement tf-connector-rust-rest (reqwest + serde_json + tokio)"
-        priority: P3-medium
-        device: ThinkPad
-        status: pending
-        depends_on: [TF-001, PLT-002]
-        tags: [rust, reqwest, tensorflow, rest, connector]
-
-      - id: TF-006
-        title: "Implement tf-connector-rust-grpc (tonic + prost + tonic-build)"
-        priority: P3-medium
-        device: ThinkPad
-        status: pending
-        depends_on: [TF-001, PLT-002]
-        tags: [rust, grpc, tonic, prost, tensorflow, connector]
-
-      - id: TF-007
-        title: "CI ml-train-validate + ml-serve-test jobs in ci-heartbeat.yml"
-        priority: P3-medium
-        device: ThinkPad
-        status: pending
-        depends_on: [TF-002, TF-003, TF-004, TF-005, GEN-010]
-        tags: [ci-cd, github-actions, tensorflow, training, smoke-test]
-
-
   # ═══════════════════════════════════════════════════════
   # PROJECT: oauth2
   # Authorization + authentication layer
@@ -813,3 +743,181 @@ projects:
         notes: |
           Post-green CI run: GitHub Actions job updates queue-thinkpad.yaml task status to done.
           Prototype of event-sourcing lite pattern. Unblocks auto-advancement of task state.
+
+  # ══════════════════════════════════════════════════════════════════════
+  # PROJECT: kh-sim
+  # Kelvin-Helmholtz Instability Simulation — full-stack integration test
+  # case and MI-M-T PoC precursor. One page per backend language (Rust,
+  # Scala, C++, Fortran, Pascal), shared React F/E, log DB per page.
+  # Source: kh-instability-sim.zip (zemla.org/philosophy, not yet deployed)
+  # Blocked on: GEN-009 (DB), GEN-010 (env), WEB-001 (Laragon)
+  # ══════════════════════════════════════════════════════════════════════
+  kh-sim:
+    description: "KH wave dynamics simulation — full-stack multi-language backend + React F/E integration test and MI-M-T precursor"
+    status: active
+    tasks:
+      - id: KH-001
+        title: "Scaffold KH-SIM project directory structure and base config"
+        priority: P2-high
+        device: both
+        status: blocked
+        depends_on: [GEN-009]
+        notes: "Blocked on local devtoolbox: DB instances (GEN-009) and Laragon web server (WEB-001)"
+      - id: KH-002
+        title: "Extract and adapt kh-instability-sim.zip for multi-backend REST architecture"
+        priority: P2-high
+        device: both
+        status: blocked
+        depends_on: [KH-001]
+        notes: "Reference: kh-instability-sim.zip — zemla.org/philosophy — port KH physics core to each language"
+      - id: KH-003
+        title: "KH backend — Rust (axum REST /simulate endpoint)"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-002]
+      - id: KH-004
+        title: "KH backend — Scala (http4s REST /simulate endpoint)"
+        priority: P2-high
+        device: MacBook
+        status: blocked
+        depends_on: [KH-002]
+      - id: KH-005
+        title: "KH backend — C++ (cpp-httplib REST /simulate endpoint)"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-002]
+      - id: KH-006
+        title: "KH backend — Fortran (C-interop wrapper, /simulate endpoint)"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-002]
+      - id: KH-007
+        title: "KH backend — Pascal (fphttpapp built-in HTTP, /simulate endpoint)"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-002]
+      - id: KH-008
+        title: "React F/E — /kh-rust page (simulation canvas + param selectors + code panel + log viewer)"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-003, KH-014]
+      - id: KH-009
+        title: "React F/E — /kh-scala page"
+        priority: P2-high
+        device: MacBook
+        status: blocked
+        depends_on: [KH-004, KH-014]
+      - id: KH-010
+        title: "React F/E — /kh-cpp page"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-005, KH-014]
+      - id: KH-011
+        title: "React F/E — /kh-fortran page"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-006, KH-014]
+      - id: KH-012
+        title: "React F/E — /kh-pascal page"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-007, KH-014]
+      - id: KH-013
+        title: "KH-SIM homepage — physics introduction and navigation to all simulation pages"
+        priority: P3-medium
+        device: both
+        status: blocked
+        depends_on: [KH-008, KH-009, KH-010, KH-011, KH-012]
+      - id: KH-014
+        title: "Log DB integration — per-page log viewer pulling from logging database"
+        priority: P2-high
+        device: both
+        status: blocked
+        depends_on: [KH-001, GEN-009]
+      - id: KH-015
+        title: "Docker containerise each KH backend service"
+        priority: P2-high
+        device: both
+        status: blocked
+        depends_on: [KH-003, KH-004, KH-005, KH-006, KH-007]
+      - id: KH-016
+        title: "Local vhost routing — Laragon to KH backend services"
+        priority: P2-high
+        device: ThinkPad
+        status: blocked
+        depends_on: [KH-001]
+      - id: KH-017
+        title: "CI/CD pipeline for KH-SIM project"
+        priority: P3-medium
+        device: both
+        status: blocked
+        depends_on: [KH-015]
+      - id: KH-018
+        title: "KH-SIM integration test suite — end-to-end validation of all backends + F/E"
+        priority: P2-high
+        device: both
+        status: blocked
+        depends_on: [KH-016]
+
+  # ══════════════════════════════════════════════════════════════════════
+  # PROJECT: ml-infra
+  # Machine learning infrastructure — TensorFlow, model serving, pipelines
+  # ══════════════════════════════════════════════════════════════════════
+  ml-infra:
+    description: "ML infrastructure — TensorFlow integration, local training environment, model serving, CI/CD for ML pipelines"
+    status: active
+    tasks:
+      - id: TF-001
+        title: "TensorFlow integration scaffold — pushed to repository"
+        priority: P2-high
+        device: MacBook
+        status: in-progress
+        notes: "Initial TensorFlow scaffold already pushed via MacBook session"
+      - id: TF-002
+        title: "TensorFlow local test harness — verify GPU/CPU, basic tensor ops, model load"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [TF-001]
+      - id: TF-003
+        title: "TensorFlow CI job in ci-heartbeat.yml — smoke test on push"
+        priority: P3-medium
+        device: both
+        status: pending
+        depends_on: [TF-002]
+      - id: TF-004
+        title: "Implement tf-connector-scala-grpc (ScalaPB + grpc-netty)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-003]
+        tags: [scala, grpc, tensorflow, scalapb, connector]
+      - id: TF-005
+        title: "Implement tf-connector-rust-rest (reqwest + serde_json + tokio)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-002]
+        tags: [rust, reqwest, tensorflow, rest, connector]
+      - id: TF-006
+        title: "Implement tf-connector-rust-grpc (tonic + prost + tonic-build)"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-001, PLT-002]
+        tags: [rust, grpc, tonic, prost, tensorflow, connector]
+      - id: TF-007
+        title: "CI ml-train-validate + ml-serve-test jobs in ci-heartbeat.yml"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [TF-002, TF-003, TF-004, TF-005, GEN-010]
+        tags: [ci-cd, github-actions, tensorflow, training, smoke-test]
