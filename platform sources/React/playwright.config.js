@@ -54,7 +54,7 @@ module.exports = defineConfig({
 
   // Local dev server â€” start React before running browser tests
   webServer: {
-    command: process.env.CI ? 'BROWSER=none npm start' : 'npm start',
+    command: process.env.CI ? 'npx cross-env BROWSER=none npm start' : 'npm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
