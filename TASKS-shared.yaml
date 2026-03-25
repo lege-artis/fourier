@@ -7,8 +7,8 @@
 
 meta:
   schema_version: "2.0.0"
-  last_updated: "2026-03-22"
-  updated_by: "MacBook / CoWork session 2026-03-22 (split migration)"
+  last_updated: "2026-03-25"
+  updated_by: "ThinkPad / CoWork session 2026-03-25 (CI green, Sylpheed fixed)"
   task_registry_version: "1.4.0"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
@@ -316,7 +316,7 @@ projects:
         title: "Configure shared Git remote for cross-device sync"
         priority: high
         device: ThinkPad
-        status: in-progress
+        status: done
         tags: [git, sync, infrastructure]
 
       - id: GEN-004
@@ -346,7 +346,7 @@ projects:
         title: "Push workspace to GitHub (Gate 3)"
         priority: high
         device: ThinkPad
-        status: in-progress
+        status: done
         tags: [github, git, init]
 
       - id: GEN-008
@@ -595,16 +595,18 @@ projects:
         title: "React hello_test — npm test + Playwright"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
         tags: [react, playwright, testing, chrome, firefox]
+        notes: "CI Run #27 green — Chrome (Windows) + Firefox both pass. cross-env fix applied 2026-03-25."
 
       - id: PLT-007
         title: "CI heartbeat — first run of all Actions jobs"
         priority: high
         device: ThinkPad
-        status: pending
+        status: done
         depends_on: [GEN-007]
         tags: [ci-cd, github-actions]
+        notes: "CI Run #27 (commit 1e790ff): 9/10 green. Database stays red by design until Gate 5 secrets provisioned."
 
 
   # ═══════════════════════════════════════════════════════
