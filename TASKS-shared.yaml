@@ -422,10 +422,10 @@ projects:
         title: "CI heartbeat DB connectivity test"
         priority: medium
         device: ThinkPad
-        status: in-progress
+        status: done
         depends_on: [DB-001, DB-002]
         tags: [ci-cd, testing]
-        notes: "Secrets DB_NAME/DB_USER/DB_PASSWORD provisioned 2026-03-26. Pending CI run #29 green confirmation."
+        notes: "CI Run #30 (314eea9) green 2026-03-26 — postgres:15-alpine container, psql SELECT version() passed. Full 10/10 heartbeat."
 
 
   # ═══════════════════════════════════════════════════════
