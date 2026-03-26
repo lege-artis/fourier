@@ -7,8 +7,8 @@
 
 meta:
   schema_version: "2.0.0"
-  last_updated: "2026-03-25"
-  updated_by: "ThinkPad / CoWork session 2026-03-25 (CI green, Sylpheed fixed)"
+  last_updated: "2026-03-26"
+  updated_by: "ThinkPad / CoWork session 2026-03-26 (Gate 4 complete, DB secrets provisioned)"
   task_registry_version: "1.4.0"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
@@ -365,15 +365,17 @@ projects:
         title: "Gate 4: PostgreSQL + MongoDB local dev instances"
         priority: high
         device: ThinkPad
-        status: pending
+        status: done
         tags: [database, postgresql, mongodb]
+        notes: "PG16 on 5432 (vibedev DB + vibedev_user), MongoDB 8.2.6 service running, vibedev DB + heartbeat collection created. 2026-03-26."
 
       - id: GEN-010
         title: "Gate 5: Environment variables + GitHub Actions secrets"
         priority: high
         device: ThinkPad
-        status: pending
+        status: done
         tags: [env, ci-cd, github-actions]
+        notes: "Secrets DB_NAME/DB_USER/DB_PASSWORD set via gh CLI 2026-03-26. Existing: DATABASE_URL, MONGODB_URI, PGPASSWORD."
 
       - id: GEN-011
         title: "Gate 6: Docker Desktop first launch + act local runner"
@@ -404,23 +406,26 @@ projects:
         title: "PostgreSQL: initdb, create vibedev DB, start service"
         priority: high
         device: ThinkPad
-        status: pending
+        status: done
         tags: [postgresql, setup]
+        notes: "PG16 service postgresql-x64-16 running on 5432. vibedev_user + vibedev DB created and granted."
 
       - id: DB-002
         title: "MongoDB: create data dir, start mongod, create vibedev DB"
         priority: high
         device: ThinkPad
-        status: pending
+        status: done
         tags: [mongodb, setup]
+        notes: "MongoDB 8.2.6 Windows service running on 27017. vibedev DB + heartbeat collection initialised."
 
       - id: DB-003
         title: "CI heartbeat DB connectivity test"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: in-progress
         depends_on: [DB-001, DB-002]
         tags: [ci-cd, testing]
+        notes: "Secrets DB_NAME/DB_USER/DB_PASSWORD provisioned 2026-03-26. Pending CI run #29 green confirmation."
 
 
   # ═══════════════════════════════════════════════════════
