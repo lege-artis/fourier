@@ -1,6 +1,6 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-03
-**Registry version at close:** TASKS-shared.yaml v1.7.0
+**Registry version at close:** TASKS-shared.yaml v1.7.1
 **Reason for close:** Manual -- user-initiated relaunch
 
 ---
@@ -13,65 +13,59 @@
 | ELK | elasticsearch(9200), kibana(5601), fluent-bit(24224/2020) | 3/3 healthy | `.\_config\Start-LocalEnv.ps1 -Action up -Stack elk` |
 | MongoDB | mongod 8.2.6, vibedev DB, heartbeat + logs collections | Running as Windows service on 27017 | auto-starts with Windows |
 
-**ELK start note:** fluent-bit force-recreates on every `up -Stack elk` (patched 2026-04-01) -- no manual restart needed.
+**ELK start note:** fluent-bit force-recreates on every `up -Stack elk` (patched 2026-04-01).
 
 ---
 
 ## Tasks Completed This Session
 
 ### LOG-003 -- log-connector-python (FULLY CLOSED)
-- Status: `done`, smoke test confirmed **6/6 PASS** (2026-04-03, session smoke-1775227459)
-- Root cause resolved: `ElasticsearchException` removed in elasticsearch-py 8.19.x → `ApiError`
+- Smoke test confirmed **6/6 PASS** (2026-04-03, session smoke-1775227459)
+- Root cause: `ElasticsearchException` removed in elasticsearch-py 8.19.x → `ApiError`
 - Fix: nested try/except fallback in `log_connector.py` + `smoke_test.py`
 
 ### LOG-004 -- log-connector-github-actions (DONE)
-- Composite action: `infra/connectors/log-connector-github-actions/action.yml`
-- README: `infra/connectors/log-connector-github-actions/README.md`
-- Payload: `test-results-{YYYY.MM.DD}`, fields per spec, non-fatal curl guard
+- `infra/connectors/log-connector-github-actions/action.yml` + `README.md`
+- Composite action, single bash step, printf payload, non-fatal curl guard
 
-### LOG-005 -- CI log-infra-test job (DONE)
+### LOG-005 -- CI log-infra-test job (DONE + CI CONFIRMED ✓)
 - Job `log-infra-test` added to `.github/workflows/ci-heartbeat.yml`
-- ES 8.13.0 service container (single-node, no auth, health-retries 12)
-- Steps: checkout → timer → wait ES → compute elapsed → ship via LOG-004 action → verify count > 0
-- `summary-notification` updated: `log-infra-test` in needs[], echo, failure + success conditionals
-- **Pending:** first real CI run to confirm green (push to trigger or manual dispatch)
+- ES 8.13.0 service container, health-retries 12, workflow_dispatch trigger added
+- **CI run 23953318308: `Log Infrastructure Test ✓ 55s`** — pipeline confirmed operational
+- `summary-notification` wired into needs[], echo, failure + success conditionals
+
+### task-integrity-check -- 3 pre-existing violations fixed
+- `valid_statuses`: added `deferred` (10 tasks using it were failing: KH-VAL, SYMB-002–005, GR-001–005)
+- `LDE-003.depends_on`: removed phantom `DIAG-001` (task doesn't exist in registry)
+- `meta.projects`: removed 4 stubs with no project blocks (`diag-infra`, `dashboard`, `web-showcase`, `phys-solver`); added `symb-infra` (block exists, was missing from list)
+- **Pending CI confirmation on next run**
 
 ---
 
 ## Action Required at Next Session Start
 
-### 1. Trigger CI and verify LOG-005 green (FIRST THING)
+### 1. Verify integrity fixes green (quick check)
 
-```powershell
-# From project root -- push to trigger or use gh CLI for manual dispatch:
-gh workflow run ci-heartbeat.yml --ref thinkpad
-# OR: just push any change to trigger normally
-```
-
-Then watch the run:
 ```powershell
 gh run list --workflow=ci-heartbeat.yml --limit 3
-gh run watch <run-id>
 ```
 
-Expected: `log-infra-test` job green, summary shows `Log Infrastructure: success`.
-If fails: check ES service container startup (health-retries may need increasing) or curl availability.
+The integrity fixes are committed — next scheduled run (every 6h) or manual dispatch will confirm `task-integrity-check` green.
 
-### 2. LOG-006 -- MongoDB TTL index (ready to implement, no blockers)
+### 2. LOG-006 -- MongoDB TTL index (NEXT, no blockers)
 
 **Task:** `LOG-006` -- TTL index on `vibedev.logs` (`timestamp` field, 30-day expiry)
 **Depends on:** DB-002 ✅
-**Scope:** Single `db.logs.createIndex(...)` command, idempotent script, no connector changes
+**Scope:** mongosh command + idempotent script
 
 ```javascript
-// MongoDB shell / mongosh
+// mongosh (run from PowerShell or mongosh CLI)
 use vibedev
 db.logs.createIndex({ timestamp: 1 }, { expireAfterSeconds: 2592000 })
-// Verify:
-db.logs.getIndexes()
+db.logs.getIndexes()  // verify
 ```
 
-Could also create an idempotent script at `infra/scripts/mongo-init-indexes.js` and call it from the LDE start sequence.
+Option: create `infra/scripts/mongo-init-indexes.js` for repeatability and add to LDE start docs.
 
 ---
 
@@ -79,12 +73,14 @@ Could also create an idempotent script at `infra/scripts/mongo-init-indexes.js` 
 
 | File | Change |
 |---|---|
-| `infra/connectors/log-connector-python/log_connector.py` | Fixed ES import guard: ElasticsearchException → ApiError fallback (8.19.x compat) |
-| `infra/connectors/log-connector-python/smoke_test.py` | Same fix in step 3 import block |
-| `infra/connectors/log-connector-github-actions/action.yml` | Created -- LOG-004 composite action |
-| `infra/connectors/log-connector-github-actions/README.md` | Created -- LOG-004 usage docs |
-| `.github/workflows/ci-heartbeat.yml` | Added log-infra-test job (LOG-005); updated summary-notification |
-| `TASKS-shared.yaml` | LOG-003–005 marked done with notes; v1.7.0 |
+| `infra/connectors/log-connector-python/log_connector.py` | ElasticsearchException → ApiError fallback |
+| `infra/connectors/log-connector-python/smoke_test.py` | Same fix in step 3 |
+| `infra/connectors/log-connector-github-actions/action.yml` | Created (LOG-004) |
+| `infra/connectors/log-connector-github-actions/README.md` | Created (LOG-004) |
+| `.github/workflows/ci-heartbeat.yml` | LOG-005 job + workflow_dispatch trigger |
+| `TASKS-shared.yaml` | LOG-003–005 done; integrity fixes; v1.7.1 |
+| `_config/SESSION-HANDOFF.md` | This file |
+| `_config/Start-LocalEnv.ps1` | fluent-bit --force-recreate fix |
 
 ---
 
@@ -92,11 +88,10 @@ Could also create an idempotent script at `infra/scripts/mongo-init-indexes.js` 
 
 | Item | Detail |
 |---|---|
-| LOG-005 CI run | Not yet triggered -- needs push or manual dispatch to confirm green |
-| Fluent Bit `parsers.conf` sidecar | PostgreSQL slow-query parser deferred from LOG-001 |
+| Node.js 20 deprecation warning | `actions/checkout@v4` etc. running on Node 20; forced to Node 24 from June 2026. Bump to `@v5` when available. |
 | Fluent Bit routing (per-index split) | `ci-logs-*`, `test-results-*`, `kh-sim-*` still on single catch-all output |
-| ES index mapping template | `session_id` auto-mapped as text; explicit keyword mapping would eliminate `.keyword` workaround |
-| elasticsearch-py 8.19.x | `ElasticsearchException` removed; fallback to `ApiError` now in log_connector + smoke_test |
+| ES index mapping template | `session_id` as text; explicit keyword mapping eliminates `.keyword` workaround |
+| `infra/scripts/mongo-init-indexes.js` | Idempotent index init script not yet created |
 
 ---
 
@@ -107,7 +102,7 @@ LOG-001  [DONE]  ELK stack deployed + healthy
 LOG-002  [DONE]  log-connector-node operational (6/6 PASS)
 LOG-003  [DONE]  log-connector-python operational (6/6 PASS, 2026-04-03)
 LOG-004  [DONE]  log-connector-github-actions composite action
-LOG-005  [DONE*] CI log-infra-test job  *pending first CI run confirmation
+LOG-005  [DONE]  CI log-infra-test job green (CI run 23953318308 ✓)
 LOG-006  [NEXT]  MongoDB TTL index + retention policy (no blockers)
 ```
 
@@ -118,6 +113,5 @@ LOG-006  [NEXT]  MongoDB TTL index + retention policy (no blockers)
 1. Read this file (`_config/SESSION-HANDOFF.md`)
 2. Read `TASKS-shared.yaml` LOG-001 through LOG-006
 3. Read `infra/LOG-ARCHITECTURE.md` for pipeline topology
-4. Read `infra/connectors/LOG-CONNECTOR-SPEC.md` for connector contracts
-5. Check environment: `.\_config\Start-LocalEnv.ps1 -Action health -Stack elk`
-6. Trigger / check latest CI run: `gh run list --workflow=ci-heartbeat.yml --limit 3`
+4. Check environment: `.\_config\Start-LocalEnv.ps1 -Action health -Stack elk`
+5. Check latest CI run: `gh run list --workflow=ci-heartbeat.yml --limit 3`

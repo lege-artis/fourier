@@ -8,9 +8,9 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-03"
-  updated_by: "ThinkPad / CoWork session 2026-04-03 (LOG-003 6/6 PASS + 8.19.x fix; LOG-004 done; LOG-005 done: log-infra-test job in ci-heartbeat.yml; TASKS v1.7.0)"
-  task_registry_version: "1.7.0"
-  valid_statuses:    [pending, open, in-progress, done, blocked, stub]
+  updated_by: "ThinkPad / CoWork session 2026-04-03 (integrity fixes: deferred status, LDE-003 DIAG-001 ref, meta.projects sync; TASKS v1.7.1)"
+  task_registry_version: "1.7.1"
+  valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
   projects:
@@ -28,11 +28,8 @@ meta:
 
     - git-workflow
     - kh-sim
-    - diag-infra
-    - dashboard
-    - web-showcase
     - gr-testcases
-    - phys-solver
+    - symb-infra
 
 
 # ═══════════════════════════════════════════════════════
@@ -1164,7 +1161,7 @@ projects:
         device: ThinkPad
         status: done
         completed: "2026-03-29"
-        depends_on: [LDE-002, DIAG-001]
+        depends_on: [LDE-002]
         tags: [lde, docker, compose, integration, health-check]
         notes: |
           Start full local dev environment via:
