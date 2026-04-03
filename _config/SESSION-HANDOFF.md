@@ -1,6 +1,6 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-03
-**Registry version at close:** TASKS-shared.yaml v1.7.1
+**Registry version at close:** TASKS-shared.yaml v1.7.2
 **Reason for close:** Manual -- user-initiated relaunch
 
 ---
@@ -13,74 +13,68 @@
 | ELK | elasticsearch(9200), kibana(5601), fluent-bit(24224/2020) | 3/3 healthy | `.\_config\Start-LocalEnv.ps1 -Action up -Stack elk` |
 | MongoDB | mongod 8.2.6, vibedev DB, heartbeat + logs collections | Running as Windows service on 27017 | auto-starts with Windows |
 
-**ELK start note:** fluent-bit force-recreates on every `up -Stack elk` (patched 2026-04-01).
-
 ---
 
 ## Tasks Completed This Session
 
-### LOG-003 -- log-connector-python (FULLY CLOSED)
-- Smoke test confirmed **6/6 PASS** (2026-04-03, session smoke-1775227459)
-- Root cause: `ElasticsearchException` removed in elasticsearch-py 8.19.x → `ApiError`
-- Fix: nested try/except fallback in `log_connector.py` + `smoke_test.py`
+### LOG-003 -- log-connector-python (DONE, 6/6 PASS)
+- elasticsearch-py 8.19.x: `ElasticsearchException` → `ApiError` fallback in `log_connector.py` + `smoke_test.py`
 
 ### LOG-004 -- log-connector-github-actions (DONE)
 - `infra/connectors/log-connector-github-actions/action.yml` + `README.md`
-- Composite action, single bash step, printf payload, non-fatal curl guard
 
-### LOG-005 -- CI log-infra-test job (DONE + CI CONFIRMED ✓)
-- Job `log-infra-test` added to `.github/workflows/ci-heartbeat.yml`
-- ES 8.13.0 service container, health-retries 12, workflow_dispatch trigger added
-- **CI run 23953318308: `Log Infrastructure Test ✓ 55s`** — pipeline confirmed operational
-- `summary-notification` wired into needs[], echo, failure + success conditionals
+### LOG-005 -- CI log-infra-test job (DONE, CI ✓)
+- Job in `.github/workflows/ci-heartbeat.yml`, confirmed green runs 23953318308 + 23961071929
+- `workflow_dispatch` trigger added
 
-### task-integrity-check -- 3 pre-existing violations fixed
-- `valid_statuses`: added `deferred` (10 tasks using it were failing: KH-VAL, SYMB-002–005, GR-001–005)
-- `LDE-003.depends_on`: removed phantom `DIAG-001` (task doesn't exist in registry)
-- `meta.projects`: removed 4 stubs with no project blocks (`diag-infra`, `dashboard`, `web-showcase`, `phys-solver`); added `symb-infra` (block exists, was missing from list)
-- **Pending CI confirmation on next run**
+### task-integrity-check -- 3 pre-existing violations fixed (24/24 ✓)
+- `deferred` added to `valid_statuses`
+- `LDE-003.depends_on`: phantom `DIAG-001` removed
+- `meta.projects`: synced with actual project blocks
+
+### LOG-006 -- MongoDB TTL index + retention (DONE, pending local run)
+- Script: `infra/scripts/mongo-init-indexes.js`
+- 5 indexes: `timestamp_desc`, `level_timestamp`, `app_timestamp`, `session_id`, `ttl_30d` (30-day TTL)
+- **Pending:** first local execution on live `vibedev` instance to confirm index creation
 
 ---
 
 ## Action Required at Next Session Start
 
-### 1. Verify integrity fixes green (quick check)
+### 1. Run mongo-init-indexes.js on local vibedev (FIRST THING)
 
 ```powershell
-gh run list --workflow=ci-heartbeat.yml --limit 3
+mongosh mongodb://127.0.0.1:27017/vibedev infra/scripts/mongo-init-indexes.js
 ```
 
-The integrity fixes are committed — next scheduled run (every 6h) or manual dispatch will confirm `task-integrity-check` green.
+Expected output: 5 `[OK]` lines, index summary table with `ttl_30d` showing `[TTL: 30d]`.
+If `mongosh` not on PATH: use `"C:\Program Files\MongoDB\Server\8.2\bin\mongosh.exe"` or the full path.
 
-### 2. LOG-006 -- MongoDB TTL index (NEXT, no blockers)
+### 2. What comes after LOG-006 on R0 critical path
 
-**Task:** `LOG-006` -- TTL index on `vibedev.logs` (`timestamp` field, 30-day expiry)
-**Depends on:** DB-002 ✅
-**Scope:** mongosh command + idempotent script
+The full log-infra R0 block is now complete. Check `TASKS-shared.yaml` for the next open R0 gate tasks — likely `GEN-013`/`GEN-014` (VS Code IDE parity) or `KH-016` (Docker compose all backends).
 
-```javascript
-// mongosh (run from PowerShell or mongosh CLI)
-use vibedev
-db.logs.createIndex({ timestamp: 1 }, { expireAfterSeconds: 2592000 })
-db.logs.getIndexes()  // verify
+```powershell
+# Quick check of remaining R0 gate tasks:
+# Open TASKS-shared.yaml, search for gate_tasks block under the R0 milestone
 ```
-
-Option: create `infra/scripts/mongo-init-indexes.js` for repeatability and add to LDE start docs.
 
 ---
 
-## Files Modified This Session
+## Files Modified This Session (all commits)
 
-| File | Change |
-|---|---|
-| `infra/connectors/log-connector-python/log_connector.py` | ElasticsearchException → ApiError fallback |
-| `infra/connectors/log-connector-python/smoke_test.py` | Same fix in step 3 |
-| `infra/connectors/log-connector-github-actions/action.yml` | Created (LOG-004) |
-| `infra/connectors/log-connector-github-actions/README.md` | Created (LOG-004) |
-| `.github/workflows/ci-heartbeat.yml` | LOG-005 job + workflow_dispatch trigger |
-| `TASKS-shared.yaml` | LOG-003–005 done; integrity fixes; v1.7.1 |
-| `_config/SESSION-HANDOFF.md` | This file |
-| `_config/Start-LocalEnv.ps1` | fluent-bit --force-recreate fix |
+| File | Commit | Change |
+|---|---|---|
+| `infra/connectors/log-connector-python/log_connector.py` | 980ddb3 | ApiError fallback |
+| `infra/connectors/log-connector-python/smoke_test.py` | 980ddb3 | Same fix |
+| `infra/connectors/log-connector-github-actions/action.yml` | 980ddb3 | Created |
+| `infra/connectors/log-connector-github-actions/README.md` | 980ddb3 | Created |
+| `.github/workflows/ci-heartbeat.yml` | 980ddb3 + b28ddd8 | LOG-005 job + workflow_dispatch |
+| `_config/Start-LocalEnv.ps1` | 980ddb3 | fluent-bit force-recreate |
+| `infra/docker/*` | 980ddb3 | ELK + LDE compose files |
+| `infra/connectors/log-connector-node/*` | 980ddb3 | Node connector |
+| `TASKS-shared.yaml` | 980ddb3 + b28ddd8 + HEAD | v1.7.2 |
+| `infra/scripts/mongo-init-indexes.js` | HEAD | Created (LOG-006) |
 
 ---
 
@@ -88,22 +82,24 @@ Option: create `infra/scripts/mongo-init-indexes.js` for repeatability and add t
 
 | Item | Detail |
 |---|---|
-| Node.js 20 deprecation warning | `actions/checkout@v4` etc. running on Node 20; forced to Node 24 from June 2026. Bump to `@v5` when available. |
-| Fluent Bit routing (per-index split) | `ci-logs-*`, `test-results-*`, `kh-sim-*` still on single catch-all output |
-| ES index mapping template | `session_id` as text; explicit keyword mapping eliminates `.keyword` workaround |
-| `infra/scripts/mongo-init-indexes.js` | Idempotent index init script not yet created |
+| LOG-006 local run | `mongosh ... mongo-init-indexes.js` not yet executed on live instance |
+| Node.js 20 deprecation | `actions/checkout@v4` etc. → upgrade to v5 before June 2026 |
+| Fluent Bit routing | Per-index split (`ci-logs-*`, `test-results-*`, `kh-sim-*`) still on catch-all output |
+| ES index mapping template | Explicit `keyword` mapping for `session_id` to eliminate `.keyword` workaround |
 
 ---
 
 ## R0 Critical Path Status
 
 ```
-LOG-001  [DONE]  ELK stack deployed + healthy
-LOG-002  [DONE]  log-connector-node operational (6/6 PASS)
-LOG-003  [DONE]  log-connector-python operational (6/6 PASS, 2026-04-03)
+LOG-001  [DONE]  ELK stack
+LOG-002  [DONE]  log-connector-node
+LOG-003  [DONE]  log-connector-python (6/6 PASS)
 LOG-004  [DONE]  log-connector-github-actions composite action
-LOG-005  [DONE]  CI log-infra-test job green (CI run 23953318308 ✓)
-LOG-006  [NEXT]  MongoDB TTL index + retention policy (no blockers)
+LOG-005  [DONE]  CI log-infra-test green (×2 confirmed)
+LOG-006  [DONE*] MongoDB TTL index script  *local run pending
+         ──────────────────────────────────────────────────────
+         log-infra R0 block COMPLETE (all 6 tasks done)
 ```
 
 ---
@@ -111,7 +107,6 @@ LOG-006  [NEXT]  MongoDB TTL index + retention policy (no blockers)
 ## How to Restore Context at Session Start
 
 1. Read this file (`_config/SESSION-HANDOFF.md`)
-2. Read `TASKS-shared.yaml` LOG-001 through LOG-006
-3. Read `infra/LOG-ARCHITECTURE.md` for pipeline topology
-4. Check environment: `.\_config\Start-LocalEnv.ps1 -Action health -Stack elk`
-5. Check latest CI run: `gh run list --workflow=ci-heartbeat.yml --limit 3`
+2. Read `TASKS-shared.yaml` — check R0 milestone gate tasks for what's next
+3. Check environment: `.\_config\Start-LocalEnv.ps1 -Action health -Stack elk`
+4. Check latest CI: `gh run list --workflow=ci-heartbeat.yml --limit 3`

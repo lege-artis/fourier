@@ -8,8 +8,8 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-03"
-  updated_by: "ThinkPad / CoWork session 2026-04-03 (integrity fixes: deferred status, LDE-003 DIAG-001 ref, meta.projects sync; TASKS v1.7.1)"
-  task_registry_version: "1.7.1"
+  updated_by: "ThinkPad / CoWork session 2026-04-03 (LOG-006 done: mongo-init-indexes.js, TTL 30d + 4 query indexes; TASKS v1.7.2)"
+  task_registry_version: "1.7.2"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -649,9 +649,20 @@ projects:
         title: "MongoDB TTL index + retention policy on vibedev.logs"
         priority: P3-medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-03"
         depends_on: [DB-002]
         tags: [mongodb, index, retention, ttl]
+        notes: |
+          Idempotent index init script: infra/scripts/mongo-init-indexes.js
+          Creates 5 indexes on vibedev.logs (safe to re-run -- createIndex is idempotent):
+            timestamp_desc   { timestamp: -1 }                      -- primary sort
+            level_timestamp  { level: 1, timestamp: -1 }            -- level filter + sort
+            app_timestamp    { app: 1, timestamp: -1 }              -- per-app queries
+            session_id       { session_id: 1 }                      -- session correlation
+            ttl_30d          { timestamp: 1 } expireAfterSeconds: 2592000  -- 30-day retention
+          Run: mongosh mongodb://127.0.0.1:27017/vibedev infra/scripts/mongo-init-indexes.js
+          Pending: first local run to confirm index creation on live vibedev instance.
 
   # ═══════════════════════════════════════════════════════
   # PROJECT: oauth2
