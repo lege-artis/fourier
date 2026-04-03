@@ -4,9 +4,9 @@
 # Merge: .gitattributes â†’ merge=ours (sync-main.sh owns this file)
 
 schema_version: "2.0.0"
-last_sync: "2026-03-22T22:31:29Z"
-last_sync_commit: "e3f9240"
-synced_by: "sync-main.ps1 [main]"
+last_sync: "2026-03-28T00:00:00Z"
+last_sync_commit: "pending-push"
+synced_by: "CoWork session ThinkPad 2026-03-28 (GEN-012 done, infra versions corrected)"
 
 # â”€â”€ Live deployed versions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 live_versions:
@@ -66,7 +66,7 @@ infra_stack:
   kibana: "8.13.0"
   fluent_bit: "3.0"
   tensorflow_serving: "latest"
-  postgresql: "16"
-  mongodb: "7"
+  postgresql: "17"        # PG17 installed 2026-03-26, PG16 service also retained
+  mongodb: "8"            # MongoDB 8.2.6 upgraded 2026-03-26
   node: "lts"
   python: "3.11"

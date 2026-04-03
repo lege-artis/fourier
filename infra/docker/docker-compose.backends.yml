@@ -1,0 +1,132 @@
+# KH-Sim backend services — KH-016 (partial: backends only)
+# All 5 language backends + shared network + health checks
+#
+# Build all:  docker compose -f docker-compose.backends.yml build
+# Start all:  docker compose -f docker-compose.backends.yml up -d
+# Stop all:   docker compose -f docker-compose.backends.yml down
+# Logs:       docker compose -f docker-compose.backends.yml logs -f
+#
+# Individual:
+#   docker compose -f docker-compose.backends.yml up -d kh-rust
+#   docker compose -f docker-compose.backends.yml build kh-scala
+#
+# Health check all (PowerShell):
+#   8001,8002,8003,8004,8005 | ForEach-Object {
+#     Invoke-RestMethod http://localhost:$_/health }
+
+# ── Shared defaults ───────────────────────────────────────────────────────────
+x-backend-defaults: &backend-defaults
+  restart: unless-stopped
+  networks:
+    - kh-sim-net
+
+# ── Services ──────────────────────────────────────────────────────────────────
+services:
+
+  kh-rust:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/rust
+      dockerfile: Dockerfile
+    image: kh-sim-rust:latest
+    container_name: kh-sim-rust
+    ports:
+      - "8001:8001"
+    environment:
+      RUST_LOG: "info"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    labels:
+      com.vibecodeprojects.backend: "rust"
+      com.vibecodeprojects.port:    "8001"
+      com.vibecodeprojects.task:    "KH-003"
+
+  kh-scala:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/scala
+      dockerfile: Dockerfile
+    image: kh-sim-scala:latest
+    container_name: kh-sim-scala
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    labels:
+      com.vibecodeprojects.backend: "scala"
+      com.vibecodeprojects.port:    "8002"
+      com.vibecodeprojects.task:    "KH-004"
+
+  kh-cpp:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/cpp
+      dockerfile: Dockerfile
+    image: kh-sim-cpp:latest
+    container_name: kh-sim-cpp
+    ports:
+      - "8003:8003"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8003/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    labels:
+      com.vibecodeprojects.backend: "cpp"
+      com.vibecodeprojects.port:    "8003"
+      com.vibecodeprojects.task:    "KH-005"
+
+  kh-fortran:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/fortran
+      dockerfile: Dockerfile
+    image: kh-sim-fortran:latest
+    container_name: kh-sim-fortran
+    ports:
+      - "8004:8004"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8004/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    labels:
+      com.vibecodeprojects.backend: "fortran"
+      com.vibecodeprojects.port:    "8004"
+      com.vibecodeprojects.task:    "KH-006"
+
+  kh-pascal:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/pascal
+      dockerfile: Dockerfile
+    image: kh-sim-pascal:latest
+    container_name: kh-sim-pascal
+    ports:
+      - "8005:8005"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8005/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    labels:
+      com.vibecodeprojects.backend: "pascal"
+      com.vibecodeprojects.port:    "8005"
+      com.vibecodeprojects.task:    "KH-007"
+
+# ── Network ───────────────────────────────────────────────────────────────────
+networks:
+  kh-sim-net:
+    name: kh-sim-net
+    driver: bridge

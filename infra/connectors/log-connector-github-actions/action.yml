@@ -1,0 +1,54 @@
+name: Ship Test Result to Elasticsearch
+description: >
+  Composite action — ships a CI job result document to the Elasticsearch
+  test-results-{YYYY.MM.DD} index via a single curl POST.
+  Non-fatal: pipeline continues even if ES is unreachable.
+
+inputs:
+  es_host:
+    required: true
+    description: "Elasticsearch base URL (e.g. http://localhost:9200)"
+  suite:
+    required: true
+    description: "Test suite identifier (e.g. rust-build-test, python-smoke)"
+  status:
+    required: true
+    description: "Job result: pass | fail | skip"
+  duration_ms:
+    required: false
+    default: "0"
+    description: "Elapsed wall-clock time in milliseconds (integer string)"
+
+runs:
+  using: composite
+  steps:
+    - name: Ship result document to ES test-results index
+      shell: bash
+      run: |
+        TODAY=$(date -u +%Y.%m.%d)
+        INDEX="test-results-${TODAY}"
+
+        PAYLOAD=$(printf '{
+          "@timestamp":  "%s",
+          "suite":       "%s",
+          "status":      "%s",
+          "duration_ms": %s,
+          "run_id":      "%s",
+          "run_number":  %s,
+          "workflow":    "%s",
+          "branch":      "%s"
+        }' \
+          "$(date -u +%FT%TZ)" \
+          "${{ inputs.suite }}" \
+          "${{ inputs.status }}" \
+          "${{ inputs.duration_ms }}" \
+          "${{ github.run_id }}" \
+          "${{ github.run_number }}" \
+          "${{ github.workflow }}" \
+          "${{ github.ref_name }}" \
+        )
+
+        curl -sf -X POST "${{ inputs.es_host }}/${INDEX}/_doc" \
+          -H "Content-Type: application/json" \
+          -d "${PAYLOAD}" \
+          || echo "[log-connector-github-actions] ES ship failed (non-fatal) -- index=${INDEX} suite=${{ inputs.suite }}"

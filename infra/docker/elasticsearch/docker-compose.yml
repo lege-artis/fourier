@@ -1,0 +1,103 @@
+# ELK stack (LOG-001) -- Elasticsearch + Kibana + Fluent Bit
+# Architecture: infra/LOG-ARCHITECTURE.md
+# Shipper: Fluent Bit (replaces Logstash -- 10x lighter, Docker-native)
+#
+# USAGE
+# ─────
+# Start:  docker compose -f infra/docker/elasticsearch/docker-compose.yml up -d
+# Stop:   docker compose -f infra/docker/elasticsearch/docker-compose.yml down
+# Logs:   docker compose -f infra/docker/elasticsearch/docker-compose.yml logs -f
+#
+# Or via unified profile script (once Start-LocalEnv.ps1 -Stack elk is wired):
+#   .\_config\Start-LocalEnv.ps1 -Action up -Stack elk
+#
+# Port map:
+#   9200   Elasticsearch REST API + health
+#   9300   Elasticsearch inter-node (cluster transport -- unused in single-node)
+#   5601   Kibana dashboard
+#   24224  Fluent Bit TCP input  (JSON log ingestion from backends/CI)
+#   2020   Fluent Bit HTTP API   (health + metrics)
+#
+# Resource envelope (local dev, single-node):
+#   Elasticsearch: 1 GB RAM, 0.5 vCPU
+#   Kibana:        256 MB RAM, 0.2 vCPU
+#   Fluent Bit:    32 MB RAM,  0.05 vCPU
+#
+# NOTE: ES 8.x security is disabled for local dev (xpack.security.enabled=false).
+#       Enable + add TLS before any non-localhost deployment.
+
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: vibe-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx1g
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - elk-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.0
+    container_name: vibe-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - elk-net
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  fluent-bit:
+    image: fluent/fluent-bit:3.0
+    container_name: vibe-fluent-bit
+    ports:
+      - "24224:24224"   # TCP JSON input (backends + CI)
+      - "2020:2020"     # HTTP API (health + metrics)
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      # Host log file mounts -- uncomment and set host paths for file-tail inputs:
+      # - C:/Users/vitez/pgdata/pg.log:/var/log/host/pg.log:ro
+      # - C:/Users/vitez/mongodata/mongod.log:/var/log/host/mongod.log:ro
+    networks:
+      - elk-net
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:2020/api/v1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  esdata:
+    driver: local
+
+networks:
+  elk-net:
+    name: elk-net
+    driver: bridge

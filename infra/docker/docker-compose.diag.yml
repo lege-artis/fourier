@@ -1,0 +1,28 @@
+# Diagram tooling services -- DIAG-001
+# Run standalone: docker compose -f docker-compose.diag.yml up -d
+# Included in R0 full-stack compose: docker-compose.r0.yml (KH-016)
+#
+# Services:
+#   plantuml-server  -- PlantUML render server (port 8010)
+#                       Used by VS Code jebbs.plantuml extension
+#                       Settings: plantuml.server=http://localhost:8010
+#                                 plantuml.render=PlantUMLServer
+
+services:
+
+  plantuml-server:
+    image: plantuml/plantuml-server:jetty
+    container_name: plantuml-server
+    ports:
+      - "8010:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      com.vibecodeprojects.service: "diag"
+      com.vibecodeprojects.task:    "DIAG-001"
+      com.vibecodeprojects.release: "R0"

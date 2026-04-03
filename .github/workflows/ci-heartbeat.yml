@@ -6,6 +6,7 @@ on:
     branches: [ main, develop ]
   schedule:
     - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:         # Allow manual trigger via gh CLI or GitHub UI
 
 jobs:
   # ── Task integrity check ─────────────────────────────────────────────────────
@@ -257,10 +258,74 @@ jobs:
           name: playwright-firefox-report
           path: "platform sources/React/playwright-report/"
 
+  # ── Log infrastructure (LOG-005) ─────────────────────────────────────────────
+  log-infra-test:
+    name: Log Infrastructure Test
+    runs-on: ubuntu-latest
+    services:
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: "false"
+          ES_JAVA_OPTS: "-Xms512m -Xmx1g"
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl -sf http://localhost:9200/_cluster/health || exit 1"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Record job start time
+        id: timer
+        run: echo "start=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Elasticsearch ready
+        run: |
+          echo "Waiting for ES cluster health..."
+          timeout 90 bash -c 'until curl -sf http://localhost:9200/_cluster/health; do sleep 3; done'
+          echo "ES ready."
+
+      - name: Compute elapsed time (start → ES ready)
+        id: duration
+        run: |
+          END=$(date +%s%3N)
+          echo "ms=$(( END - ${{ steps.timer.outputs.start }} ))" >> "$GITHUB_OUTPUT"
+
+      - name: Ship test event via log-connector-github-actions
+        uses: ./infra/connectors/log-connector-github-actions
+        with:
+          es_host:     http://localhost:9200
+          suite:       log-infra-test
+          status:      pass
+          duration_ms: ${{ steps.duration.outputs.ms }}
+
+      - name: Verify ES ingestion — doc count > 0
+        run: |
+          sleep 2
+          TODAY=$(date -u +%Y.%m.%d)
+          INDEX="test-results-${TODAY}"
+          RESPONSE=$(curl -sf "http://localhost:9200/${INDEX}/_count" || echo '{"count":0}')
+          COUNT=$(echo "${RESPONSE}" | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])")
+          echo "[log-infra-test] ${INDEX} doc count: ${COUNT}"
+          if [ "${COUNT}" -gt 0 ]; then
+            echo "ES ingestion verified: ${COUNT} docs in ${INDEX}"
+          else
+            echo "::error::ES ingestion failed: 0 docs found in ${INDEX}"
+            exit 1
+          fi
+
+      - name: Report status
+        if: success()
+        run: echo "Log infrastructure test passed -- ES ingestion pipeline operational"
+
   # ── Summary ───────────────────────────────────────────────────────────────────
   summary-notification:
     name: CI Summary
-    needs: [task-integrity-check, cpp-build-test, rust-build-test, scala-build-test, pascal-build-test, fortran-build-test, react-test, db-connectivity-test, browser-chrome-test, browser-firefox-test]
+    needs: [task-integrity-check, cpp-build-test, rust-build-test, scala-build-test, pascal-build-test, fortran-build-test, react-test, db-connectivity-test, browser-chrome-test, browser-firefox-test, log-infra-test]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -277,6 +342,7 @@ jobs:
           echo "Database Connectivity: ${{ needs.db-connectivity-test.result }}"
           echo "Browser Chrome:        ${{ needs.browser-chrome-test.result }}"
           echo "Browser Firefox:       ${{ needs.browser-firefox-test.result }}"
+          echo "Log Infrastructure:    ${{ needs.log-infra-test.result }}"
           echo "=============================="
       - name: Notify on failure
         if: |
@@ -288,7 +354,8 @@ jobs:
           needs.fortran-build-test.result == 'failure' ||
           needs.react-test.result == 'failure' ||
           needs.browser-chrome-test.result == 'failure' ||
-          needs.browser-firefox-test.result == 'failure'
+          needs.browser-firefox-test.result == 'failure' ||
+          needs.log-infra-test.result == 'failure'
         run: |
           echo "::warning::One or more CI checks failed. Review logs for details."
           exit 1
@@ -302,5 +369,6 @@ jobs:
           needs.fortran-build-test.result == 'success' &&
           needs.react-test.result == 'success' &&
           needs.browser-chrome-test.result == 'success' &&
-          needs.browser-firefox-test.result == 'success'
+          needs.browser-firefox-test.result == 'success' &&
+          needs.log-infra-test.result == 'success'
         run: echo "All required CI checks passed successfully!"

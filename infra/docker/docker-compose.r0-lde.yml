@@ -1,0 +1,130 @@
+# R0-LDE — Local Development Environment (unified stack)
+# Includes: all 5 KH-sim backends + PlantUML diagram server
+# ELK stack deliberately excluded until LOG-001..006 are gated (R0 complete)
+#
+# USAGE
+# ─────
+# Start full LDE:   docker compose -f docker-compose.r0-lde.yml up -d
+# Stop  full LDE:   docker compose -f docker-compose.r0-lde.yml down
+# Build all images: docker compose -f docker-compose.r0-lde.yml build
+# Status:           docker compose -f docker-compose.r0-lde.yml ps
+#
+# Preferred entry point: use Start-LocalEnv.ps1 (project root _config/)
+# which wraps this file and adds health-check reporting.
+#
+# Port map:
+#   8001  kh-rust
+#   8002  kh-scala
+#   8003  kh-cpp
+#   8004  kh-fortran
+#   8005  kh-pascal
+#   8010  plantuml-server
+
+x-backend-defaults: &backend-defaults
+  restart: unless-stopped
+  networks:
+    - kh-sim-net
+
+services:
+
+  # ── KH-Sim backends ──────────────────────────────────────────────────────
+  kh-rust:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/rust
+      dockerfile: Dockerfile
+    image: kh-sim-rust:latest
+    container_name: kh-sim-rust
+    ports:
+      - "8001:8001"
+    environment:
+      RUST_LOG: "info"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  kh-scala:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/scala
+      dockerfile: Dockerfile
+    image: kh-sim-scala:latest
+    container_name: kh-sim-scala
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+
+  kh-cpp:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/cpp
+      dockerfile: Dockerfile
+    image: kh-sim-cpp:latest
+    container_name: kh-sim-cpp
+    ports:
+      - "8003:8003"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8003/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  kh-fortran:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/fortran
+      dockerfile: Dockerfile
+    image: kh-sim-fortran:latest
+    container_name: kh-sim-fortran
+    ports:
+      - "8004:8004"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8004/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  kh-pascal:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/backends/pascal
+      dockerfile: Dockerfile
+    image: kh-sim-pascal:latest
+    container_name: kh-sim-pascal
+    ports:
+      - "8005:8005"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8005/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # ── Diagram tooling ──────────────────────────────────────────────────────
+  plantuml-server:
+    <<: *backend-defaults
+    image: plantuml/plantuml-server:jetty
+    container_name: plantuml-server
+    ports:
+      - "8010:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  kh-sim-net:
+    name: kh-sim-net
+    driver: bridge

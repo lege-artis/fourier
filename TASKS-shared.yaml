@@ -7,9 +7,9 @@
 
 meta:
   schema_version: "2.0.0"
-  last_updated: "2026-03-26"
-  updated_by: "ThinkPad / CoWork session 2026-03-26 (Gate 4 complete, DB secrets provisioned)"
-  task_registry_version: "1.4.0"
+  last_updated: "2026-04-03"
+  updated_by: "ThinkPad / CoWork session 2026-04-03 (LOG-003 6/6 PASS + 8.19.x fix; LOG-004 done; LOG-005 done: log-infra-test job in ci-heartbeat.yml; TASKS v1.7.0)"
+  task_registry_version: "1.7.0"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -28,6 +28,11 @@ meta:
 
     - git-workflow
     - kh-sim
+    - diag-infra
+    - dashboard
+    - web-showcase
+    - gr-testcases
+    - phys-solver
 
 
 # ═══════════════════════════════════════════════════════
@@ -276,7 +281,58 @@ projects:
         device: MacBook
         status: pending
         tags: [mi-m-t, step-2]
-        notes: "Carry forward from zemla v1.6.2. Scope to be confirmed next sprint."
+        notes: "Carry forward from zemla v1.6.2. Scope to be confirmed next sprint. R3 gate."
+
+      - id: MI-M-T-D03
+        title: "MI-M-T — JIRA interface (read issues, map to MI-M-T test objects)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [MI-M-T-D02]
+        tags: [mi-m-t, jira, integration, R3]
+        notes: |
+          Bidirectional JIRA interface for MI-M-T testing tool:
+            - Read JIRA issues/stories/acceptance criteria into MI-M-T test object model
+            - Map JIRA issue status to MI-M-T lifecycle (defined/executing/passed/failed)
+            - Write-back: update JIRA issue with MI-M-T execution result (stub for R3)
+          Auth: API token + email (Atlassian Cloud) or basic auth (Server/DC).
+          Minimal R3 scope: read-only import is sufficient; write-back can be manual trigger.
+          Acceptance: MI-M-T UI shows JIRA issues as importable test targets.
+
+      - id: MI-M-T-D04
+        title: "MI-M-T — Postman interface (import collections as test specs)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [MI-M-T-D02]
+        tags: [mi-m-t, postman, integration, R3]
+        notes: |
+          Import Postman Collection v2.1 JSON into MI-M-T as executable test specs:
+            - Parse requests, assertions, pre/post scripts from collection JSON
+            - Map Postman test assertions to MI-M-T pass/fail criteria
+            - Execute via Newman CLI or Postman API; capture results in MI-M-T
+          Minimal R3 scope: collection import + display in MI-M-T UI.
+          Newman execution and result capture can be partial for initial release.
+          Auth: Postman API key (cloud) or local .json file upload.
+          Acceptance: imported collection visible in MI-M-T with full request list.
+
+      - id: MI-M-T-D05
+        title: "mim2000.cz — MI-M-T tool prototype page (architecture + interfaces + demo)"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [MI-M-T-D03, MI-M-T-D04, WEB-001]
+        tags: [mi-m-t, wordpress, mim2000, R3, presentation]
+        notes: |
+          WordPress page at mim2000.cz/projects/mi-m-t/.
+          Content (minimal scope, to be refined post-R3):
+            - What MI-M-T is: testing methodology bridging JIRA, Postman, structured
+              test object model across the 4-step framework
+            - Architecture overview: 4-step diagram (DIAG draw.io export embedded)
+            - Interfaces shown: JIRA ↔ MI-M-T ↔ Postman
+            - Status badge: "initial prototype — architecture confirmed"
+            - Link to live tool or demo screenshots
+          Acceptance: page live at mim2000.cz/projects/mi-m-t/, mobile-responsive.
 
 
   # ═══════════════════════════════════════════════════════
@@ -381,16 +437,79 @@ projects:
         title: "Gate 6: Docker Desktop first launch + act local runner"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
         tags: [docker, act, ci-cd]
+        notes: "Docker Desktop 4.65.0 running (WSL2, x86_64). act upgraded 0.2.84→0.2.86 (CVE-2026-34041/34042 patched). act --list enumerates all 11 CI jobs. 2026-03-27."
 
       - id: GEN-012
         title: "Gate 7: LibreOffice + TexLive migrate to D:\\"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
         tags: [libreoffice, texlive, migration]
-        notes: "Run _config/libreoffice-migrate-to-D.ps1 -Phase restore"
+        notes: |
+          2026-03-27/28: migrate script ran — custom D:\Apps path failed (MSI override rejected).
+          LibreOffice installed to standard path C:\Program Files\LibreOffice — accepted, functional.
+          MiKTeX winget uninstall exit code 1 (partial uninstall, AppData ACL residual).
+          MiKTeX install via script attempted — outcome pending paste. Gate closed: LO functional.
+          MiKTeX follow-up: manual takeown+icacls cleanup + direct winget to D:\Apps\MiKTeX if needed.
+
+      - id: GEN-013
+        title: "IDE setup — ThinkPad: VS Code + per-language extensions + Git integration"
+        priority: P2-high
+        device: ThinkPad
+        status: done
+        completed: "2026-03-28"
+        tags: [ide, vscode, dev-env, git]
+        notes: |
+          Control point: verify IDE is configured for all active languages before manual coding begins.
+          Required extensions:
+            rust-analyzer (Rust/Cargo)
+            Scala (Metals — scalameta.metals)
+            C/C++ (ms-vscode.cpptools or clangd)
+            Modern Fortran (fortls language server)
+            OmniPascal or Pascal (fpc-ide or michaelgecht.fpc-extension)
+            Python (ms-python.python — kh_physics.py, PINN scripts)
+          Git integration:
+            GitLens (eamodio.gitlens) — blame, history, branch compare
+            Git Graph (mhutchie.git-graph) — cross-device branch visualisation
+            Conventional Commits (vivaxy.vscode-conventional-commits) — semantic commit messages
+          Verification:
+            rust-analyzer: open kh-sim/backends/rust/src/main.rs -- no red squiggles
+            Metals: open kh-sim/backends/scala/src/main/scala/khsim/Main.scala -- import tree resolves
+            Fortran: open kh-sim/backends/fortran -- fortls activates
+            Git: vscode Source Control panel shows correct branch (thinkpad or main)
+          Acceptance: all 5 language servers active, Git panel shows correct remote.
+
+      - id: GEN-014
+        title: "IDE setup — MacBook: IntelliJ IDEA / VS Code parity check"
+        priority: P3-medium
+        device: MacBook
+        status: stub
+        tags: [ide, intellij, vscode, dev-env, git]
+        notes: |
+          Mirror of GEN-013 for MacBook. Scala: IntelliJ IDEA + Scala plugin (preferred) or Metals.
+          Rust: rust-analyzer (VS Code or IntelliJ Rust plugin).
+          Verify Git panel shows branch macbook, remote origin reachable.
+          Acceptance: same language server + Git criteria as GEN-013.
+
+      - id: GEN-015
+        title: "IDE commit workflow — validate conventional-commit + branch discipline"
+        priority: P2-high
+        device: both
+        status: open
+        tags: [git, ide, workflow, commit-discipline]
+        depends_on: [GEN-013, GEN-014]
+        notes: |
+          Control point: before any manual coding commits, confirm the commit workflow is clean.
+          Checklist:
+            1. Verify active branch is device-local (thinkpad / macbook), NOT main.
+            2. Confirm merge driver registered: git config merge.tasks.driver exists.
+            3. Test commit from IDE: stage a trivial change, commit via UI using conventional format
+               (feat|fix|chore|docs|test)(scope): subject  -- e.g. chore(ide): verify vscode setup
+            4. Push to remote, verify PR workflow (gh pr create or GitHub web).
+            5. Confirm no accidental direct push to main.
+          Related: GW-005 (ThinkPad merge driver), GW-006 (cross-device integrity validation).
 
 
   # ═══════════════════════════════════════════════════════
@@ -446,44 +565,88 @@ projects:
         title: "Deploy ES + Kibana + Fluent Bit stack via Docker Compose"
         priority: P2-high
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-03-29"
         depends_on: [GEN-011]
         tags: [elasticsearch, kibana, fluent-bit, docker, infra]
         notes: |
           ES 8.13.0 (9200), Kibana (5601), Fluent Bit 3.0 (24224/2020).
-          Validate: curl http://localhost:9200/_cluster/health → green/yellow.
+          All 3 health checks green: 9200/_cluster/health, 5601/api/status, 2020/api/v1/health.
+          Fix: [PARSER] sections invalid in main conf in FB 3.x -- moved to scope of LOG-002.
+          Minimal config: TCP input 24224 --> ES output (all events to kh-sim-* index).
+          Start via: .\_config\Start-LocalEnv.ps1 -Action up -Stack elk
+          Files: infra/docker/elasticsearch/docker-compose.yml
+            infra/docker/elasticsearch/fluent-bit.conf
+          Start-LocalEnv.ps1 extended with -Stack elk / -Stack all.
+          Next: docker compose up -d, verify 3/3 health checks green (LOG-001 done).
 
       - id: LOG-002
         title: "Implement log-connector-node (Winston → MongoDB + ES)"
         priority: P2-high
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-01"
         depends_on: [LOG-001, DB-002]
         tags: [nodejs, winston, mongodb, elasticsearch, connector]
+        notes: |
+          Dual-sink Winston connector: MongoDB vibedev.logs + ES kh-sim-* indices.
+          Files: infra/connectors/log-connector-node/index.js (MongoTransport + ESTransport + createLogger factory)
+                 infra/connectors/log-connector-node/package.json (winston@3.13, mongodb@6.5, @elastic/elasticsearch@8.13)
+                 infra/connectors/log-connector-node/smoke-test.js (4-step: emit → verify Mongo → verify ES → cluster health)
+          Smoke test: cd infra/connectors/log-connector-node && npm install && node smoke-test.js
+          Prerequisites verified: MongoDB 8.2.6 on 27017 (DB-002 done), ELK 3/3 healthy (LOG-001 done).
 
       - id: LOG-003
         title: "Implement log-connector-python (logging → MongoDB + ES)"
         priority: P2-high
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-01"
         depends_on: [LOG-001, DB-002]
         tags: [python, pymongo, elasticsearch, connector]
+        notes: |
+          Dual-sink stdlib logging connector: MongoDB vibedev.logs + ES kh-sim-* indices.
+          Files: infra/connectors/log-connector-python/log_connector.py (MongoHandler + ESHandler + get_logger factory)
+                 infra/connectors/log-connector-python/requirements.txt (pymongo>=4.7, elasticsearch>=8.13.0,<9.0.0, python-json-logger>=2.0.7)
+                 infra/connectors/log-connector-python/smoke_test.py (6-step: emit → verify Mongo x2 → verify ES x2 → cluster health)
+          Smoke test confirmed: 6/6 PASS on 2026-04-03 (session smoke-1775227459, 4 docs in kh-sim-2026.04.03, 4 in MongoDB).
+          Smoke test: cd infra/connectors/log-connector-python && pip install -r requirements.txt && python smoke_test.py
+          Graceful degradation: both sinks fail-safe (stderr warning, never raises in host process).
+          8.19.x fix: ElasticsearchException removed from elasticsearch.exceptions in elasticsearch-py 8.19+; replaced by ApiError.
+                      Fixed in log_connector.py and smoke_test.py with nested try/except fallback (ElasticsearchException → ApiError).
 
       - id: LOG-004
         title: "Implement log-connector-github-actions (composite action → ES)"
         priority: P2-high
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-03"
         depends_on: [LOG-001]
         tags: [github-actions, elasticsearch, ci-cd, connector]
+        notes: |
+          Composite GitHub Actions action: ships CI job result to ES test-results-{YYYY.MM.DD} index via curl POST.
+          Files: infra/connectors/log-connector-github-actions/action.yml (composite action, single bash step)
+                 infra/connectors/log-connector-github-actions/README.md (usage, schema, inputs reference)
+          Payload fields: @timestamp, suite, status, duration_ms (numeric), run_id, run_number (numeric), workflow, branch.
+          Non-fatal: curl failure echoes warning, exits 0 -- calling job never failed by this action.
+          No MongoDB dependency. Requires LOG-001 (ELK healthy). Tested by LOG-005.
 
       - id: LOG-005
         title: "CI log-infra-test job: ES ingestion smoke test"
         priority: P2-high
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-03"
         depends_on: [LOG-004, GEN-010]
         tags: [ci-cd, github-actions, elasticsearch, smoke-test]
+        notes: |
+          New job added to .github/workflows/ci-heartbeat.yml: log-infra-test.
+          Services: elasticsearch:8.13.0 (single-node, no auth, 512m–1g heap, health-retries 12).
+          Steps: checkout → record start time → wait for ES → compute elapsed ms → ship event via
+                 ./infra/connectors/log-connector-github-actions (suite=log-infra-test, status=pass, duration_ms=elapsed) →
+                 verify test-results-{YYYY.MM.DD}/_count > 0 → report status.
+          summary-notification updated: log-infra-test added to needs[], echo, failure, and success conditionals.
+          Acceptance criteria: job green in CI; ≥1 doc in test-results-* index.
 
       - id: LOG-006
         title: "MongoDB TTL index + retention policy on vibedev.logs"
@@ -637,6 +800,20 @@ projects:
         status: pending
         tags: [chrome, windows, testing]
 
+      - id: WEB-001
+        title: "Install and configure Laragon local web server on ThinkPad"
+        priority: P1-critical
+        device: ThinkPad
+        status: done
+        tags: [laragon, nginx, webserver, vhost, localhost]
+        notes: |
+          Done 2026-03-28. Laragon 6.0.0 at D:\Apps\Laragon. Nginx 1.22.0 active (Apache disabled in laragon.ini).
+          Port: 8080 (not 80 — security/elevation rationale). PID confirmed LISTENING on :8080.
+          nginx.conf: BOM-stripped, listen 8080, sites-enabled include injected.
+          D:\Apps\Laragon\logs created. nginx -t: successful.
+          6 vhosts deployed: kh-{rust,scala,cpp,fortran,pascal}.test:8080 + pinn.test:8080.
+          All .test hosts file entries confirmed present. kh-rust.test:8080 smoke test passed.
+
 
   # ═══════════════════════════════════════════════════════
   # PROJECT: 8gsp
@@ -767,46 +944,86 @@ projects:
         title: "Scaffold KH-SIM project directory structure and base config"
         priority: P2-high
         device: both
-        status: blocked
+        status: done
         depends_on: [GEN-009]
-        notes: "Blocked on local devtoolbox: DB instances (GEN-009) and Laragon web server (WEB-001)"
+        notes: |
+          Scaffold complete 2026-03-28. Structure: kh-sim/{backends/{rust,scala,cpp,fortran,pascal},
+          frontend,shared/{physics,api},docker,vhost,tests/integration}.
+          kh-sim.config.yaml (port map, simulation defaults, DB refs, API ref).
+          shared/api/openapi.yaml (unified OpenAPI contract for all 5 backends).
+          Backend READMEs with port + task cross-ref per language.
       - id: KH-002
         title: "Extract and adapt kh-instability-sim.zip for multi-backend REST architecture"
         priority: P2-high
         device: both
-        status: blocked
+        status: done
         depends_on: [KH-001]
-        notes: "Reference: kh-instability-sim.zip — zemla.org/philosophy — port KH physics core to each language"
+        notes: |
+          kh-instability-sim.zip confirmed: browser-based D2Q9 LBM (JS/Canvas), not NS spectral.
+          Zip preserved at kh-sim/reference/kh-instability-sim.zip for reference.
+          Physics kernel reconstructed from scratch: 2D NS vorticity-streamfunction, pseudo-spectral RK4.
+          Deliverables: kh_physics.py (canonical Python ref), KH-PHYSICS.md, kh_reference_output.json.
+          Validated 2026-03-28: KE=0.112810, enstrophy=43.705142, max_vort=31.907572, div_rms=1.20e-14.
       - id: KH-003
         title: "KH backend — Rust (axum REST /simulate endpoint)"
         priority: P2-high
         device: ThinkPad
-        status: blocked
+        status: done
         depends_on: [KH-002]
+        notes: |
+          VALIDATED 2026-03-28. cargo test 2/2 passed (2.11s).
+          KE err=0.00%, enstrophy err=0.00%, div_rms=1.02e-14 (<1e-10 threshold).
+          cargo run --release: kh-sim-rust.exe on 0.0.0.0:8001. Stack: axum 0.7 + rustfft 6.
       - id: KH-004
         title: "KH backend — Scala (http4s REST /simulate endpoint)"
         priority: P2-high
-        device: MacBook
-        status: blocked
+        device: ThinkPad
+        status: done
         depends_on: [KH-002]
+        notes: |
+          VALIDATED 2026-03-28. sbt test 2/2 passed (720ms).
+          KE err=0.00%, enstrophy err=0.00%, div_rms=9.16e-15 (<1e-10 threshold).
+          Stack: Scala 3.3.4, http4s 0.23 Ember, cats-effect 3.5.7, JTransforms 3.1, circe 0.14.10.
       - id: KH-005
         title: "KH backend — C++ (cpp-httplib REST /simulate endpoint)"
         priority: P2-high
         device: ThinkPad
-        status: blocked
+        status: done
         depends_on: [KH-002]
+        notes: |
+          VALIDATED 2026-03-28. kh-sim-cpp-validate.exe: All tests PASSED.
+          KE err=0.00%, enstrophy err=0.00%, div_rms=1.12e-14 (<1e-10 threshold).
+          Stack: g++ 15.2.0 (MSYS2), CMake 4.3.0, Ninja 1.13.2, cpp-httplib 0.18, nlohmann/json 3.11.3.
+          FFT: Cooley-Tukey radix-2 (built-in, no external library). FetchContent: cmake configure 76.7s.
       - id: KH-006
         title: "KH backend — Fortran (C-interop wrapper, /simulate endpoint)"
         priority: P2-high
         device: ThinkPad
-        status: blocked
+        status: done
         depends_on: [KH-002]
+        notes: |
+          VALIDATED 2026-03-28. kh-sim-fortran-validate.exe: All tests PASSED.
+          KE err=0.00%, enstrophy err=0.00%, div_rms=9.11e-15 (<1e-10 threshold).
+          Stack: gfortran 15.2.0 + g++ 15.2.0 (MSYS2), CMake 4.3.0, Ninja 1.13.2.
+          Physics: Fortran 2008 module (iso_c_binding kh_simulate_c export), C++ shim (kh_shim.cpp), cpp-httplib 0.18 HTTP layer.
+          Fixes: c_loc on VALUE dummy arg → c_associated; compiler flag split in generator expressions.
       - id: KH-007
         title: "KH backend — Pascal (fphttpapp built-in HTTP, /simulate endpoint)"
         priority: P2-high
         device: ThinkPad
-        status: blocked
+        status: done
+        completed: 2026-03-28
         depends_on: [KH-002]
+        notes: >-
+          FPC 3.2.2, Win32/i386. Stack: fphttpserver (fcl-web low-level), fpjson,
+          Cooley-Tukey radix-2 + RK4 + spectral Poisson in native Pascal.
+          Validation (2026-03-28): ke err=1.48e-13%, enstrophy err=6.50e-14%,
+          div_rms=8.63e-15 — IEEE-754 bit-identical to Python reference.
+          Root-cause fixed: kh_validate.pas had lx=4*Pi/ly=2*Pi/dt=0.01 vs Python
+          reference lx=1.0/ly=0.5/dt=0.001; validate now self-calibrates from JSON.
+          HTTP smoke test (2026-03-28): POST /simulate → diagnostics OK,
+          div_rms=7.68e-15, compute=162ms (10 steps). Port 8005 confirmed live.
+          httpmod not in FPC 3.2.2 Windows install; used TFPHttpServer.OnRequest directly.
       - id: KH-008
         title: "React F/E — /kh-rust page (simulation canvas + param selectors + code panel + log viewer)"
         priority: P2-high
@@ -859,8 +1076,14 @@ projects:
         title: "Local vhost routing — Laragon to KH backend services"
         priority: P2-high
         device: ThinkPad
-        status: blocked
-        depends_on: [KH-001]
+        status: done
+        depends_on: [KH-001, WEB-001]
+        notes: |
+          Done 2026-03-28. All 6 vhosts active on Nginx :8080.
+          kh-rust.test:8080->:8001, kh-scala.test:8080->:8002, kh-cpp.test:8080->:8003,
+          kh-fortran.test:8080->:8004, kh-pascal.test:8080->:8005, pinn.test:8080->:8600.
+          Configs: kh-sim/vhost/*.conf (port 8080). deploy-vhosts.ps1 reusable for redeployment.
+          Hosts file: all 6 .test entries confirmed. nginx -t: successful.
       - id: KH-017
         title: "CI/CD pipeline for KH-SIM project"
         priority: P3-medium
@@ -873,6 +1096,109 @@ projects:
         device: both
         status: blocked
         depends_on: [KH-016]
+
+      - id: KH-VAL
+        title: "Validation hardening — tighten tolerances + physics-framework boilerplate test base"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [KH-018]
+        tags: [testing, validation, physics-framework, boilerplate]
+        notes: |
+          Deferred until physics framework boilerplate milestone.
+          Current per-backend tests pass at 0.00% error — insufficient discriminating power because
+          all backends implement identical Cooley-Tukey+RK4 in IEEE-754 double, masking subtle bugs.
+          Required hardening (applies uniformly to all backends via shared test harness):
+            1. Tighten KE/enstrophy tolerance: 5% → 0.1%; div_rms: 1e-10 → 1e-12.
+            2. Grid sensitivity: add 128×64 case (aliasing bugs cancel at 64×32).
+            3. Re sensitivity: Re=100 (viscous-dominated) and Re=10000 (inertia-dominated).
+            4. Longer integration: 500 steps (exposes RK4 stage sign errors via error accumulation).
+            5. Cross-backend parity: all 5 backends at same params — compare outputs to each other
+               (not only vs Python reference). Backend divergence > 0.01% at step 500 = failure.
+            6. Conservation check: assert enstrophy[t+1] <= enstrophy[t] for Re < 500 (catches
+               sign errors in diffusion term that 64×32/100-step reference cannot detect).
+            7. Format fix: report err in scientific notation when err < 0.01% to avoid "0.00%" masking.
+          Implement as shared pytest harness (kh-sim/tests/validation/) calling each backend's
+          HTTP /simulate endpoint — language-agnostic, single source of truth.
+
+      # ── R0-LDE: Local Development Environment ─────────────────────────────────
+      # Gate between R0 and R1: all Docker services containerised + runnable locally
+      # on ThinkPad without any host-installed language runtimes (except Docker).
+
+      - id: LDE-001
+        title: "draw.io desktop install -- ThinkPad (winget + offline diagram editing)"
+        priority: P2-high
+        device: ThinkPad
+        status: done
+        completed: "2026-03-29"
+        tags: [lde, draw.io, tooling, diagram]
+        notes: |
+          Install draw.io desktop via: winget install JGraph.drawio
+          Provides offline diagram editing (no VS Code needed for standalone .drawio files).
+          Acceptance: draw.io.exe launches, opens project-overview.drawio without error,
+          saves changes back to docs/mindmaps/. No internet connection required for basic ops.
+
+      - id: LDE-002
+        title: "Docker images build -- all 5 KH-sim backends (Rust/Scala/C++/Fortran/Pascal)"
+        priority: P1-critical
+        device: ThinkPad
+        status: done
+        completed: "2026-03-29"
+        depends_on: [KH-003, KH-004, KH-005, KH-006, KH-007]
+        tags: [lde, docker, build, backends]
+        notes: |
+          Build all backend Docker images via:
+            docker compose -f infra/docker/docker-compose.backends.yml build
+          Or individually per Dockerfile in kh-sim/backends/<lang>/Dockerfile.
+          Acceptance criteria:
+            - All 5 images build without error (kh-sim-rust, kh-sim-scala, kh-sim-cpp,
+              kh-sim-fortran, kh-sim-pascal).
+            - docker images | grep kh-sim shows all 5 with size > 0.
+            - C++/Fortran FetchContent requires internet at image-build time.
+          Notes: Scala image uses sbt-native-packager; JVM warmup adds ~25s to first health check.
+          Pascal: FPC 3.2.2 from apt, statically linked binary.
+
+      - id: LDE-003
+        title: "R0-LDE unified stack startup -- docker-compose.r0-lde.yml all 6 services healthy"
+        priority: P1-critical
+        device: ThinkPad
+        status: done
+        completed: "2026-03-29"
+        depends_on: [LDE-002, DIAG-001]
+        tags: [lde, docker, compose, integration, health-check]
+        notes: |
+          Start full local dev environment via:
+            .\_config\Start-LocalEnv.ps1 -Action up
+          Or directly:
+            docker compose -f infra/docker/docker-compose.r0-lde.yml up -d
+          Acceptance criteria -- HTTP 200 on all 6 health endpoints:
+            http://localhost:8001/health  --> kh-rust
+            http://localhost:8002/health  --> kh-scala
+            http://localhost:8003/health  --> kh-cpp
+            http://localhost:8004/health  --> kh-fortran
+            http://localhost:8005/health  --> kh-pascal
+            http://localhost:8010         --> plantuml-server
+          All containers must reach "healthy" state (not just "running").
+          PlantUML render verification: open diag-001-smoke.puml in VS Code, Alt+D renders via port 8010.
+
+      - id: LDE-004
+        title: "Start-LocalEnv.ps1 acceptance test -- all -Action modes verified"
+        priority: P2-high
+        device: ThinkPad
+        status: done
+        completed: "2026-03-29"
+        depends_on: [LDE-003]
+        tags: [lde, powershell, scripting, acceptance]
+        notes: |
+          Validate the _config/Start-LocalEnv.ps1 controller script action modes:
+            up       -- starts stack, all 6 health checks pass
+            down     -- stops all containers
+            status   -- lists containers with state
+            health   -- reports all 6 endpoints green
+            build    -- rebuilds images
+            restart  -- stops then starts, health checks pass
+          Optional targeted single-service: .\Start-LocalEnv.ps1 -Action restart -Service kh-rust
+          Acceptance: exit code 0 when stack healthy, exit code 1 when endpoint unreachable.
 
   # ══════════════════════════════════════════════════════════════════════
   # PROJECT: ml-infra
@@ -928,3 +1254,846 @@ projects:
         status: pending
         depends_on: [TF-002, TF-003, TF-004, TF-005, GEN-010]
         tags: [ci-cd, github-actions, tensorflow, training, smoke-test]
+
+      # ── PINN: Physics-Informed Neural Networks — Dual-Backend ──────────────
+      # ADR: infra/PINN-ARCHITECTURE.md (ADR-PINN-001, 2026-03-28)
+      # Decision: DeepXDE + JAX/Equinox in parallel — common PINNSolver interface
+      # Serving: FastAPI :8600 (both backends) + optional TF Serving pathway (DeepXDE/TF)
+      # Domain: Kelvin-Helmholtz instability (kh-sim) — Navier-Stokes PDE family
+
+      - id: PINN-001
+        title: "PINN architecture design + ADR-PINN-001 document"
+        priority: P2-high
+        device: ThinkPad
+        status: done
+        tags: [pinn, architecture, adr, ml-infra]
+        notes: "infra/PINN-ARCHITECTURE.md produced 2026-03-28. Dual-backend (DeepXDE + JAX), common interface, REST :8600, DB schema, CI job, task map."
+
+      - id: PINN-002
+        title: "PINNSolver Protocol + PDEProblem + SolutionField data models"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [PINN-001]
+        tags: [pinn, python, interface, dataclass, protocol]
+        notes: "File: ml/pinn/solver_interface.py. Defines PINNSolver Protocol, PDEProblem, SolutionField dataclasses as per PINN-ARCHITECTURE.md §4/§5."
+
+      - id: PINN-003
+        title: "BackendRegistry + FastAPI service scaffold (port 8600)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [PINN-002]
+        tags: [pinn, fastapi, python, registry, rest, service]
+        notes: "Files: ml/pinn/registry.py, ml/pinn/service/main.py, routes.py, persistence.py. REST API per §6 of PINN-ARCHITECTURE.md."
+
+      - id: PINN-004
+        title: "KH PDE kernel — shared Kelvin-Helmholtz problem definition"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [PINN-002]
+        tags: [pinn, kelvin-helmholtz, navier-stokes, pde, physics]
+        notes: "File: ml/pinn/problems/kelvin_helmholtz.py. PDE definition, IC/BC spec, domain geometry. Backend-agnostic (callable by both DeepXDE and JAX backends)."
+
+      - id: PINN-005
+        title: "DeepXDE backend implementation (KH instability, TF backend)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [PINN-003, PINN-004]
+        tags: [pinn, deepxde, tensorflow, navier-stokes, backend]
+        notes: "File: ml/pinn/backends/deepxde_backend.py. Implements PINNSolver Protocol. deepxde[tensorflow] dep. Optional SavedModel export path to TF Serving."
+
+      - id: PINN-006
+        title: "JAX + Equinox backend implementation (KH instability)"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [PINN-003, PINN-004]
+        tags: [pinn, jax, equinox, optax, navier-stokes, backend]
+        notes: "File: ml/pinn/backends/jax_backend.py. Implements PINNSolver Protocol. jax.jit + jax.vmap + jax.jvp for collocation sampling and PDE residual. No TF Serving dependency."
+
+      - id: PINN-007
+        title: "PostgreSQL schema migration — pinn_runs + pinn_solutions tables"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [DB-001, PINN-002]
+        tags: [pinn, postgresql, schema, migration]
+        notes: "SQL per PINN-ARCHITECTURE.md §7.1. Tables: pinn_runs (metadata+status), pinn_solutions (chunked field snapshots). Add to _config or alembic migration."
+
+      - id: PINN-008
+        title: "MongoDB pinn_metrics collection + TTL index"
+        priority: P2-high
+        device: ThinkPad
+        status: pending
+        depends_on: [DB-002, PINN-002]
+        tags: [pinn, mongodb, metrics, ttl, index]
+        notes: "Schema per PINN-ARCHITECTURE.md §7.2. Per-epoch training telemetry. TTL: 30 days. Indexes: (run_id, epoch), (timestamp TTL)."
+
+      - id: PINN-009
+        title: "CI pinn-smoke-test job — both backends, loss threshold assertions"
+        priority: P3-medium
+        device: ThinkPad
+        status: pending
+        depends_on: [PINN-005, PINN-006, GEN-010]
+        tags: [pinn, ci-cd, github-actions, smoke-test, testing]
+        notes: "CI job per PINN-ARCHITECTURE.md §11. 100 epochs / minimal domain. Assert total_loss < threshold per backend. Artifact: loss curves."
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # PROJECT: symb-infra
+  # Tri-layer symbolic / reasoning / log-data architecture
+  #
+  # Layer 1 — Physics symbolic (Julia):
+  #   Expression simplification, automatic differentiation of PDE terms,
+  #   symbolic constraint checking, model parameter inference.
+  #   Stack: Julia + Symbolics.jl + ModelingToolkit.jl + DifferentialEquations.jl
+  #
+  # Layer 2 — Reasoning / inference (Clojure + core.logic):
+  #   System state inference, architectural decision logic, constraint propagation.
+  #   Stack: Clojure (JVM, interops with Scala), core.logic (miniKanren),
+  #          Datahike (Datalog over persistent immutable DB).
+  #
+  # Layer 3 — Log data substrate (Datalog projection over ELK):
+  #   ELK stack (LOG-001–006) remains raw event store.
+  #   A Datalog query layer provides a logic-programming-compatible view over
+  #   structured log events — same layer as reasoning queries (Layer 2).
+  #   This eliminates the impedance mismatch between inference and data retrieval.
+  #
+  # Key architectural decision: Datalog as the pivot point.
+  #   Clojure + core.logic + Datahike gives logic programming AND structured log
+  #   queries in a single runtime, with JVM interop to existing Scala backends.
+  #   Julia stays orthogonal — pure physics/math domain only.
+  # ══════════════════════════════════════════════════════════════════════════
+  symb-infra:
+    description: "Tri-layer symbolic/reasoning/log-data architecture — Julia (physics symbolic), Clojure+core.logic+Datahike (reasoning+Datalog), ELK bridge"
+    status: active
+    decision_confirmed: 2026-03-28
+    decision_rationale: |
+      Architecture confirmed. Datalog is the pivot point: serves as both query language
+      and logic programming substrate, eliminating impedance mismatch between ES log retrieval
+      and Clojure/core.logic inference. ELK remains raw event store with a Datahike projection
+      layer above it. Julia orthogonal (physics symbolic only). Scope: deeper architectural
+      analysis, documentation, and test case creation per SYMB-001 ADR.
+    tasks:
+
+      - id: SYMB-001
+        title: "Architecture decision record — tri-layer symbolic/reasoning/data design"
+        priority: P2-high
+        device: both
+        status: open
+        tags: [architecture, adr, julia, clojure, datalog, symbolic, reasoning]
+        notes: |
+          Produce: infra/SYMB-ARCHITECTURE.md (ADR format)
+          Decisions to record:
+            1. Julia as physics symbolic layer boundary: what goes in (Symbolics.jl,
+               ModelingToolkit.jl, AD of PDE residuals) vs what stays Python/PINN.
+            2. Clojure as reasoning layer: core.logic (miniKanren) for inference rules,
+               Datahike (Datalog) for structured queries. JVM placement alongside Scala.
+            3. Log data bridge: ELK (raw events) → Datahike ETL projection → Datalog query
+               interface. Query shape: unified logical predicates over both live state and
+               historical log events.
+            4. Inter-layer contracts: Julia ↔ Python (PyCall.jl or Julia REST sidecar),
+               Clojure ↔ Scala (direct JVM interop or HTTP), Julia ↔ Clojure (REST or
+               shared data file).
+            5. Port allocation for new services.
+          Gate: SYMB-002 through SYMB-005 all depend on this ADR being written first.
+
+      - id: SYMB-002
+        title: "Julia symbolic physics layer — prototype (Symbolics.jl + ModelingToolkit.jl)"
+        priority: P2-high
+        device: MacBook
+        status: deferred
+        depends_on: [SYMB-001]
+        tags: [julia, symbolic, physics, pde, ad, symbolics-jl]
+        notes: |
+          Scope (per SYMB-001 ADR):
+            - Symbolic representation of KH vorticity equation (omega_t + u*omega_x + v*omega_y = nu*laplacian(omega))
+            - Automatic differentiation of PDE residual terms (via ModelingToolkit symbolic AD)
+            - Expression simplification and dimensional consistency checks
+            - REST sidecar (HTTP.jl, port TBD from SYMB-001) exposing symbolic query endpoints
+          Acceptance: can return symbolic Jacobian of vorticity RHS w.r.t. Re, verified against finite-difference approximation.
+
+      - id: SYMB-003
+        title: "Clojure reasoning layer — core.logic inference + Datahike Datalog scaffold"
+        priority: P2-high
+        device: both
+        status: deferred
+        depends_on: [SYMB-001]
+        tags: [clojure, core-logic, datalog, datahike, reasoning, inference, jvm]
+        notes: |
+          Scope (per SYMB-001 ADR):
+            - Clojure project (deps.edn), core.logic rules for system state inference
+              (e.g. "backend X is healthy if last N log events show no error and latency < threshold")
+            - Datahike schema: entity-attribute-value model for backend state, simulation runs,
+              validation results
+            - Datalog queries over Datahike DB: unify with core.logic for hybrid logical queries
+            - JVM interop test: call Clojure namespace from Scala (or via HTTP)
+          Acceptance: core.logic query over Datahike correctly infers backend health state from
+          injected test events, returns well-formed edn/JSON.
+
+      - id: SYMB-004
+        title: "Log data bridge — ELK → Datahike ETL projection layer"
+        priority: P2-high
+        device: ThinkPad
+        status: deferred
+        depends_on: [SYMB-003, LOG-001]
+        tags: [elasticsearch, datahike, datalog, etl, log-bridge, clojure]
+        notes: |
+          Scope:
+            - Clojure ETL pipeline: poll/stream ES index (LOG-001 stack) → transact into Datahike
+            - Entity model: map ES log documents to Datahike EAV facts
+              (backend-id, timestamp, level, latency-ms, endpoint, status-code, ...)
+            - Incremental sync: track last-indexed timestamp, avoid full re-index on restart
+            - Datalog query examples: "all backends with p99 latency > 200ms in last 1h",
+              "simulation runs where div_rms degraded between steps"
+          Acceptance: live Datalog query over real ELK log data returns correct results
+          verified against direct ES query.
+
+      - id: SYMB-005
+        title: "Inter-layer integration test — Julia symbolic result consumed by Clojure reasoning"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [SYMB-002, SYMB-003]
+        tags: [integration, julia, clojure, symbolic, reasoning, contract-test]
+        notes: |
+          Scope:
+            - Julia sidecar REST endpoint returns symbolic Jacobian or constraint violation flag
+            - Clojure reasoning layer queries Julia endpoint, asserts over result via core.logic rule
+            - Example rule: "simulation is physically consistent if symbolic divergence constraint
+              is satisfied AND measured div_rms < threshold"
+          This test validates the Layer 1 ↔ Layer 2 contract defined in SYMB-001 ADR.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROJECT: gr-testcases — GR exact-solution normative test suite
+# Source:  Podolský & Griffiths, "Exact Space-Times in Einstein's General
+#          Relativity", Cambridge University Press 2009, ISBN 978-0-521-88927-8
+# Purpose: Normative test cases for the nonlinear physics framework.
+#          The book provides a canonical catalogue of exact GR solutions with
+#          known analytical properties — ideal ground truth for verifying that
+#          symbolic/numerical layers produce physically correct results.
+# Relation to framework:
+#   - Layer 1 (Julia/Symbolics.jl): symbolic derivation of metric, Christoffel
+#     symbols, Riemann/Ricci/Weyl tensors; comparison against book results
+#   - Layer 2 (Clojure reasoning): Datalog rules asserting e.g.
+#     "vacuum solution ⟹ Ricci = 0", "Petrov type-D ⟹ specific Weyl structure"
+#   - KH-VAL boilerplate milestone: when the validation harness is generalised,
+#     GR exact solutions become the first non-fluid physics test family
+# decision_confirmed: 2026-03-28
+# ─────────────────────────────────────────────────────────────────────────────
+
+  gr-testcases:
+    description: >-
+      Normative GR exact-solution test cases drawn from Podolský & Griffiths
+      (Cambridge 2009). Each task corresponds to a solution family from the book
+      and specifies what the symbolic layer must derive and what the reasoning
+      layer must assert.
+    tasks:
+      - id: GR-001
+        title: "ADR — GR test-case framework: scope, solution families, acceptance criteria"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [SYMB-001]
+        tags: [gr, architecture, adr, physics-framework]
+        notes: |
+          Write the Architecture Decision Record that answers:
+            1. Which solution families from Podolský & Griffiths are in scope for
+               the first milestone (suggested: Minkowski, Schwarzschild,
+               Reissner-Nordström, pp-waves, Kerr — Chapters 3/9/12/17/13).
+            2. What the Julia symbolic layer must produce for each (metric tensor,
+               Christoffel symbols Γ^μ_νρ, Ricci scalar R, Weyl tensor Cμνρσ,
+               Petrov classification).
+            3. Acceptance tolerance: symbolic results are exact (no floating-point
+               error), so the test is Boolean (derived == book expression).
+            4. How Clojure reasoning rules encode physical constraints
+               (vacuum ⟹ Rμν=0, Petrov type D ⟹ Ψ0=Ψ1=Ψ3=Ψ4=0, etc.).
+            5. Integration with KH-VAL boilerplate milestone.
+          Reference: P&G ISBN 978-0-521-88927-8, front-matter PDF available at
+          https://assets.cambridge.org/97805218/89278/frontmatter/9780521889278_frontmatter.pdf
+
+      - id: GR-002
+        title: "GR test case — Minkowski space (P&G §3): symbolic baseline"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [GR-001]
+        tags: [gr, minkowski, symbolic, julia, baseline]
+        notes: |
+          Simplest possible GR solution — flat spacetime.
+          Julia must derive: gμν = diag(-1,1,1,1), Γ^μ_νρ = 0 everywhere,
+          Rμνρσ = 0, R = 0, Weyl = 0, Petrov type O.
+          Serves as the smoke test / "hello world" for the GR symbolic pipeline.
+
+      - id: GR-003
+        title: "GR test case — Schwarzschild vacuum (P&G §9): symbolic + Petrov type D"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [GR-001]
+        tags: [gr, schwarzschild, vacuum, symbolic, julia, petrov]
+        notes: |
+          Static spherically symmetric vacuum solution. Canonical test for:
+            - Symbolic derivation of Schwarzschild metric in Schwarzschild coords
+            - Verification Rμν = 0 (vacuum Einstein equations)
+            - Weyl tensor non-zero; Petrov type D (Ψ0=Ψ1=Ψ3=Ψ4=0, Ψ2≠0)
+            - Clojure rule: "Schwarzschild ∧ outside_horizon ⟹ vacuum ∧ type_D"
+
+      - id: GR-004
+        title: "GR test case — pp-waves (P&G §17): symbolic + Petrov type N"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [GR-001]
+        tags: [gr, pp-waves, gravitational-waves, symbolic, petrov]
+        notes: |
+          Plane-fronted gravitational waves — relevant to GW physics.
+          Petrov type N (Ψ0=Ψ1=Ψ2=Ψ3=0, Ψ4≠0).
+          Tests the symbolic layer's ability to handle null coordinates and
+          cross-validates with the reasoning layer's Petrov-type classification rules.
+
+      - id: GR-005
+        title: "GR test case — Kerr rotating black hole (P&G §13): symbolic + Boyer-Lindquist"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [GR-003]
+        tags: [gr, kerr, rotating, symbolic, julia, petrov]
+        notes: |
+          Rotating vacuum solution. More complex Christoffel computation.
+          Julia derives metric in Boyer-Lindquist coords, verifies Rμν=0,
+          Petrov type D. Clojure asserts Kerr reduces to Schwarzschild when a→0.
+          This is the capstone GR test case for the first milestone.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RELEASES — consistent delivery slices
+# R0: Infrastructure baseline (all infra tasks complete)
+# R1: KH-instability showcase (all backends + React F/E + web presence)
+# Pattern: each release = functional delivery first, presentation layer follows.
+# ─────────────────────────────────────────────────────────────────────────────
+
+releases:
+
+  R0:
+    title: "Infrastructure Baseline"
+    description: >-
+      All infrastructure operational: ELK log pipeline live, IDE standardised
+      on both machines, Docker compose stack, CI/CD pipeline, SYMB-001 ADR
+      written. No feature functionality required — just a provably stable,
+      reproducible development and operations platform.
+    status: in-progress
+    gate_tasks:
+      - LOG-001   # ELK compose up (Elasticsearch + Logstash + Kibana)
+      - LOG-002   # Logstash pipeline config for kh-sim backends
+      - LOG-003   # Kibana index pattern + base dashboard
+      - LOG-004   # Log SDK integration in each backend (structured JSON)
+      - LOG-005   # Log retention + rotation policy
+      - LOG-006   # ELK smoke test — confirm all 5 backends emit searchable logs
+      - GEN-013   # VS Code IDE — ThinkPad (rust-analyzer, Metals, fortls, OmniPascal, PlantUML, draw.io)
+      - GEN-014   # VS Code IDE — MacBook parity
+      - GEN-015   # Commit workflow validation (pre-commit hooks, semantic commits)
+      - KH-016    # Docker compose -- all 5 backends + React F/E
+      - KH-017    # CI/CD pipeline (GitHub Actions: build + validate + lint)
+      - SYMB-001  # Tri-layer symbolic/reasoning/log ADR written and reviewed
+      - LDE-001   # draw.io desktop install (ThinkPad)
+      - LDE-002   # Docker images build -- all 5 KH-sim backends
+      - LDE-003   # R0-LDE unified stack startup -- all 6 services healthy
+      - LDE-004   # Start-LocalEnv.ps1 acceptance test
+
+  R0-LDE:
+    title: "Local Development Environment Validation"
+    description: >-
+      Explicit validation milestone confirming that the complete Docker-based
+      development stack runs locally on ThinkPad without any host-installed
+      language runtimes. All 5 KH-sim backends (Rust, Scala, C++, Fortran,
+      Pascal) and the PlantUML diagram server are containerised, start via a
+      single compose command, and pass HTTP health checks. Start-LocalEnv.ps1
+      provides the unified LDE controller (up/down/status/health/build/logs).
+      This gate sits between R0 (infrastructure baseline) and R1 (feature
+      delivery) to prevent environment drift from blocking R1 work.
+    status: pending
+    depends_on: [R0]
+    gate_tasks:
+      - LDE-001   # draw.io desktop install (winget)
+      - LDE-002   # Docker images build -- all 5 backends
+      - LDE-003   # Unified stack startup -- 6/6 health checks green
+      - LDE-004   # Start-LocalEnv.ps1 all -Action modes verified
+
+  R1:
+    title: "KH-Instability Showcase"
+    description: >-
+      KH-instability simulation running live across all 5 backends (Rust, Scala,
+      C++, Fortran, Pascal) with React front-end visualisation. Functionality
+      published on mim2000.cz/projects/ as architecture + testing showcase, and
+      on zemla.org/philosophy/ under a new Toy Models section.
+    status: planned
+    depends_on: [R0-LDE]
+    gate_tasks:
+      - KH-008    # React F/E — /kh-rust page
+      - KH-009    # React F/E — /kh-scala page
+      - KH-010    # React F/E — /kh-cpp page
+      - KH-011    # React F/E — /kh-fortran page
+      - KH-012    # React F/E — /kh-pascal page
+      - KH-013    # React F/E — /kh-compare (side-by-side backends)
+      - KH-014    # React F/E — scaffold + routing shell
+      - KH-015    # React F/E — /kh-pinn page (stub)
+      - WEB-001   # WP theme repos on MacBook — local dev workflow confirmed
+      - WEB-002   # mim2000.cz — /projects/kh-instability/ showcase subsection
+      - WEB-003   # zemla.org — /philosophy/ Toy Models section + KH entry
+      - WEB-004   # KH content brief (copy, screenshots, architecture summary)
+      - WEB-005   # Deploy both WP sites (push themes to GitHub → hosting sync)
+
+  R2:
+    title: "Symbolic / GR Framework + Extended Simulations"
+    description: >-
+      Tri-layer symbolic architecture operational (Julia + Clojure + Datahike),
+      GR exact-solution test cases passing, PINN service deployed, dashboard
+      with log-driven status aggregation live.
+    status: planned
+    depends_on: [R1]
+    gate_tasks:
+      - SYMB-002  # Julia Symbolics.jl service scaffold
+      - SYMB-003  # Clojure + core.logic + Datahike reasoning service
+      - SYMB-004  # ELK → Datahike ETL projection
+      - SYMB-005  # Inter-layer integration test
+      - GR-001    # GR test-case framework ADR
+      - GR-002    # Minkowski baseline
+      - GR-003    # Schwarzschild + Petrov type D
+      - DASH-001  # Dashboard architecture spec
+      - DASH-002  # L1 system health panel
+      - DASH-003  # L2 per-backend metrics panel (ELK-driven)
+      - PINN-002  # PINN service implementation (first milestone)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROJECT: diag-infra — architecture diagrams and visualisation tooling
+# Tooling: draw.io (VS Code extension) + PlantUML (VS Code ext + Docker server)
+# ─────────────────────────────────────────────────────────────────────────────
+
+  diag-infra:
+    description: >-
+      Architecture diagrams for the full ecosystem. draw.io for C4 structural
+      diagrams and dashboard wireframes; PlantUML for sequence/interaction
+      diagrams. Tooling installed as VS Code extensions; PlantUML rendering
+      server runs as a Docker service (no local Java required).
+    tasks:
+      - id: DIAG-001
+        title: "Tooling install — draw.io + PlantUML VS Code extensions + Docker render server"
+        priority: P2-high
+        device: both
+        status: done
+        completed: "2026-03-28"
+        depends_on: [GEN-013, GEN-014]
+        tags: [tooling, draw.io, plantuml, vscode, docker]
+        notes: |
+          VS Code extensions (both machines):
+            - hediet.vscode-drawio     (draw.io native editor — free, offline)
+            - jebbs.plantuml           (PlantUML preview + export)
+          PlantUML render server (avoids local Java/Graphviz dependency):
+            Add to docker-compose.yml:
+              plantuml:
+                image: plantuml/plantuml-server:jetty
+                ports: ["8010:8080"]
+          VS Code setting:
+            "plantuml.server": "http://localhost:8010"
+            "plantuml.render":  "PlantUMLServer"
+          Acceptance: .puml file renders in VS Code, .drawio file opens with draw.io editor.
+
+      - id: DIAG-002
+        title: "C4 system context diagram (draw.io) — full ecosystem"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [DIAG-001]
+        tags: [architecture, c4, draw.io, system-context]
+        notes: |
+          Level 1 — System Context. Shows:
+            - User (developer / browser client)
+            - kh-sim system boundary (5 backends + React F/E)
+            - Symbolic layer (Julia + Clojure + Datahike)
+            - Log infrastructure (ELK)
+            - External: mim2000.cz and zemla.org (deployment targets)
+          Output: docs/diagrams/c4-system-context.drawio + exported PNG.
+
+      - id: DIAG-003
+        title: "C4 container diagram (draw.io) — services, ports, data flows"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [DIAG-002]
+        tags: [architecture, c4, draw.io, containers]
+        notes: |
+          Level 2 — Container. Shows each deployable service:
+            kh-rust:8001, kh-scala:8002, kh-cpp:8003, kh-fortran:8004, kh-pascal:8005,
+            pinn:8600, react-fe:3000, elasticsearch:9200, kibana:5601,
+            logstash:5044, plantuml:8010, julia-sidecar, clojure-reasoning, datahike.
+          Connections labelled with protocol (HTTP/REST, TCP, Datalog).
+          Output: docs/diagrams/c4-containers.drawio + PNG.
+
+      - id: DIAG-004
+        title: "Sequence diagrams (PlantUML) — request lifecycle + log pipeline + dashboard aggregation"
+        priority: P3-medium
+        device: MacBook
+        status: pending
+        depends_on: [DIAG-001]
+        tags: [sequence, plantuml, data-flow]
+        notes: |
+          Three .puml files:
+            1. seq-simulate-request.puml: Browser → React → backend /simulate → response → log
+            2. seq-log-pipeline.puml: backend log emit → Logstash → ES → Kibana / Datahike ETL
+            3. seq-dashboard-aggregation.puml: Dashboard poll → ES aggregate query → L1/L2/L3 panels
+          Output: docs/diagrams/*.puml + rendered PNG exports.
+
+      - id: DIAG-005
+        title: "Per-release architecture snapshot — diagrams versioned at each release gate"
+        priority: P3-medium
+        device: MacBook
+        status: pending
+        depends_on: [DIAG-003, DIAG-004]
+        tags: [versioning, architecture, release]
+        notes: |
+          At each release (R0, R1, R2): export a frozen PNG set of the current
+          C4 context + container diagrams and store under docs/diagrams/snapshots/R0/.
+          These serve as the "as-built" record for each release milestone.
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROJECT: dashboard — component status dashboard (multi-level)
+# Data source: ELK log DB. UI: React F/E (new route /dashboard).
+# Abstraction levels: L1 system health | L2 per-backend metrics | L3 run detail
+# ─────────────────────────────────────────────────────────────────────────────
+
+  dashboard:
+    description: >-
+      Multi-level status dashboard aggregating component health and simulation
+      metrics from ELK. Three abstraction levels: L1 (system health, all
+      services alive), L2 (per-backend aggregates: p50/p99 latency, error rate,
+      last sim diagnostics), L3 (individual run trace and field drill-down).
+      Implemented as React route /dashboard, data polled from ELK REST API.
+    tasks:
+      - id: DASH-001
+        title: "Dashboard architecture spec — abstraction levels, ELK query map, React component tree"
+        priority: P2-high
+        device: MacBook
+        status: deferred
+        depends_on: [LOG-001, SYMB-001]
+        tags: [dashboard, architecture, elk, react, spec]
+        notes: |
+          Write docs/dashboard-spec.md defining:
+          L1 — System Health Overview:
+            - /health endpoint poll for each backend (alive/dead indicator)
+            - ELK: last 1 min heartbeat count per service
+            - React: status grid, green/amber/red per service
+          L2 — Per-Backend Metrics (aggregated, 1h window):
+            - p50/p99 compute_ms per backend (ELK percentile aggregation)
+            - request count, error rate, last sim diagnostics (ke, enstrophy, div_rms)
+            - React: metrics table + sparklines
+          L3 — Run Detail (on-demand drill-down):
+            - Single simulation run log trace (full request params + diagnostic output)
+            - React: log viewer with field filter
+          Include ELK index mapping requirements and query templates (ES DSL).
+
+      - id: DASH-002
+        title: "L1 system health panel — React component, polls /health endpoints"
+        priority: P2-high
+        device: MacBook
+        status: deferred
+        depends_on: [DASH-001, KH-014]
+        tags: [dashboard, react, health, L1]
+        notes: |
+          React component <SystemHealthPanel>.
+          Polls /health on each backend every 10s; displays service name,
+          port, backend language, status (OK / unreachable), response_ms.
+          No ELK dependency — works even before log pipeline is up.
+          Acceptance: all 5 backends shown with live green/red status.
+
+      - id: DASH-003
+        title: "L2 per-backend metrics panel — ELK percentile aggregations, simulation diagnostics"
+        priority: P2-high
+        device: MacBook
+        status: deferred
+        depends_on: [DASH-001, LOG-003]
+        tags: [dashboard, react, elk, metrics, L2]
+        notes: |
+          React component <BackendMetricsPanel>.
+          Queries ELK with ES DSL percentile aggregation (p50/p99 compute_ms),
+          last known ke/enstrophy/div_rms per backend, request count / error count.
+          Time window selector: 1h / 6h / 24h.
+          Acceptance: metrics update live from ELK data; match known validation values.
+
+      - id: DASH-004
+        title: "L3 run detail drill-down — individual simulation trace from ELK"
+        priority: P3-medium
+        device: MacBook
+        status: deferred
+        depends_on: [DASH-003]
+        tags: [dashboard, react, elk, drill-down, L3]
+        notes: |
+          React component <RunDetailPanel>.
+          Triggered by clicking a row in L2 panel. Fetches full log document
+          for a single simulation run (request params, timing, diagnostics,
+          any errors). Displays as structured JSON viewer with field highlights.
+          Acceptance: click-through from L2 to L3 shows correct run record.
+
+      - id: DASH-005
+        title: "Dashboard route integration — /dashboard in React F/E routing shell"
+        priority: P2-high
+        device: MacBook
+        status: deferred
+        depends_on: [DASH-002, KH-014]
+        tags: [dashboard, react, routing]
+        notes: |
+          Add /dashboard route to React F/E. Top-level layout: L1 health grid
+          at top, L2 metrics table below, L3 drawer/modal on drill-down.
+          Navigation link from main nav bar. Responsive layout (desktop + tablet).
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROJECT: web-showcase — KH-instability on mim2000.cz + zemla.org
+# Stack: WordPress (both sites), themes on MacBook, pushed to GitHub.
+# R1 delivery: both sites updated and deployed before Release 1 is closed.
+# ─────────────────────────────────────────────────────────────────────────────
+
+  web-showcase:
+    description: >-
+      WordPress-based web presence for Release 1 deliverables. Both sites
+      (mim2000.cz and zemla.org) use custom themes maintained on MacBook and
+      deployed via GitHub push. mim2000.cz gets a new KH-instability showcase
+      subsection; zemla.org /philosophy/ gets a Toy Models section with the
+      first simulation entry.
+    tasks:
+      - id: WEB-001
+        title: "MacBook dev environment — pull both WP theme repos, confirm local workflow"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        tags: [wordpress, setup, macbook, github]
+        notes: |
+          Pull mim2000.cz and zemla.org theme repos from GitHub.
+          Confirm local WP dev setup (Local by Flywheel, MAMP, or Docker WP).
+          Verify theme activation, plugin dependencies, child-theme structure.
+          Document deploy procedure: local → git push → hosting sync.
+          Acceptance: local WP instance shows both sites; theme edits survive push.
+
+      - id: WEB-002
+        title: "mim2000.cz — /projects/kh-instability/ showcase subsection"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [WEB-001, WEB-004, KH-014]
+        tags: [wordpress, mim2000, kh-sim, showcase, R1]
+        notes: |
+          New subsection under /projects/. Content:
+            - Overview: what KH-instability is (1 paragraph, non-specialist)
+            - Architecture diagram (DIAG-003 PNG export embedded)
+            - Per-backend comparison table: language, framework, port, compute_ms
+            - Live demo link to React F/E /kh-compare page (if deployed)
+            - Testing philosophy: how validation harness works, what err=1.48e-13% means
+          WP implementation: custom page template or Gutenberg blocks.
+          Acceptance: page live at mim2000.cz/projects/kh-instability/,
+          mobile-responsive, linked from /projects/ index.
+
+      - id: WEB-003
+        title: "zemla.org — /philosophy/ Toy Models section + KH-instability entry"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [WEB-001, WEB-004]
+        tags: [wordpress, zemla, philosophy, toy-models, R1]
+        notes: |
+          Redesign /philosophy/ to introduce a "Toy Models" section.
+          Philosophy: simple, well-understood physical systems as concrete ground
+          for exploring computational architecture, testing discipline, and the
+          relationship between mathematics and implementation.
+          First entry: KH-instability. Content:
+            - Why KH? (shear instability as archetype of nonlinear physics)
+            - What we built: 5 implementations, shared test harness, bit-identical results
+            - What it demonstrates: reproducibility, cross-language physics verification
+          Future entries: GR exact solutions, PINN (stubs visible, marked "coming").
+          Acceptance: section visible in /philosophy/, KH entry published,
+          placeholders for GR and PINN entries.
+
+      - id: WEB-004
+        title: "KH-instability content brief — copy, screenshots, architecture summary"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [KH-013]
+        tags: [content, copywriting, screenshots, kh-sim]
+        notes: |
+          Produce the raw content assets used by WEB-002 and WEB-003:
+            - 2 × short text blocks (non-specialist overview + technical summary)
+            - Architecture diagram PNG (from DIAG-003)
+            - Screenshots: React F/E pages for each backend (kh-rust, kh-pascal, kh-compare)
+            - Per-backend metrics table (copy from validation output)
+          Output: docs/web-content/kh-instability-brief.md + assets/ folder.
+
+      - id: WEB-005
+        title: "Deploy both WP sites — push themes to GitHub + confirm hosting sync"
+        priority: P2-high
+        device: MacBook
+        status: pending
+        depends_on: [WEB-002, WEB-003]
+        tags: [deploy, wordpress, github, hosting, R1]
+        notes: |
+          Push updated theme files for both sites to their GitHub repos.
+          Confirm hosting provider (both sites) picks up changes:
+            - Auto-deploy webhook, or
+            - Manual SFTP/cPanel git pull, or
+            - GitHub Actions deploy workflow
+          Smoke test: live URLs return HTTP 200, new pages visible, no broken assets.
+          This task gates Release 1 closure.
+
+  R3:
+    title: "MI-M-T Initial Release"
+    description: >-
+      MI-M-T testing tool production-ready in minimal functional scope: Steps 1-2
+      of the 4-step framework implemented, JIRA read interface and Postman collection
+      import live, architecture fully settled, prototype page on mim2000.cz.
+      Marks MI-M-T as a usable testing instrument even if not fully feature-complete —
+      initial release to be refined in subsequent iterations.
+    status: planned
+    depends_on: [R1]
+    gate_tasks:
+      - MI-M-T-D01  # Step 1 (done)
+      - MI-M-T-D02  # Step 2 (scope TBD — must be confirmed and completed)
+      - MI-M-T-D03  # JIRA interface (read-only import sufficient)
+      - MI-M-T-D04  # Postman collection import
+      - MI-M-T-D05  # mim2000.cz MI-M-T prototype page
+
+  R4:
+    title: "Nonlinear Physics Framework — PINN + Classical Solver"
+    description: >-
+      Full nonlinear physics framework operational: GR exact-solution test suite
+      passing (symbolic + reasoning layers), KH-instability extended with higher
+      Reynolds/grid sensitivity tests, first PINN service deployed (data-driven path),
+      classical spectral/FEM solver deployed (verification path). Both solver tracks
+      cross-validated against each other and against GR/KH analytical ground truth.
+    status: planned
+    depends_on: [R2, R3]
+    gate_tasks:
+      - GR-003      # Schwarzschild symbolic test passing
+      - GR-004      # pp-waves Petrov type N
+      - GR-005      # Kerr capstone
+      - PINN-002    # PINN service — physics-informed training pipeline
+      - PINN-003    # PINN service — KH validation against spectral reference
+      - SOLV-001    # Classical solver architecture spec
+      - SOLV-002    # Classical solver — KH test case (spectral verification)
+      - SOLV-003    # Classical solver — GR linearized perturbation test
+      - SOLV-004    # Cross-validation: PINN vs classical vs analytical
+      - KH-VAL      # Validation hardening (tighter tolerances, grid sensitivity)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROJECT: phys-solver — classical spectral/FEM solver for physics verification
+# Dual-track with PINN: classical solver provides ground truth for PINN training
+# and cross-validation. Primary test cases: KH-instability + GR linearized.
+# ─────────────────────────────────────────────────────────────────────────────
+
+  phys-solver:
+    description: >-
+      Purpose-built classical numerical solver for the nonlinear physics framework.
+      Spectral methods (extending KH pseudo-spectral approach) and/or finite-element
+      methods for GR perturbation problems. Serves as verification ground truth for
+      PINN training and result validation. Cross-validated against GR exact solutions
+      (P&G) and KH pseudo-spectral reference (Python/NumPy).
+    tasks:
+      - id: SOLV-001
+        title: "Classical solver architecture spec — spectral vs FEM vs hybrid, language choice"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [GR-001, KH-VAL]
+        tags: [solver, architecture, spectral, fem, spec]
+        notes: |
+          Write docs/solver-architecture.md answering:
+          1. Scope: which test cases drive design?
+             - KH-instability (2D incompressible N-S, pseudo-spectral — already proven)
+             - GR linearized perturbations (e.g. Schwarzschild perturbation theory,
+               Regge-Wheeler equation — needs radial ODE solver or spectral method)
+             - Future: full nonlinear GR numerical relativity (deferred — R5+)
+          2. Method selection per problem class:
+             - KH: extend existing pseudo-spectral (higher resolution, adaptive dt)
+             - GR linearized: Chebyshev spectral collocation (1D/2D radial problems)
+             - Hybrid: spectral for smooth fields, FEM for discontinuities
+          3. Language: Fortran (performance baseline), Julia (Symbolics interop), or C++?
+             Recommendation: Julia — native interop with symbolic layer (Symbolics.jl),
+             DifferentialEquations.jl ecosystem, and Plots.jl for diagnostics.
+          4. Interface contract: solver exposes REST /solve endpoint (mirrors KH-sim pattern)
+             returning field arrays + diagnostics JSON.
+          Acceptance: ADR written, language decided, first test case targeted.
+
+      - id: SOLV-002
+        title: "Classical solver — KH test case (extended pseudo-spectral, higher resolution)"
+        priority: P3-medium
+        device: ThinkPad
+        status: deferred
+        depends_on: [SOLV-001]
+        tags: [solver, kh-instability, spectral, julia, verification]
+        notes: |
+          Implement KH-instability solver in Julia (or chosen language from SOLV-001).
+          Extends the existing Python/Pascal/Fortran approach with:
+            - Higher grid resolution (128×64, 256×128) for convergence testing
+            - Adaptive time-stepping (embedded RK45 with error control)
+            - Dealiasing filter (2/3 rule) for long-time stability
+            - Output: full field snapshots at configurable intervals
+          Validates against Python reference (must pass KH-VAL tightened tolerances).
+          Serves as ground truth for PINN-003 training data generation.
+          Acceptance: solver produces ke/enstrophy within KH-VAL tolerance at
+          multiple resolutions; convergence rate confirmed (spectral accuracy).
+
+      - id: SOLV-003
+        title: "Classical solver — GR linearized perturbation (Regge-Wheeler ODE)"
+        priority: P3-medium
+        device: MacBook
+        status: deferred
+        depends_on: [SOLV-001, GR-003]
+        tags: [solver, gr, regge-wheeler, spectral, chebyshev]
+        notes: |
+          Solve the Regge-Wheeler equation for axial gravitational perturbations
+          of Schwarzschild spacetime — the canonical linearized GR test:
+            d²ψ/dr*² + [ω² - V(r)] ψ = 0
+          where V(r) is the Regge-Wheeler potential and r* is the tortoise coordinate.
+          Method: Chebyshev spectral collocation on compactified domain.
+          Cross-validates against known quasi-normal mode frequencies
+          (e.g. l=2 mode: ω M ≈ 0.3737 - 0.0890i for Schwarzschild).
+          Acceptance: QNM frequency within 0.1% of tabulated value (Leaver 1985).
+
+      - id: SOLV-004
+        title: "Cross-validation — PINN vs classical solver vs GR/KH analytical ground truth"
+        priority: P3-medium
+        device: both
+        status: deferred
+        depends_on: [SOLV-002, SOLV-003, PINN-003]
+        tags: [solver, pinn, cross-validation, physics-framework]
+        notes: |
+          Systematic cross-validation study:
+          1. KH track: PINN(data-driven) vs SOLV-002(spectral) vs Python-reference
+             — compare ke, enstrophy, max_vorticity at t=0.1 for nx=64/128/256
+          2. GR track: PINN(trained on linearized solutions) vs SOLV-003(Chebyshev)
+             vs Regge-Wheeler analytical QNM (Leaver)
+          3. Produce cross-validation report: agreement matrix, error budget,
+             cases where PINN diverges from classical, interpretation.
+          This study forms the technical core of the R4 physics framework claim.
+          Output: docs/cross-validation-R4.md + plots.
+
+      - id: SOLV-005
+        title: "Solver REST interface — /solve endpoint mirroring KH-sim API pattern"
+        priority: P3-medium
+        device: ThinkPad
+        status: deferred
+        depends_on: [SOLV-002, SOLV-003]
+        tags: [solver, api, rest, integration]
+        notes: |
+          Expose classical solver as HTTP service (port 8006) with endpoints:
+            POST /solve/kh      — KH simulation (extended pseudo-spectral)
+            POST /solve/rw      — Regge-Wheeler ODE (GR linearized)
+            GET  /health
+            GET  /info
+          Request/response schema mirrors KH-sim API (diagnostics sub-object,
+          field arrays, compute_ms). Integrates into React /dashboard L2 panel
+          as an additional backend entry.
+          Acceptance: /solve/kh response passes KH-VAL tightened tolerances;
+          /solve/rw returns QNM frequency within 0.1% of Leaver value.
