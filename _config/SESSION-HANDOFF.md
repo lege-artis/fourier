@@ -32,10 +32,10 @@
 - `LDE-003.depends_on`: phantom `DIAG-001` removed
 - `meta.projects`: synced with actual project blocks
 
-### LOG-006 -- MongoDB TTL index + retention (DONE, pending local run)
+### LOG-006 -- MongoDB TTL index + retention (DONE, confirmed ✓)
 - Script: `infra/scripts/mongo-init-indexes.js`
-- 5 indexes: `timestamp_desc`, `level_timestamp`, `app_timestamp`, `session_id`, `ttl_30d` (30-day TTL)
-- **Pending:** first local execution on live `vibedev` instance to confirm index creation
+- 5 indexes created on vibedev.logs (36 docs): `timestamp_desc`, `level_timestamp`, `app_timestamp`, `session_id`, `ttl_30d` (30-day TTL)
+- Confirmed: 2026-04-03 — 5/5 `[OK]`, 6 total indexes including `_id_`
 
 ---
 
@@ -82,7 +82,7 @@ The full log-infra R0 block is now complete. Check `TASKS-shared.yaml` for the n
 
 | Item | Detail |
 |---|---|
-| LOG-006 local run | `mongosh ... mongo-init-indexes.js` not yet executed on live instance |
+| Node.js 20 deprecation | `actions/checkout@v4` etc. → upgrade to v5 before June 2026 |
 | Node.js 20 deprecation | `actions/checkout@v4` etc. → upgrade to v5 before June 2026 |
 | Fluent Bit routing | Per-index split (`ci-logs-*`, `test-results-*`, `kh-sim-*`) still on catch-all output |
 | ES index mapping template | Explicit `keyword` mapping for `session_id` to eliminate `.keyword` workaround |
@@ -97,7 +97,7 @@ LOG-002  [DONE]  log-connector-node
 LOG-003  [DONE]  log-connector-python (6/6 PASS)
 LOG-004  [DONE]  log-connector-github-actions composite action
 LOG-005  [DONE]  CI log-infra-test green (×2 confirmed)
-LOG-006  [DONE*] MongoDB TTL index script  *local run pending
+LOG-006  [DONE]  MongoDB TTL index script confirmed (5/5 indexes, 2026-04-03)
          ──────────────────────────────────────────────────────
          log-infra R0 block COMPLETE (all 6 tasks done)
 ```

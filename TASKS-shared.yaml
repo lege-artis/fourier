@@ -7,9 +7,9 @@
 
 meta:
   schema_version: "2.0.0"
-  last_updated: "2026-04-03"
-  updated_by: "ThinkPad / CoWork session 2026-04-03 (LOG-006 done: mongo-init-indexes.js, TTL 30d + 4 query indexes; TASKS v1.7.2)"
-  task_registry_version: "1.7.2"
+  last_updated: "2026-04-04"
+  updated_by: "ThinkPad / CoWork session 2026-04-04 (SYMB-001 done: infra/SYMB-ARCHITECTURE.md written; KH-015 done, KH-017 unblocked → open; TASKS v1.7.3)"
+  task_registry_version: "1.7.3"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -662,7 +662,7 @@ projects:
             session_id       { session_id: 1 }                      -- session correlation
             ttl_30d          { timestamp: 1 } expireAfterSeconds: 2592000  -- 30-day retention
           Run: mongosh mongodb://127.0.0.1:27017/vibedev infra/scripts/mongo-init-indexes.js
-          Pending: first local run to confirm index creation on live vibedev instance.
+          Confirmed: 2026-04-03 -- 5/5 [OK] on live vibedev.logs (36 docs). Total indexes: 6 (incl _id_).
 
   # ═══════════════════════════════════════════════════════
   # PROJECT: oauth2
@@ -1078,8 +1078,12 @@ projects:
         title: "Docker containerise each KH backend service"
         priority: P2-high
         device: both
-        status: blocked
+        status: done
         depends_on: [KH-003, KH-004, KH-005, KH-006, KH-007]
+        notes: |
+          Done — covered by LDE-002 (Docker images build -- all 5 backends, confirmed 2026-03-29).
+          All 5 KH-SIM backend Docker images build and run; KH-003 through KH-007 all done.
+          Status corrected 2026-04-04: was incorrectly blocked; dependency chain fully resolved.
       - id: KH-016
         title: "Local vhost routing — Laragon to KH backend services"
         priority: P2-high
@@ -1096,8 +1100,14 @@ projects:
         title: "CI/CD pipeline for KH-SIM project"
         priority: P3-medium
         device: both
-        status: blocked
+        status: open
         depends_on: [KH-015]
+        notes: |
+          Unblocked 2026-04-04: KH-015 now done (LDE-002 closed the Docker containerisation gate).
+          ci-heartbeat.yml already covers build + validate for all 5 backends (cpp, rust, scala,
+          fortran, pascal) on ubuntu-latest. Scope for this task: review ci-heartbeat.yml coverage
+          against KH-SIM CI/CD requirements; add any missing KH-specific jobs or matrix strategies;
+          confirm workflow satisfies R0 gate definition.
       - id: KH-018
         title: "KH-SIM integration test suite — end-to-end validation of all backends + F/E"
         priority: P2-high
@@ -1390,23 +1400,21 @@ projects:
         title: "Architecture decision record — tri-layer symbolic/reasoning/data design"
         priority: P2-high
         device: both
-        status: open
+        status: done
         tags: [architecture, adr, julia, clojure, datalog, symbolic, reasoning]
         notes: |
-          Produce: infra/SYMB-ARCHITECTURE.md (ADR format)
-          Decisions to record:
-            1. Julia as physics symbolic layer boundary: what goes in (Symbolics.jl,
-               ModelingToolkit.jl, AD of PDE residuals) vs what stays Python/PINN.
+          Done 2026-04-04. ADR written: infra/SYMB-ARCHITECTURE.md (v1.0.0)
+          Five decisions recorded:
+            1. Julia as physics symbolic layer boundary (Symbolics.jl, ModelingToolkit.jl,
+               AD of PDE residuals; Python/PINN retains numerical execution).
             2. Clojure as reasoning layer: core.logic (miniKanren) for inference rules,
-               Datahike (Datalog) for structured queries. JVM placement alongside Scala.
-            3. Log data bridge: ELK (raw events) → Datahike ETL projection → Datalog query
-               interface. Query shape: unified logical predicates over both live state and
-               historical log events.
-            4. Inter-layer contracts: Julia ↔ Python (PyCall.jl or Julia REST sidecar),
-               Clojure ↔ Scala (direct JVM interop or HTTP), Julia ↔ Clojure (REST or
-               shared data file).
-            5. Port allocation for new services.
-          Gate: SYMB-002 through SYMB-005 all depend on this ADR being written first.
+               Datahike (Datalog) for structured queries; JVM alongside Scala.
+            3. Log data bridge: ELK raw events → Datahike ETL projection → Datalog query
+               interface. Datalog as pivot point for unified L2 query vocabulary.
+            4. Inter-layer contracts: Julia REST sidecar (port 8601) ↔ Python; direct JVM
+               interop for Clojure ↔ Scala; REST for Julia ↔ Clojure. Contract tests spec'd.
+            5. Port allocation: Julia symb 8601, Clojure reasoning 8700, ETL bridge 8701.
+          Gate: SYMB-002 through SYMB-005 now unblocked.
 
       - id: SYMB-002
         title: "Julia symbolic physics layer — prototype (Symbolics.jl + ModelingToolkit.jl)"
