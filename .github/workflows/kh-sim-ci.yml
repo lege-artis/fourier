@@ -237,4 +237,5 @@ jobs:
           needs.cpp-build-validate.result     == 'success' &&
           needs.fortran-build-validate.result == 'success' &&
           needs.pascal-build-validate.result  == 'success'
-        run: echo "All 5 KH-SIM backends: build + physics validation PASSED."
+        run: |
+          echo "All 5 KH-SIM backends: build + physics validation PASSED."
