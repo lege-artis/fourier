@@ -1,0 +1,240 @@
+name: KH-SIM CI
+
+# Triggers on any change to kh-sim/** or this workflow file.
+# ci-heartbeat.yml handles platform toolchain probes (platform sources/).
+# This workflow owns KH-SIM project build + physics validation (KH-017 R0 gate).
+
+on:
+  push:
+    branches: [main, develop, thinkpad, macbook]
+    paths:
+      - 'kh-sim/**'
+      - '.github/workflows/kh-sim-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'kh-sim/**'
+  workflow_dispatch:
+
+jobs:
+
+  # ── Rust ─────────────────────────────────────────────────────────────────────
+  rust-build-validate:
+    name: Rust — Build, Lint & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Build (release)
+        run: |
+          cd kh-sim/backends/rust
+          cargo build --release
+
+      - name: Lint (clippy -D warnings)
+        run: |
+          cd kh-sim/backends/rust
+          cargo clippy -- -D warnings
+
+      - name: Physics validation (cargo test)
+        run: |
+          cd kh-sim/backends/rust
+          cargo test --verbose
+        # Runs tests/validation_test.rs:
+        #   test_diagnostics_within_tolerance — KE/enstrophy ±5%, div_rms < 1e-10
+        #   test_field_shapes — output array sizes correct
+        # Reference: kh-sim/shared/physics/kh_reference_output.json
+        # Path resolved via CARGO_MANIFEST_DIR → ../../shared/physics/
+
+      - name: Report
+        if: success()
+        run: echo "KH-SIM Rust  build OK | clippy OK | validation OK"
+
+  # ── Scala ────────────────────────────────────────────────────────────────────
+  scala-build-validate:
+    name: Scala — Build, Lint & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install SBT
+        uses: sbt/setup-sbt@v1
+
+      - name: Build, lint & validate (sbt clean compile test)
+        run: |
+          cd kh-sim/backends/scala
+          sbt clean compile test
+        # compile: scalacOptions -deprecation -feature -unchecked -Wunused:all (lint built-in)
+        # test: ValidationTest.scala
+        #   "diagnostics within +-5% of Python reference" — KE/enstrophy/div_rms
+        #   "output field shapes are correct" — array length assertions
+        # Reference: kh-sim/shared/physics/kh_reference_output.json
+        # Path: Paths.get("../../shared/physics/...") relative to kh-sim/backends/scala/
+
+      - name: Report
+        if: success()
+        run: echo "KH-SIM Scala  compile OK | scalac-lint OK | validation OK"
+
+  # ── C++ ──────────────────────────────────────────────────────────────────────
+  cpp-build-validate:
+    name: C++ — Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build
+
+      - name: Configure (cmake + FetchContent)
+        run: |
+          cd kh-sim/backends/cpp
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        # FetchContent: cpp-httplib v0.18.1, nlohmann/json v3.11.3 (GIT_SHALLOW)
+        # Requires internet access — available on ubuntu-latest runners
+
+      - name: Build (server + validate binary)
+        run: |
+          cd kh-sim/backends/cpp
+          cmake --build build
+        # Produces: build/kh-sim-cpp (server), build/kh-sim-cpp-validate (physics validate)
+        # tests/validation_test.cpp EXISTS → validate binary IS built (no CMake guard skip)
+        # Compile flags: -Wall -O2 (non-MSVC path)
+
+      - name: Physics validation (ctest)
+        run: |
+          cd kh-sim/backends/cpp
+          ctest --test-dir build -V
+        # CTest: runs kh-sim-cpp-validate with kh_reference_output.json path
+        # Checks: KE ±5%, enstrophy ±5%, div_rms < 1e-10
+
+      - name: Report
+        if: success()
+        run: echo "KH-SIM C++   build OK | validation OK"
+
+  # ── Fortran ──────────────────────────────────────────────────────────────────
+  fortran-build-validate:
+    name: Fortran — Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran build-essential cmake ninja-build
+
+      - name: Configure (cmake + FetchContent)
+        run: |
+          cd kh-sim/backends/fortran
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        # FetchContent: cpp-httplib v0.18.1, nlohmann/json v3.11.3 (GIT_SHALLOW)
+        # Mixed-language: LANGUAGES Fortran CXX
+
+      - name: Build (physics lib + C++ shim + server + validate binary)
+        run: |
+          cd kh-sim/backends/fortran
+          cmake --build build
+        # Build order: kh_physics_f.a → kh_shim.a → kh-sim-fortran + kh-sim-fortran-validate
+        # tests/validation_test.cpp EXISTS → validate binary IS built
+        # Fortran flags: -O2 -fcheck=bounds -fbacktrace; C++ flags: -O2 -Wall
+
+      - name: Physics validation (ctest)
+        run: |
+          cd kh-sim/backends/fortran
+          ctest --test-dir build -V
+        # CTest: runs kh-sim-fortran-validate with kh_reference_output.json
+        # Checks: KE ±5%, enstrophy ±5%, div_rms < 1e-10
+
+      - name: Report
+        if: success()
+        run: echo "KH-SIM Fortran  build OK | validation OK"
+
+  # ── Pascal ───────────────────────────────────────────────────────────────────
+  pascal-build-validate:
+    name: Pascal — Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Free Pascal Compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fpc
+        # fpc on ubuntu-latest: FPC 3.2.2 — includes RTL + FCL base (fpjson, jsonparser)
+        # kh_validate.pas uses fpjson/jsonparser (FCL-JSON, no fcl-web dep)
+
+      - name: Build validation binary
+        run: |
+          cd kh-sim/backends/pascal
+          mkdir -p build
+          fpc -O2 -Fusrc -Fubuild -FUbuild -FEbuild tests/kh_validate.pas
+        # Flags:
+        #   -Fusrc     look for units in src/ (finds kh_physics.pas)
+        #   -Fubuild   also search build/ for pre-compiled units
+        #   -FUbuild   write compiled units (.ppu/.o) to build/
+        #   -FEbuild   write executable to build/
+        # Output: build/kh_validate (Linux, no .exe)
+
+      - name: Physics validation
+        run: |
+          cd kh-sim/backends/pascal
+          ./build/kh_validate ../../shared/physics/kh_reference_output.json
+        # kh_validate: exit 0 = all PASSED, exit 1 = any FAIL
+        # Path ../../shared/physics/ relative to kh-sim/backends/pascal/ resolves correctly
+
+      - name: Report
+        if: success()
+        run: echo "KH-SIM Pascal  build OK | validation OK"
+
+  # ── CI Summary ───────────────────────────────────────────────────────────────
+  kh-sim-summary:
+    name: KH-SIM CI Summary
+    needs:
+      - rust-build-validate
+      - scala-build-validate
+      - cpp-build-validate
+      - fortran-build-validate
+      - pascal-build-validate
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Print summary
+        run: |
+          echo "=== KH-SIM CI Summary ==="
+          echo "Rust    (build+lint+validate): ${{ needs.rust-build-validate.result }}"
+          echo "Scala   (build+lint+validate): ${{ needs.scala-build-validate.result }}"
+          echo "C++     (build+validate):      ${{ needs.cpp-build-validate.result }}"
+          echo "Fortran (build+validate):      ${{ needs.fortran-build-validate.result }}"
+          echo "Pascal  (build+validate):      ${{ needs.pascal-build-validate.result }}"
+          echo "=========================="
+
+      - name: Fail on any backend failure
+        if: |
+          needs.rust-build-validate.result    == 'failure' ||
+          needs.scala-build-validate.result   == 'failure' ||
+          needs.cpp-build-validate.result     == 'failure' ||
+          needs.fortran-build-validate.result == 'failure' ||
+          needs.pascal-build-validate.result  == 'failure'
+        run: |
+          echo "::error::One or more KH-SIM backends failed build or physics validation."
+          exit 1
+
+      - name: All backends green
+        if: |
+          needs.rust-build-validate.result    == 'success' &&
+          needs.scala-build-validate.result   == 'success' &&
+          needs.cpp-build-validate.result     == 'success' &&
+          needs.fortran-build-validate.result == 'success' &&
+          needs.pascal-build-validate.result  == 'success'
+        run: echo "All 5 KH-SIM backends: build + physics validation PASSED."

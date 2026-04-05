@@ -8,8 +8,8 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-04"
-  updated_by: "ThinkPad / CoWork session 2026-04-04 (SYMB-001 done: infra/SYMB-ARCHITECTURE.md written; KH-015 done, KH-017 unblocked → open; TASKS v1.7.3)"
-  task_registry_version: "1.7.3"
+  updated_by: "ThinkPad / CoWork session 2026-04-04 (KH-017: kh-sim-ci.yml created, gap analysis done, status in-progress; TASKS v1.7.4)"
+  task_registry_version: "1.7.4"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -1100,14 +1100,22 @@ projects:
         title: "CI/CD pipeline for KH-SIM project"
         priority: P3-medium
         device: both
-        status: open
+        status: in-progress
         depends_on: [KH-015]
         notes: |
-          Unblocked 2026-04-04: KH-015 now done (LDE-002 closed the Docker containerisation gate).
-          ci-heartbeat.yml already covers build + validate for all 5 backends (cpp, rust, scala,
-          fortran, pascal) on ubuntu-latest. Scope for this task: review ci-heartbeat.yml coverage
-          against KH-SIM CI/CD requirements; add any missing KH-specific jobs or matrix strategies;
-          confirm workflow satisfies R0 gate definition.
+          Unblocked 2026-04-04: KH-015 done (LDE-002 confirmed).
+          Gap analysis (2026-04-04): ci-heartbeat.yml only builds platform sources/ hello-world
+          probes -- not kh-sim/backends/. Does NOT satisfy R0 gate.
+          Resolution: created .github/workflows/kh-sim-ci.yml (2026-04-04) with:
+            - rust-build-validate: cargo build --release + cargo clippy -D warnings + cargo test
+            - scala-build-validate: sbt clean compile test (scalacOptions lint built-in)
+            - cpp-build-validate: cmake -G Ninja + cmake --build + ctest (validation binary)
+            - fortran-build-validate: same cmake pattern, gfortran + C++ shim
+            - pascal-build-validate: fpc kh_validate.pas + ./build/kh_validate <ref.json>
+            - kh-sim-summary: aggregate gate (fails workflow on any backend failure)
+          All 5 backends validate against kh-sim/shared/physics/kh_reference_output.json.
+          Lint: Rust/clippy -D warnings; Scala scalacOptions -Wunused:all; C++/Fortran -Wall.
+          Pending: first CI run green → mark done, bump TASKS to v1.7.4.
       - id: KH-018
         title: "KH-SIM integration test suite — end-to-end validation of all backends + F/E"
         priority: P2-high
