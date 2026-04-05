@@ -1,0 +1,269 @@
+openapi: "3.1.0"
+
+info:
+  title: KH-SIM Backend API
+  description: |
+    Unified REST API contract for all Kelvin-Helmholtz instability simulation backends.
+    Implemented independently in: Rust (axum), Scala (http4s), C++ (cpp-httplib),
+    Fortran (C-interop wrapper), Pascal (fphttpapp).
+    All backends expose identical endpoint signatures on different ports.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:8001
+    description: Rust backend (axum)
+  - url: http://localhost:8002
+    description: Scala backend (http4s)
+  - url: http://localhost:8003
+    description: C++ backend (cpp-httplib)
+  - url: http://localhost:8004
+    description: Fortran backend (C-interop)
+  - url: http://localhost:8005
+    description: Pascal backend (fphttpapp)
+
+paths:
+  /simulate:
+    post:
+      summary: Run KH instability simulation step
+      operationId: simulate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulationRequest"
+      responses:
+        "200":
+          description: Simulation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /health:
+    get:
+      summary: Backend health check
+      operationId: health
+      responses:
+        "200":
+          description: Backend is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /info:
+    get:
+      summary: Backend metadata (language, version, build info)
+      operationId: info
+      responses:
+        "200":
+          description: Backend info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackendInfo"
+
+components:
+  schemas:
+
+    SimulationRequest:
+      type: object
+      required: [grid_nx, grid_ny, dt, steps]
+      properties:
+        grid_nx:
+          type: integer
+          description: Grid points in x-direction
+          example: 128
+        grid_ny:
+          type: integer
+          description: Grid points in y-direction
+          example: 64
+        domain_lx:
+          type: number
+          format: double
+          description: Domain length in x (non-dimensional)
+          default: 1.0
+        domain_ly:
+          type: number
+          format: double
+          description: Domain length in y (non-dimensional)
+          default: 0.5
+        dt:
+          type: number
+          format: double
+          description: Time step size
+          example: 0.001
+        steps:
+          type: integer
+          description: Number of time steps to advance
+          example: 100
+        reynolds_number:
+          type: number
+          format: double
+          description: Flow Reynolds number
+          default: 1000.0
+        density_ratio:
+          type: number
+          format: double
+          description: Upper/lower layer density ratio (rho2/rho1)
+          default: 1.0
+        velocity_shear:
+          type: number
+          format: double
+          description: Shear velocity magnitude
+          default: 1.0
+        perturbation_amplitude:
+          type: number
+          format: double
+          description: Initial perturbation amplitude
+          default: 0.01
+        perturbation_mode:
+          type: integer
+          description: Wavenumber of initial perturbation mode
+          default: 2
+        initial_state:
+          $ref: "#/components/schemas/FieldSnapshot"
+          description: "Initial u,v,p fields (null = compute from ICs)"
+
+    SimulationResult:
+      type: object
+      properties:
+        backend:
+          type: string
+          description: Backend identifier
+          example: "rust-axum"
+        language:
+          type: string
+          example: "Rust"
+        steps_completed:
+          type: integer
+        t_final:
+          type: number
+          format: double
+        final_state:
+          $ref: "#/components/schemas/FieldSnapshot"
+        diagnostics:
+          $ref: "#/components/schemas/Diagnostics"
+        compute_time_ms:
+          type: number
+          format: double
+        log_id:
+          type: string
+          description: MongoDB log entry ID for this run
+
+    FieldSnapshot:
+      type: object
+      description: 2D field arrays stored row-major, shape (nx × ny)
+      properties:
+        t:
+          type: number
+          format: double
+          description: Simulation time
+        u_velocity:
+          type: array
+          items:
+            type: number
+            format: double
+          description: x-velocity field (flattened)
+        v_velocity:
+          type: array
+          items:
+            type: number
+            format: double
+          description: y-velocity field (flattened)
+        pressure:
+          type: array
+          items:
+            type: number
+            format: double
+        vorticity:
+          type: array
+          items:
+            type: number
+            format: double
+          description: Computed vorticity ω = ∂v/∂x - ∂u/∂y (flattened)
+        grid_nx:
+          type: integer
+        grid_ny:
+          type: integer
+
+    Diagnostics:
+      type: object
+      properties:
+        kinetic_energy:
+          type: number
+          format: double
+          description: Total kinetic energy at t_final
+        enstrophy:
+          type: number
+          format: double
+          description: Total enstrophy at t_final
+        max_vorticity:
+          type: number
+          format: double
+        divergence_rms:
+          type: number
+          format: double
+          description: RMS velocity divergence (should be ~0 for incompressible flow)
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        backend:
+          type: string
+        uptime_s:
+          type: number
+        db_connected:
+          type: boolean
+
+    BackendInfo:
+      type: object
+      properties:
+        backend:
+          type: string
+          example: "rust-axum"
+        language:
+          type: string
+          example: "Rust"
+        language_version:
+          type: string
+          example: "1.78.0"
+        framework:
+          type: string
+          example: "axum 0.7"
+        build_date:
+          type: string
+          format: date
+        port:
+          type: integer
+        description:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Invalid simulation parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+              field: { type: string }
+
+    InternalError:
+      description: Backend computation error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+              backend: { type: string }

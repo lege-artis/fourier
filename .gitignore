@@ -70,5 +70,10 @@ platform sources/Scala/project/
 platform sources/Scala/target/
 platform sources/React/package-lock.json
 
+# Build artifacts — kh-sim backends
+kh-sim/backends/rust/target/
+kh-sim/backends/scala/**/target/
+kh-sim/backends/pascal/build/
+
 # Session debug logs (transient — never commit)
 _logs/

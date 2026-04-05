@@ -1,0 +1,40 @@
+[package]
+name    = "kh-sim-rust"
+version = "0.1.0"
+edition = "2021"
+description = "KH instability simulation — Rust/axum backend (KH-003)"
+
+[lib]
+name = "kh_sim_rust"
+path = "src/lib.rs"
+
+[[bin]]
+name = "kh-sim-rust"
+path = "src/main.rs"
+
+[dependencies]
+# HTTP framework
+axum        = { version = "0.7", features = ["json"] }
+tokio       = { version = "1",   features = ["full"] }
+tower-http  = { version = "0.5", features = ["cors", "trace"] }
+
+# Serialisation
+serde       = { version = "1",   features = ["derive"] }
+serde_json  = "1"
+
+# FFT
+rustfft     = "6"
+num-complex = "0.4"
+
+# Error handling / logging
+anyhow          = "1"
+tracing         = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+# Validation test: deserialise reference JSON and compare diagnostics
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+lto       = "thin"

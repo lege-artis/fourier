@@ -1,0 +1,116 @@
+# KH-SIM — Base project configuration
+# Project: Kelvin-Helmholtz Instability Simulation
+# Role: Full-stack multi-language integration test + MI-M-T PoC precursor
+# Ref: TASKS-shared.yaml project kh-sim (KH-001..018)
+# Architecture: kh-sim/shared/api/openapi.yaml
+
+project: kh-sim
+version: "0.1.0-scaffold"
+status: in-progress
+
+# ── Backend port assignments ───────────────────────────────────────────────────
+backends:
+  rust:
+    language: Rust
+    framework: axum
+    port: 8001
+    task: KH-003
+    vhost: kh-rust.test
+    source_dir: backends/rust
+  scala:
+    language: Scala
+    framework: http4s
+    port: 8002
+    task: KH-004
+    vhost: kh-scala.test
+    source_dir: backends/scala
+  cpp:
+    language: C++
+    framework: cpp-httplib
+    port: 8003
+    task: KH-005
+    vhost: kh-cpp.test
+    source_dir: backends/cpp
+  fortran:
+    language: Fortran
+    framework: C-interop + minimal HTTP wrapper
+    port: 8004
+    task: KH-006
+    vhost: kh-fortran.test
+    source_dir: backends/fortran
+  pascal:
+    language: Pascal
+    framework: fphttpapp
+    port: 8005
+    task: KH-007
+    vhost: kh-pascal.test
+    source_dir: backends/pascal
+
+# ── Frontend ───────────────────────────────────────────────────────────────────
+frontend:
+  framework: React
+  dev_port: 3000
+  task: KH-008..012
+  source_dir: frontend
+
+# ── PINN service ───────────────────────────────────────────────────────────────
+pinn:
+  framework: FastAPI
+  port: 8600
+  vhost: pinn.test
+  tasks: [PINN-003..009]
+
+# ── Database references ────────────────────────────────────────────────────────
+database:
+  postgresql:
+    host: localhost
+    port: 5432
+    database: vibedev
+    user: vibedev_user
+    tables: [pinn_runs, pinn_solutions]
+  mongodb:
+    host: localhost
+    port: 27017
+    database: vibedev
+    collections: [logs, heartbeat, pinn_metrics]
+
+# ── API ────────────────────────────────────────────────────────────────────────
+api:
+  spec: shared/api/openapi.yaml
+  version: "1.0.0"
+  endpoints:
+    simulate: POST /simulate
+    health:   GET  /health
+    info:     GET  /info
+
+# ── Default simulation parameters ─────────────────────────────────────────────
+simulation_defaults:
+  grid_nx:                 128
+  grid_ny:                 64
+  domain_lx:               1.0
+  domain_ly:               0.5
+  dt:                      0.001
+  steps:                   100
+  reynolds_number:         1000.0
+  density_ratio:           1.0
+  velocity_shear:          1.0
+  perturbation_amplitude:  0.01
+  perturbation_mode:       2
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+# ── Nginx / vhost ─────────────────────────────────────────────────────────────
+nginx:
+  port: 8080          # port 80 avoided — elevation/security; dev URLs use :8080
+  conf: D:\Apps\Laragon\bin\nginx\nginx-1.22.0\conf\nginx.conf
+  sites_enabled: D:\Apps\Laragon\etc\nginx\sites-enabled
+  logs: D:\Apps\Laragon\logs
+  vhost_deploy: kh-sim/vhost/deploy-vhosts.ps1
+
+docker:
+  compose_file: docker/docker-compose.yml
+  task: KH-015
+
+# ── CI/CD ─────────────────────────────────────────────────────────────────────
+ci:
+  workflow: .github/workflows/ci-heartbeat.yml
+  task: KH-017
