@@ -7,9 +7,9 @@
 
 meta:
   schema_version: "2.0.0"
-  last_updated: "2026-04-04"
-  updated_by: "ThinkPad / CoWork session 2026-04-04 (KH-017: kh-sim-ci.yml created, gap analysis done, status in-progress; TASKS v1.7.4)"
-  task_registry_version: "1.7.4"
+  last_updated: "2026-04-09"
+  updated_by: "ThinkPad / CoWork session 2026-04-09 (KH-017: Rust clippy fixed bd8823f, awaiting CI green to close; TASKS v1.7.5)"
+  task_registry_version: "1.7.5"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -1115,7 +1115,13 @@ projects:
             - kh-sim-summary: aggregate gate (fails workflow on any backend failure)
           All 5 backends validate against kh-sim/shared/physics/kh_reference_output.json.
           Lint: Rust/clippy -D warnings; Scala scalacOptions -Wunused:all; C++/Fortran -Wall.
-          Pending: first CI run green → mark done, bump TASKS to v1.7.4.
+          Rust clippy fix (2026-04-09, bd8823f): 6 errors resolved --
+            fft2d.rs lines 113,117: #[allow(clippy::needless_range_loop)] — index used for
+              paired arithmetic (i as f64 / i as f64 - n as f64), enumerate() not substitutable.
+            solver.rs fns initial_conditions/vorticity_rhs/rk4_step/compute_diagnostics:
+              #[allow(clippy::too_many_arguments)] — physics kernels mirror KH-PHYSICS.md notation.
+          4/5 backends green on prior CI run (Fortran, Scala, C++, Pascal ✓).
+          Pending: push bd8823f → CI run → confirm 5/5 green → mark done, bump to v1.7.5.
       - id: KH-018
         title: "KH-SIM integration test suite — end-to-end validation of all backends + F/E"
         priority: P2-high

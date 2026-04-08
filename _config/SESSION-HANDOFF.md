@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
-**Written:** 2026-04-04
-**Registry version at close:** TASKS-shared.yaml v1.7.3
-**Reason for close:** Session continuation — SYMB-001 + KH drift fix complete, push confirmed
+**Written:** 2026-04-09
+**Registry version at close:** TASKS-shared.yaml v1.7.5
+**Reason for close:** Session context limit — KH-017 Rust clippy fixed, awaiting CI green
 
 ---
 
@@ -15,48 +15,62 @@
 
 ---
 
-## Tasks Completed This Session (2026-04-04)
+## IMMEDIATE ACTION REQUIRED (before session start)
 
-### SYMB-001 -- Tri-layer symbolic/reasoning/log ADR (DONE)
-- Written: `infra/SYMB-ARCHITECTURE.md` v1.0.0
-- 5 decisions recorded:
-  - D1: Julia boundary — Symbolics.jl + ModelingToolkit.jl; Python/PINN retains numerical execution
-  - D2: Clojure reasoning — core.logic (miniKanren) + Datahike/Datalog; Datalog as pivot point
-  - D3: ELK → Datahike ETL projection bridge; ES stays raw store, reasoning queries Datahike only
-  - D4: Inter-layer contracts — Julia REST sidecar (:8601) ↔ Python; JVM interop for Clojure↔Scala; REST for Julia↔Clojure
-  - D5: Ports — Julia symbolic 8601, Clojure reasoning 8700, ETL bridge 8701
-- Gate unblocked: SYMB-002, SYMB-003, SYMB-004, SYMB-005 all now open
+**Push the pending commit from your terminal:**
+```bash
+cd ~/path/to/VibeCodeProjects
+git push origin main
+```
+This pushes commit `bd8823f` (Rust clippy fix) to GitHub and triggers `kh-sim-ci.yml`.
 
-### KH-015 status drift fix (DONE)
-- Was: `blocked` — incorrectly held against KH-003–007 (all done)
-- Fixed: `done` — LDE-002 confirmed all 5 Docker images build 2026-03-29
-- Cascades: KH-017 unblocked
+**Then verify CI:**
+```bash
+gh run list --workflow=kh-sim-ci.yml --limit 3
+gh run watch <run-id>
+```
+Expected: all 5 backends green (Fortran ✓, Scala ✓, C++ ✓, Pascal ✓, Rust ← fixed).
 
-### KH-017 status drift fix (DONE)
-- Was: `blocked` on KH-015
-- Fixed: `open` — KH-015 cleared; ci-heartbeat.yml provides baseline CI coverage for all 5 backends
-- Scope note in task: review ci-heartbeat.yml vs KH-SIM CI/CD requirements; add any missing jobs
-
-### TASKS-shared.yaml v1.7.3
-- All 3 status changes above
-- Commit `2f484ec` pushed to origin/main
+**If CI is green**, the first task of the next session is to mark KH-017 done in TASKS-shared.yaml and commit.
 
 ---
 
-## Previous Session Completed Tasks (carried forward)
+## Tasks Completed This Session (2026-04-09)
 
-### LOG-003 -- log-connector-python (DONE, 6/6 PASS)
-- elasticsearch-py 8.19.x: `ElasticsearchException` → `ApiError` fallback in `log_connector.py` + `smoke_test.py`
+### KH-017 — Rust clippy lint fix (commit bd8823f)
 
-### LOG-004 -- log-connector-github-actions (DONE)
-- `infra/connectors/log-connector-github-actions/action.yml` + `README.md`
+6 `cargo clippy -- -D warnings` errors resolved in 2 files:
 
-### LOG-005 -- CI log-infra-test job (DONE, CI ✓)
-- Job in `.github/workflows/ci-heartbeat.yml`, confirmed green (×2)
-- `workflow_dispatch` trigger added
+**`kh-sim/backends/rust/src/physics/fft2d.rs`** — `needless_range_loop` × 2:
+- Lines 113, 117 in `angular_fftfreq`: index `i` used for paired arithmetic
+  (`i as f64` in positive half, `i as f64 - n as f64` in negative half) — `enumerate()` is
+  not a substitutable pattern; suppressed with `#[allow(clippy::needless_range_loop)]`.
 
-### LOG-006 -- MongoDB TTL index + retention (DONE, confirmed ✓)
-- `infra/scripts/mongo-init-indexes.js` — 5/5 `[OK]`, 6 total indexes, ttl_30d [TTL: 30d]
+**`kh-sim/backends/rust/src/physics/solver.rs`** — `too_many_arguments` × 4:
+- `initial_conditions` (8 args), `vorticity_rhs` (9), `rk4_step` (8), `compute_diagnostics` (8)
+- All mirror KH-PHYSICS.md mathematical notation; refactoring into structs would obscure
+  physical semantics; suppressed with `#[allow(clippy::too_many_arguments)]`.
+
+Prior CI run showed 4/5 backends green (Fortran, Scala, C++, Pascal all pass build + physics
+validation). Only Rust clippy was blocking.
+
+---
+
+## Previous Sessions Completed Tasks (carried forward)
+
+### SYMB-001 -- Tri-layer symbolic/reasoning/log ADR (DONE)
+- Written: `infra/SYMB-ARCHITECTURE.md` v1.0.0
+- 5 decisions: Julia (:8601), Clojure reasoning (:8700), ELK→Datahike ETL (:8701), inter-layer contracts, port allocation
+- Gate unblocked: SYMB-002, SYMB-003, SYMB-004, SYMB-005
+
+### KH-015 status drift fix (DONE)
+- `blocked` → `done` — LDE-002 confirmed 2026-03-29; cascaded to unblock KH-017
+
+### KH-016 (DONE, 2026-03-28)
+- All 6 vhosts active on Nginx :8080; deploy-vhosts.ps1 confirmed reusable
+
+### LOG-003 through LOG-006 (DONE)
+- log-connector-python 6/6 PASS, GitHub Actions composite action, CI log-infra-test green ×2, MongoDB TTL confirmed
 
 ---
 
@@ -70,18 +84,20 @@ LOG-004  [DONE]  log-connector-github-actions composite action
 LOG-005  [DONE]  CI log-infra-test green (×2 confirmed)
 LOG-006  [DONE]  MongoDB TTL index script confirmed (5/5 indexes, 2026-04-03)
 SYMB-001 [DONE]  Tri-layer ADR written (2026-04-04)
+KH-016   [DONE]  Docker compose -- all 5 backends + React F/E (2026-03-28)
+LDE-002  [DONE]  Docker images build all 5 backends (2026-03-29)
          ──────────────────────────────────────────────────────
          log-infra R0 block COMPLETE
          SYMB-001 R0 gate COMPLETE
+
+KH-017   [in-progress] CI/CD pipeline — Rust clippy fixed bd8823f; awaiting CI green
+                        Push + verify CI → mark done → KH-017 R0 gate COMPLETE
 
 Remaining R0 gates (open/blocked):
   GEN-013   VS Code IDE -- ThinkPad (open? check TASKS-shared.yaml)
   GEN-014   VS Code IDE -- MacBook parity
   GEN-015   Commit workflow validation
-  KH-016    Docker compose -- all 5 backends + React F/E  (done 2026-03-28)
-  KH-017    CI/CD pipeline  (now open, was blocked; scope: review ci-heartbeat.yml vs KH-SIM reqs)
   LDE-001   draw.io desktop install ThinkPad
-  LDE-002   Docker images build all 5 backends  (done 2026-03-29)
   LDE-003   R0-LDE unified stack startup
   LDE-004   Start-LocalEnv.ps1 acceptance test
 ```
@@ -90,22 +106,21 @@ Remaining R0 gates (open/blocked):
 
 ## Next Session Priorities
 
-1. **KH-017** — Review ci-heartbeat.yml against KH-SIM CI/CD requirements; confirm R0 gate
-   satisfied or scope remaining jobs
+1. **[IMMEDIATE]** Push `bd8823f` → wait for CI → confirm 5/5 green → mark KH-017 done in TASKS-shared.yaml → bump to v1.7.5 → commit
 2. **LDE-003 / LDE-004** — R0-LDE milestone: unified stack startup + acceptance test
-3. **GEN-013/014/015** — IDE parity + commit workflow validation (check current status in TASKS)
-4. **SYMB-002** — Julia symbolic layer prototype (now unblocked; requires PyCall.jl + Julia install
-   on dev machine); add `julia-symb.test` vhost → port 8601
+3. **GEN-013/014/015** — IDE parity + commit workflow validation
+4. **SYMB-002** — Julia symbolic layer prototype (unblocked; needs PyCall.jl + Julia install, vhost `julia-symb.test` → :8601)
 
 ---
 
-## Files Modified This Session (2026-04-04 only)
+## Files Modified This Session (2026-04-09)
 
 | File | Commit | Change |
 |---|---|---|
-| `infra/SYMB-ARCHITECTURE.md` | 2f484ec | Created — SYMB-001 ADR v1.0.0 |
-| `TASKS-shared.yaml` | 2f484ec | SYMB-001 done, KH-015 done, KH-017 open; v1.7.3 |
-| `_config/SESSION-HANDOFF.md` | 2f484ec | This file |
+| `kh-sim/backends/rust/src/physics/fft2d.rs` | bd8823f | `#[allow(clippy::needless_range_loop)]` on `angular_fftfreq` |
+| `kh-sim/backends/rust/src/physics/solver.rs` | bd8823f | `#[allow(clippy::too_many_arguments)]` on 4 physics kernels |
+| `TASKS-shared.yaml` | (uncommitted) | KH-017 notes updated (Rust fix recorded); meta → v1.7.5 |
+| `_config/SESSION-HANDOFF.md` | (uncommitted) | This file |
 
 ---
 
@@ -125,7 +140,8 @@ Remaining R0 gates (open/blocked):
 ## How to Restore Context at Session Start
 
 1. Read this file (`_config/SESSION-HANDOFF.md`)
-2. Read `TASKS-shared.yaml` — check R0 milestone gate tasks for what's next
-3. Check environment: `.\_config\Start-LocalEnv.ps1 -Action health -Stack elk`
-4. Check latest CI: `gh run list --workflow=ci-heartbeat.yml --limit 3`
-5. Read `infra/SYMB-ARCHITECTURE.md` if resuming SYMB-002+
+2. **Push bd8823f** if not yet done: `git push origin main`
+3. Check CI: `gh run list --workflow=kh-sim-ci.yml --limit 3`
+4. Read `TASKS-shared.yaml` — R0 milestone gate tasks for what's next
+5. Check environment: `.\_config\Start-LocalEnv.ps1 -Action health -Stack elk`
+6. Read `infra/SYMB-ARCHITECTURE.md` if resuming SYMB-002+
