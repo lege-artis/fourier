@@ -106,14 +106,16 @@ impl Fft2DPlans {
 
 /// NumPy fftfreq(n, d) scaled by 2*PI.
 /// Returns angular frequencies in rad/unit.
+#[allow(clippy::needless_range_loop)]
 pub fn angular_fftfreq(n: usize, d: f64) -> Vec<f64> {
     use std::f64::consts::PI;
     let mut out = vec![0.0f64; n];
-    // positive half
+    // positive half: index `i` used both to write out[i] and compute `i as f64`
     for i in 0..=(n / 2) {
         out[i] = 2.0 * PI * i as f64 / (n as f64 * d);
     }
-    // negative half  (mirrors Python: freq[i] = (i - n) / (n*d) for i > n//2)
+    // negative half: index `i` used both to write out[i] and compute `i as f64 - n as f64`
+    // (mirrors Python: freq[i] = (i - n) / (n*d) for i > n//2)
     for i in (n / 2 + 1)..n {
         out[i] = 2.0 * PI * (i as f64 - n as f64) / (n as f64 * d);
     }

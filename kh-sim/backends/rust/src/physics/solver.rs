@@ -19,6 +19,7 @@ use crate::models::{Diagnostics, SimulationRequest, SimulationResult};
 ///   v(x,y) = amp * sin(2*PI*mode*x / Lx)
 /// => omega_shear = U0/delta * sech^2((y-Ly/2)/delta)
 ///    omega_pert  = amp * (2*PI*mode/Lx) * cos(2*PI*mode*x/Lx)
+#[allow(clippy::too_many_arguments)]
 fn initial_conditions(
     nx: usize,
     ny: usize,
@@ -105,6 +106,7 @@ fn velocity_from_psi_hat(
 // ── Vorticity RHS ─────────────────────────────────────────────────────────────
 
 /// f(omega) = -u * d(omega)/dx - v * d(omega)/dy + nu * laplacian(omega)
+#[allow(clippy::too_many_arguments)]
 fn vorticity_rhs(
     omega: &[f64],
     u: &[f64],
@@ -154,6 +156,7 @@ fn add_scaled(a: &[f64], b: &[f64], scale: f64) -> Vec<f64> {
     a.iter().zip(b.iter()).map(|(&x, &y)| x + scale * y).collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn rk4_step(
     omega: &[f64],
     nu: f64,
@@ -189,6 +192,7 @@ fn mean(v: &[f64]) -> f64 {
     v.iter().sum::<f64>() / v.len() as f64
 }
 
+#[allow(clippy::too_many_arguments)]
 fn compute_diagnostics(
     omega: &[f64],
     u: &[f64],
