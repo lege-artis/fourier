@@ -8,8 +8,8 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-09"
-  updated_by: "ThinkPad / CoWork session 2026-04-09 (HK infra, R0-LDE closed, GW-005..008 done, KH-014/018 unblocked, GEN-015 done; v1.7.7)"
-  task_registry_version: "1.7.7"
+  updated_by: "ThinkPad / CoWork session 2026-04-09 (HK infra, R0-LDE closed, GW-005..008 done, KH-014 done, KH-018 unblocked, GEN-015 done; v1.7.8)"
+  task_registry_version: "1.7.8"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -1066,7 +1066,18 @@ projects:
         title: "Log DB integration — per-page log viewer pulling from logging database"
         priority: P2-high
         device: both
-        status: open
+        status: done
+        completed: "2026-04-09"
+        notes: |
+          Done 2026-04-09. Standalone Node.js/Express log service (kh-sim/log-service/) on port 8006.
+          Passive sink pattern — no backend instrumentation required; React pages and integration tests POST events.
+          Files: index.js, Dockerfile, package.json, smoke-test.js.
+          Routes: POST /event (MongoDB insert, 30-day TTL), GET /viewer (filtered query),
+          GET /summary (all-5-backend aggregate), GET /health (200/503), GET /info (metadata).
+          Docker: kh-log-service added to infra/docker/docker-compose.r0-lde.yml.
+          Nginx vhost: kh-sim/vhost/log-service.conf (kh-log.test -> :8006).
+          Health probes updated: _config/Start-LocalEnv.ps1, _config/Check-SessionEnv.ps1.
+          Config: kh-sim/kh-sim.config.yaml log_service section added.
       - id: KH-015
         title: "Docker containerise each KH backend service"
         priority: P2-high

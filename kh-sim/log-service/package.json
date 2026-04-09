@@ -1,0 +1,19 @@
+{
+  "name": "kh-sim-log-service",
+  "version": "1.0.0",
+  "description": "KH-SIM log service — simulation event recorder + per-backend viewer API (KH-014)",
+  "main": "index.js",
+  "scripts": {
+    "start":      "node index.js",
+    "smoke-test": "node smoke-test.js"
+  },
+  "dependencies": {
+    "express":   "^4.19.2",
+    "mongodb":   "^6.5.0",
+    "winston":   "^3.13.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "UNLICENSED"
+}

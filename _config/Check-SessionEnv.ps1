@@ -7,7 +7,7 @@
 #   status summary to the console.  Exit code 0 = all green, 1 = degraded.
 #
 # CHECKS
-#   LDE stack  : kh-rust/scala/cpp/fortran/pascal (:8001-8005), plantuml (:8010)
+#   LDE stack  : kh-rust/scala/cpp/fortran/pascal (:8001-8005), log-service (:8006), plantuml (:8010)
 #   ELK stack  : elasticsearch (:9200), kibana (:5601), fluent-bit (:2020)
 #   MongoDB    : Windows service "MongoDB" + TCP :27017
 #   Git state  : active branch NOT main, remote origin reachable
@@ -96,13 +96,14 @@ function Record {
 
 # ── LDE stack probe ───────────────────────────────────────────────────────────
 function Invoke-LdeCheck {
-    Write-Header "LDE Stack (KH-Sim backends + PlantUML)"
+    Write-Header "LDE Stack (KH-Sim backends + log service + PlantUML)"
     $endpoints = [ordered]@{
         "kh-rust"         = "http://localhost:8001/health"
         "kh-scala"        = "http://localhost:8002/health"
         "kh-cpp"          = "http://localhost:8003/health"
         "kh-fortran"      = "http://localhost:8004/health"
         "kh-pascal"       = "http://localhost:8005/health"
+        "kh-log-service"  = "http://localhost:8006/health"
         "plantuml-server" = "http://localhost:8010"
     }
     foreach ($svc in $endpoints.Keys) {

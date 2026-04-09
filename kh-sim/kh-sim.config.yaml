@@ -46,6 +46,25 @@ backends:
     vhost: kh-pascal.test
     source_dir: backends/pascal
 
+# ── Log service (KH-014) ──────────────────────────────────────────────────────
+log_service:
+  language: Node.js
+  framework: Express
+  port: 8006
+  task: KH-014
+  vhost: kh-log.test
+  source_dir: log-service
+  routes:
+    record_event: POST /event
+    viewer:       GET /viewer
+    summary:      GET /summary
+    health:       GET /health
+    info:         GET /info
+  mongo:
+    db:         vibedev
+    collection: logs
+    ttl_days:   30
+
 # ── Frontend ───────────────────────────────────────────────────────────────────
 frontend:
   framework: React

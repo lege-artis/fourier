@@ -13,6 +13,7 @@
 #   kh-cpp           :8003
 #   kh-fortran       :8004
 #   kh-pascal        :8005
+#   kh-log-service   :8006
 #   plantuml-server  :8010
 #
 # ELK stack services:
@@ -87,6 +88,7 @@ $HealthMapLDE = [ordered]@{
     "kh-cpp"           = "http://localhost:8003/health"
     "kh-fortran"       = "http://localhost:8004/health"
     "kh-pascal"        = "http://localhost:8005/health"
+    "kh-log-service"   = "http://localhost:8006/health"
     "plantuml-server"  = "http://localhost:8010"
 }
 

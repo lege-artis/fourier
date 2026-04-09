@@ -18,6 +18,7 @@
 #   8003  kh-cpp
 #   8004  kh-fortran
 #   8005  kh-pascal
+#   8006  kh-log-service  (simulation event recorder + viewer API -- KH-014)
 #   8010  plantuml-server
 
 x-backend-defaults: &backend-defaults
@@ -109,6 +110,31 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+
+  # ── Log service ──────────────────────────────────────────────────────────
+  kh-log-service:
+    <<: *backend-defaults
+    build:
+      context: ../../kh-sim/log-service
+      dockerfile: Dockerfile
+    image: kh-sim-log-service:latest
+    container_name: kh-sim-log-service
+    ports:
+      - "8006:8006"
+    environment:
+      PORT:       "8006"
+      MONGO_URI:  "mongodb://host.docker.internal:27017"
+      MONGO_DB:   "vibedev"
+      MONGO_COLL: "logs"
+      LOG_LEVEL:  "info"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8006/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 8s
 
   # ── Diagram tooling ──────────────────────────────────────────────────────
   plantuml-server:
