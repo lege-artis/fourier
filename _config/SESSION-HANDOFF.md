@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-09
-**Registry version at close:** TASKS-shared.yaml v1.7.6
-**Reason for close:** Claude relaunch — version 1062.0 update; KH-017 R0 gate fully CLOSED
+**Registry version at close:** TASKS-shared.yaml v1.7.8
+**Last commit:** cc50677 feat(kh-sim): KH-014 log service — simulation event recorder + viewer API
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Stack | Services | Status | Start command |
 |---|---|---|---|
-| LDE | kh-rust(8001), kh-scala(8002), kh-cpp(8003), kh-fortran(8004), kh-pascal(8005), plantuml(8010) | 6/6 healthy | `.\_config\Start-LocalEnv.ps1 -Action up` |
+| LDE | kh-rust(8001), kh-scala(8002), kh-cpp(8003), kh-fortran(8004), kh-pascal(8005), kh-log-service(8006), plantuml(8010) | 7/7 healthy | `.\_config\Start-LocalEnv.ps1 -Action up` |
 | ELK | elasticsearch(9200), kibana(5601), fluent-bit(24224/2020) | 3/3 healthy | `.\_config\Start-LocalEnv.ps1 -Action up -Stack elk` |
 | MongoDB | mongod 8.2.6, vibedev DB, heartbeat + logs collections, ttl_30d confirmed | Running as Windows service on 27017 | auto-starts with Windows |
 
@@ -41,13 +41,40 @@
 - GEN-014 dependency removed from GEN-015 (MacBook-only concern)
 
 **KH-sim unblock:**
-- KH-014: `blocked` → `open` (deps KH-001 + GEN-009 both done)
+- KH-014: `blocked` → `open` (deps KH-001 + GEN-009 both done) — now DONE (see KH-014 section below)
 - KH-018: `blocked` → `open` (dep KH-016 done)
 
 **queue-thinkpad.yaml:** rebuilt — removed stale GEN-003/007 active entries; reflected
 current done set (R0, GW, LOG, LDE, KH backends); pending queue aligned to active backlog.
 
-**TASKS-shared.yaml:** v1.7.7 — 24/24 integrity gate passes.
+**TASKS-shared.yaml:** v1.7.7 → v1.7.8 — 24/24 integrity gate passes.
+
+### KH-014 — Log DB integration — simulation event recorder + viewer API (commit cc50677)
+
+Passive log sink architecture: standalone Node.js/Express service on :8006.
+No backend instrumentation — React pages and integration tests POST simulation events.
+
+**Files created:**
+- `kh-sim/log-service/index.js` — Express server, 5 routes, MongoDB with 30-day TTL index
+- `kh-sim/log-service/package.json` — express ^4.19.2, mongodb ^6.5.0, winston ^3.13.0
+- `kh-sim/log-service/Dockerfile` — Node 20 Alpine, multi-stage, non-root user `kh`
+- `kh-sim/log-service/smoke-test.js` — 6-section connectivity test, exit 0/1
+- `kh-sim/vhost/log-service.conf` — Nginx vhost kh-log.test -> :8006
+
+**Files modified:**
+- `infra/docker/docker-compose.r0-lde.yml` — kh-log-service service added (port 8006)
+- `kh-sim/kh-sim.config.yaml` — log_service section added
+- `_config/Start-LocalEnv.ps1` — kh-log-service added to $HealthMapLDE
+- `_config/Check-SessionEnv.ps1` — kh-log-service added to Invoke-LdeCheck endpoints
+
+Routes:
+- `POST /event` — insert simulation event doc to MongoDB (VALID_BACKENDS: kh-rust/scala/cpp/fortran/pascal)
+- `GET /viewer` — filtered query (?backend, ?session_id, ?status, ?limit max 200)
+- `GET /summary` — MongoDB aggregation, all 5 backends including 0-event entries
+- `GET /health` — MongoDB ping; 200 if connected, 503 if degraded
+- `GET /info` — static service metadata
+
+Degraded mode: service stays up with 503 responses if MongoDB is unavailable.
 
 ---
 
@@ -121,13 +148,12 @@ Remaining R0 gates:
 1. **HK-001** (ALWAYS FIRST) -- run `.\_config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff`
 2. **git push origin thinkpad** -- push thinkpad branch to remote (SSH from ThinkPad terminal);
    open PR to main; completes GEN-015 criterion 4.
-3. **KH-014** -- Log DB integration (now unblocked; deps done)
-4. **KH-018** -- Integration test suite (now unblocked; KH-016 done)
-5. **GW-009** -- CI-authored status events for platform tests
-6. **SYMB-002** -- Julia symbolic layer prototype (unblocked; PyCall.jl + Julia install,
+3. **KH-018** -- KH-SIM integration test suite (e2e: all 5 backends + F/E smoke, POST /event validation)
+4. **GW-009** -- CI-authored status events for platform tests (P4-low; depends PLT-007)
+5. **SYMB-002** -- Julia symbolic layer prototype (unblocked; PyCall.jl + Julia install,
    vhost `julia-symb.test` -> :8601)
 
-Note: GEN-014 (MacBook IDE parity) is MacBook-only -- do on MacBook, not ThinkPad.
+Note: KH-014 DONE (this session). GEN-014 (MacBook IDE parity) is MacBook-only.
 Note: GEN-015 ThinkPad side DONE. GW-005..008 all DONE. R0-LDE DONE.
 
 ---
@@ -138,10 +164,15 @@ Note: GEN-015 ThinkPad side DONE. GW-005..008 all DONE. R0-LDE DONE.
 |---|---|---|
 | `kh-sim/backends/rust/src/physics/fft2d.rs` | bd8823f | `#[allow(clippy::needless_range_loop)]` on `angular_fftfreq` |
 | `kh-sim/backends/rust/src/physics/solver.rs` | bd8823f | `#[allow(clippy::too_many_arguments)]` on 4 physics kernels |
-| `TASKS-shared.yaml` | a841a46 + (this) | v1.7.7: HK project, R0-LDE closed, GW-005..008 done, GEN-015 done, KH-014/018 unblocked |
-| `_config/Check-SessionEnv.ps1` | a841a46 | New -- session-start health probe (LDE/ELK/MongoDB/Git) |
-| `queue-thinkpad.yaml` | (this commit) | Rebuilt -- stale entries removed, active backlog aligned |
-| `_config/SESSION-HANDOFF.md` | (this commit) | Grooming pass results + corrected next priorities |
+| `TASKS-shared.yaml` | a841a46 + cc50677 | v1.7.8: HK project, R0-LDE closed, GW-005..008 done, GEN-015 done, KH-014 done, KH-018 unblocked |
+| `_config/Check-SessionEnv.ps1` | a841a46 + cc50677 | New (HK-001); +kh-log-service :8006 probe |
+| `_config/Start-LocalEnv.ps1` | cc50677 | +kh-log-service :8006 in $HealthMapLDE |
+| `queue-thinkpad.yaml` | a841a46 + cc50677 | Rebuilt; KH-014 moved to done, KH-018 in pending |
+| `infra/docker/docker-compose.r0-lde.yml` | cc50677 | +kh-log-service service, port 8006 |
+| `kh-sim/kh-sim.config.yaml` | cc50677 | +log_service section |
+| `kh-sim/log-service/` | cc50677 | NEW: index.js, Dockerfile, package.json, smoke-test.js |
+| `kh-sim/vhost/log-service.conf` | cc50677 | NEW: Nginx vhost kh-log.test -> :8006 |
+| `_config/SESSION-HANDOFF.md` | (this update) | KH-014 complete; next priorities updated |
 
 ---
 
