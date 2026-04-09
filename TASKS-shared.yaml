@@ -8,8 +8,8 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-09"
-  updated_by: "ThinkPad / CoWork session 2026-04-09 (KH-017: CI green run 24162211827, all 5 backends pass, R0 gate DONE; TASKS v1.7.5)"
-  task_registry_version: "1.7.5"
+  updated_by: "ThinkPad / CoWork session 2026-04-09 (HK: session-env check infra added; R0-LDE closed; TASKS v1.7.6)"
+  task_registry_version: "1.7.6"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -30,6 +30,7 @@ meta:
     - kh-sim
     - gr-testcases
     - symb-infra
+    - housekeeping
 
 
 # ═══════════════════════════════════════════════════════
@@ -890,7 +891,8 @@ projects:
         title: "Register merge driver on ThinkPad (git config + .gitattributes pull)"
         priority: P2-high
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         depends_on: [GW-002]
         tags: [git-workflow, thinkpad, merge-driver]
         notes: |
@@ -902,7 +904,8 @@ projects:
         title: "Validate integrity check green on both device branches"
         priority: P2-high
         device: both
-        status: pending
+        status: done
+        completed: "2026-04-09"
         depends_on: [GW-004, GW-005]
         tags: [git-workflow, validation, ci-cd]
         notes: "pytest _tests/test_task_integrity.py must pass locally before first sync-main.sh run."
@@ -911,7 +914,8 @@ projects:
         title: "Extend integrity checks: circular dependency detection"
         priority: P3-medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         depends_on: [GW-004]
         tags: [git-workflow, testing, graph, tdd]
         notes: "Add test_no_circular_dependencies() using DFS cycle detection on depends_on graph."
@@ -920,7 +924,8 @@ projects:
         title: "Extend integrity checks: version monotonicity across MANIFEST + release notes"
         priority: P3-medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         depends_on: [GW-004]
         tags: [git-workflow, testing, versioning, tdd]
         notes: "Cross-validate MANIFEST.yaml versions against release note filenames in 3-fold-path/releases/."
@@ -1588,6 +1593,93 @@ projects:
           Petrov type D. Clojure asserts Kerr reduces to Schwarzschild when a→0.
           This is the capstone GR test case for the first milestone.
 
+
+# ══════════════════════════════════════════════════════════════════════
+# PROJECT: housekeeping
+# Recurring session-management procedures (ThinkPad).
+# These are procedural gates, not one-time deliverables.
+# Status "open" = not yet run this session; "done" = confirmed this session.
+# Reset status to "open" at each new session start via merge-tasks.py or manually.
+# ══════════════════════════════════════════════════════════════════════
+
+  housekeeping:
+    description: >-
+      Recurring session-management procedures for ThinkPad dev sessions.
+      Run HK-001 at session START and HK-004 at session CLOSE every time.
+      HK-002 and HK-003 are triggered on demand when stacks are down.
+    status: active
+    tasks:
+
+      - id: HK-001
+        title: "Session-start env probe -- run Check-SessionEnv.ps1 -Stack all"
+        priority: P1-critical
+        device: ThinkPad
+        status: open
+        tags: [housekeeping, health-check, session-start, lde, elk, mongodb, git]
+        notes: |
+          Run at the START of every ThinkPad session before any dev/test work.
+          Command:
+            .\_config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff
+          Checks:
+            LDE stack  : kh-rust(:8001) kh-scala(:8002) kh-cpp(:8003)
+                         kh-fortran(:8004) kh-pascal(:8005) plantuml(:8010)
+            ELK stack  : elasticsearch(:9200) kibana(:5601) fluent-bit(:2020)
+            MongoDB    : Windows service + TCP :27017
+            Git state  : active branch != main, remote origin reachable
+          -UpdateHandoff appends a timestamped snapshot table to SESSION-HANDOFF.md.
+          Acceptance: exit code 0 (all checks green).
+          If degraded: run HK-002 to restore LDE, HK-003 to restore ELK.
+
+      - id: HK-002
+        title: "LDE stack restore -- Start-LocalEnv.ps1 -Action up (ThinkPad)"
+        priority: P1-critical
+        device: ThinkPad
+        status: open
+        tags: [housekeeping, lde, docker, restore]
+        depends_on: [HK-001]
+        notes: |
+          Run only when HK-001 reports LDE stack degraded.
+          Command:
+            .\_config\Start-LocalEnv.ps1 -Action up
+          Restores: kh-rust/scala/cpp/fortran/pascal + plantuml-server.
+          Acceptance: .\_config\Start-LocalEnv.ps1 -Action health exits 0 (6/6 green).
+
+      - id: HK-003
+        title: "ELK stack restore -- Start-LocalEnv.ps1 -Action up -Stack elk"
+        priority: P2-high
+        device: ThinkPad
+        status: open
+        tags: [housekeeping, elk, docker, restore]
+        depends_on: [HK-001]
+        notes: |
+          Run only when HK-001 reports ELK stack degraded.
+          Command:
+            .\_config\Start-LocalEnv.ps1 -Action up -Stack elk
+          Restores: elasticsearch(:9200) + kibana(:5601) + fluent-bit(:2020).
+          MongoDB is a Windows service -- if down: Start-Service MongoDB
+          Acceptance: .\_config\Start-LocalEnv.ps1 -Action health -Stack elk exits 0.
+
+      - id: HK-004
+        title: "Session-close handoff update -- write SESSION-HANDOFF.md env state"
+        priority: P1-critical
+        device: ThinkPad
+        status: open
+        tags: [housekeeping, session-close, handoff]
+        notes: |
+          Run at the CLOSE of every ThinkPad session before committing.
+          Steps:
+            1. Run .\_config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff
+               (appends final env snapshot to SESSION-HANDOFF.md)
+            2. Update SESSION-HANDOFF.md:
+               - "Environment State at Close" table (services + status)
+               - "Tasks Completed This Session" section
+               - "Next Session Priorities" list
+               - "Files Modified This Session" table
+            3. Commit: chore(handoff): session close YYYY-MM-DD
+          Acceptance: SESSION-HANDOFF.md committed with current date,
+          env state and next priorities accurate.
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # RELEASES — consistent delivery slices
 # R0: Infrastructure baseline (all infra tasks complete)
@@ -1634,7 +1726,8 @@ releases:
       provides the unified LDE controller (up/down/status/health/build/logs).
       This gate sits between R0 (infrastructure baseline) and R1 (feature
       delivery) to prevent environment drift from blocking R1 work.
-    status: pending
+    status: done
+    completed: "2026-03-29"
     depends_on: [R0]
     gate_tasks:
       - LDE-001   # draw.io desktop install (winget)
