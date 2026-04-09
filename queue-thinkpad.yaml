@@ -7,7 +7,7 @@
 meta:
   device: ThinkPad
   schema_version: "2.0.0"
-  current_session: 2026-04-09 -- housekeeping infra, R0-LDE close, GW gate sweep, GEN-015 close, KH-014 done
+  current_session: 2026-04-09 -- housekeeping infra, R0-LDE close, GW gate sweep, GEN-015 close, KH-014 done, KH-018 done
   ssh_key_fingerprint: SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24
   last_sync_commit: a841a46
   branch: thinkpad
@@ -31,8 +31,6 @@ session:
       note: CI-authored status events -- PLT tests auto-close tasks
 
     # KH-sim
-    - id: KH-018
-      note: Integration test suite -- KH-016 done, ready to start
 
     # Auth infra
     - id: AUTH-001
@@ -112,6 +110,7 @@ session:
     - KH-014
     - KH-016
     - KH-017
+    - KH-018
     - SYMB-001
 
   blocked: []

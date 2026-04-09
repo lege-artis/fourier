@@ -206,6 +206,7 @@ jobs:
       - cpp-build-validate
       - fortran-build-validate
       - pascal-build-validate
+      - integration-e2e
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -217,6 +218,7 @@ jobs:
           echo "C++     (build+validate):      ${{ needs.cpp-build-validate.result }}"
           echo "Fortran (build+validate):      ${{ needs.fortran-build-validate.result }}"
           echo "Pascal  (build+validate):      ${{ needs.pascal-build-validate.result }}"
+          echo "Integration E2E (KH-018):      ${{ needs.integration-e2e.result }}"
           echo "=========================="
 
       - name: Fail on any backend failure
@@ -225,9 +227,10 @@ jobs:
           needs.scala-build-validate.result   == 'failure' ||
           needs.cpp-build-validate.result     == 'failure' ||
           needs.fortran-build-validate.result == 'failure' ||
-          needs.pascal-build-validate.result  == 'failure'
+          needs.pascal-build-validate.result  == 'failure' ||
+          needs.integration-e2e.result        == 'failure'
         run: |
-          echo "::error::One or more KH-SIM backends failed build or physics validation."
+          echo "::error::One or more KH-SIM jobs failed."
           exit 1
 
       - name: All backends green
@@ -239,3 +242,108 @@ jobs:
           needs.pascal-build-validate.result  == 'success'
         run: |
           echo "All 5 KH-SIM backends: build + physics validation PASSED."
+
+  # ── Integration E2E (KH-018) ────────────────────────────────────────────── ──────────────────────────────────────────────
+  integration-e2e:
+    name: Integration E2E — all backends + log service
+    needs:
+      - rust-build-validate
+      - scala-build-validate
+      - cpp-build-validate
+      - fortran-build-validate
+      - pascal-build-validate
+    runs-on: ubuntu-latest
+
+    # MongoDB service container (for kh-log-service)
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Python (pytest + requests) ──────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install integration test deps
+        run: pip install -r kh-sim/tests/integration/requirements.txt
+
+      # ── Build all backend Docker images ─────────────────────────────────
+      - name: Build LDE Docker images
+        run: |
+          docker compose -f infra/docker/docker-compose.r0-lde.yml build
+        # Builds: kh-rust, kh-scala, kh-cpp, kh-fortran, kh-pascal, kh-log-service
+
+      # ── Start all services ───────────────────────────────────────────────
+      - name: Start LDE services
+        env:
+          MONGO_URI: "mongodb://localhost:27017"
+        run: |
+          # Override MongoDB URI to point at the service container
+          MONGO_URI=mongodb://localhost:27017 \
+          docker compose -f infra/docker/docker-compose.r0-lde.yml up -d
+          echo "Services started. Waiting for health checks..."
+
+      # ── Wait for health endpoints ────────────────────────────────────────
+      - name: Wait for backends to become healthy
+        run: |
+          TIMEOUT=120
+          ELAPSED=0
+          INTERVAL=5
+          BACKENDS="8001 8002 8003 8004 8005 8006"
+          for PORT in $BACKENDS; do
+            READY=false
+            while [ $ELAPSED -lt $TIMEOUT ]; do
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+                          "http://localhost:${PORT}/health" 2>/dev/null || echo "000")
+              if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "503" ]; then
+                echo "  :${PORT} ready (HTTP ${HTTP_CODE})"
+                READY=true
+                break
+              fi
+              sleep $INTERVAL
+              ELAPSED=$((ELAPSED + INTERVAL))
+            done
+            if [ "$READY" = "false" ]; then
+              echo "::error::Service on :${PORT} did not become healthy within ${TIMEOUT}s"
+              docker compose -f infra/docker/docker-compose.r0-lde.yml logs
+              exit 1
+            fi
+          done
+
+      # ── Run integration suite ────────────────────────────────────────────
+      - name: Run integration tests
+        env:
+          KH_LOG_URL: "http://localhost:8006"
+        run: |
+          python -m pytest kh-sim/tests/integration/ \
+            -v \
+            --tb=short \
+            -x
+          # -x: stop on first failure for fast CI feedback
+
+      # ── Diagnostics on failure ───────────────────────────────────────────
+      - name: Dump service logs on failure
+        if: failure()
+        run: |
+          docker compose -f infra/docker/docker-compose.r0-lde.yml logs --no-color
+
+      - name: Stop LDE services
+        if: always()
+        run: |
+          docker compose -f infra/docker/docker-compose.r0-lde.yml down
+
+      - name: Report
+        if: success()
+        run: |
+          echo "KH-018 integration E2E: all backends + log service PASSED."

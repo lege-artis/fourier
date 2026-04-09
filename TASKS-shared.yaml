@@ -8,8 +8,8 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-09"
-  updated_by: "ThinkPad / CoWork session 2026-04-09 (HK infra, R0-LDE closed, GW-005..008 done, KH-014 done, KH-018 unblocked, GEN-015 done; v1.7.8)"
-  task_registry_version: "1.7.8"
+  updated_by: "ThinkPad / CoWork session 2026-04-09 (HK infra, R0-LDE closed, GW-005..008 done, KH-014 done, KH-018 done, GEN-015 done; v1.7.9)"
+  task_registry_version: "1.7.9"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -1121,7 +1121,24 @@ projects:
         title: "KH-SIM integration test suite — end-to-end validation of all backends + F/E"
         priority: P2-high
         device: both
-        status: open
+        status: done
+        completed: "2026-04-09"
+        notes: |
+          Done 2026-04-09. pytest integration suite in kh-sim/tests/integration/.
+          5 test modules (58 tests total): test_health, test_info, test_simulate,
+          test_log_service, test_cross_backend.
+          Runner: kh-sim/tests/integration/run-integration.ps1 (ThinkPad LDE).
+          CI: integration-e2e job added to kh-sim-ci.yml — Docker Compose stack +
+          MongoDB service container; runs after all 5 backend build jobs.
+          Coverage:
+            /health  — 200 + schema + port validation (5 backends + log service)
+            /info    — 200 + required fields + language/port matching (5 backends)
+            /simulate — status, schema, field lengths, steps_completed, t_final,
+                        KE/enstrophy/max_vorticity +/-5%, div_rms < 1e-10 (5 backends)
+            /event   — POST valid (5 backends), 400 on invalid backend/missing source
+            /viewer  — returns array, sentinel event roundtrip, limit param
+            /summary — all 5 backend entries, schema validation
+            cross    — key parity, field lengths, t_final, diagnostics finite+numeric
 
       - id: KH-VAL
         title: "Validation hardening — tighten tolerances + physics-framework boilerplate test base"
