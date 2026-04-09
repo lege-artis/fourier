@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-09
 **Registry version at close:** TASKS-shared.yaml v1.7.5
-**Reason for close:** Session context limit — KH-017 Rust clippy fixed, awaiting CI green
+**Reason for close:** Session context limit — KH-017 R0 gate CLOSED (CI run 24162211827 ✓ 5/5)
 
 ---
 
@@ -14,24 +14,6 @@
 | MongoDB | mongod 8.2.6, vibedev DB, heartbeat + logs collections, ttl_30d confirmed | Running as Windows service on 27017 | auto-starts with Windows |
 
 ---
-
-## IMMEDIATE ACTION REQUIRED (before session start)
-
-**Push the pending commit from your terminal:**
-```bash
-cd ~/path/to/VibeCodeProjects
-git push origin main
-```
-This pushes commit `bd8823f` (Rust clippy fix) to GitHub and triggers `kh-sim-ci.yml`.
-
-**Then verify CI:**
-```bash
-gh run list --workflow=kh-sim-ci.yml --limit 3
-gh run watch <run-id>
-```
-Expected: all 5 backends green (Fortran ✓, Scala ✓, C++ ✓, Pascal ✓, Rust ← fixed).
-
-**If CI is green**, the first task of the next session is to mark KH-017 done in TASKS-shared.yaml and commit.
 
 ---
 
@@ -90,8 +72,7 @@ LDE-002  [DONE]  Docker images build all 5 backends (2026-03-29)
          log-infra R0 block COMPLETE
          SYMB-001 R0 gate COMPLETE
 
-KH-017   [in-progress] CI/CD pipeline — Rust clippy fixed bd8823f; awaiting CI green
-                        Push + verify CI → mark done → KH-017 R0 gate COMPLETE
+KH-017   [DONE]  CI/CD pipeline — 5/5 backends green, CI run 24162211827 (2026-04-09)
 
 Remaining R0 gates (open/blocked):
   GEN-013   VS Code IDE -- ThinkPad (open? check TASKS-shared.yaml)
@@ -106,8 +87,7 @@ Remaining R0 gates (open/blocked):
 
 ## Next Session Priorities
 
-1. **[IMMEDIATE]** Push `bd8823f` → wait for CI → confirm 5/5 green → mark KH-017 done in TASKS-shared.yaml → bump to v1.7.5 → commit
-2. **LDE-003 / LDE-004** — R0-LDE milestone: unified stack startup + acceptance test
+1. **LDE-003 / LDE-004** — R0-LDE milestone: unified stack startup + acceptance test
 3. **GEN-013/014/015** — IDE parity + commit workflow validation
 4. **SYMB-002** — Julia symbolic layer prototype (unblocked; needs PyCall.jl + Julia install, vhost `julia-symb.test` → :8601)
 
@@ -119,8 +99,8 @@ Remaining R0 gates (open/blocked):
 |---|---|---|
 | `kh-sim/backends/rust/src/physics/fft2d.rs` | bd8823f | `#[allow(clippy::needless_range_loop)]` on `angular_fftfreq` |
 | `kh-sim/backends/rust/src/physics/solver.rs` | bd8823f | `#[allow(clippy::too_many_arguments)]` on 4 physics kernels |
-| `TASKS-shared.yaml` | (uncommitted) | KH-017 notes updated (Rust fix recorded); meta → v1.7.5 |
-| `_config/SESSION-HANDOFF.md` | (uncommitted) | This file |
+| `TASKS-shared.yaml` | (this commit) | KH-017 → done; CI run 24162211827 confirmed; meta → v1.7.5 |
+| `_config/SESSION-HANDOFF.md` | (this commit) | This file |
 
 ---
 
@@ -140,8 +120,6 @@ Remaining R0 gates (open/blocked):
 ## How to Restore Context at Session Start
 
 1. Read this file (`_config/SESSION-HANDOFF.md`)
-2. **Push bd8823f** if not yet done: `git push origin main`
-3. Check CI: `gh run list --workflow=kh-sim-ci.yml --limit 3`
-4. Read `TASKS-shared.yaml` — R0 milestone gate tasks for what's next
-5. Check environment: `.\_config\Start-LocalEnv.ps1 -Action health -Stack elk`
-6. Read `infra/SYMB-ARCHITECTURE.md` if resuming SYMB-002+
+2. Read `TASKS-shared.yaml` — R0 milestone gate tasks for what's next
+3. Check environment: `.\_config\Start-LocalEnv.ps1 -Action health -Stack elk`
+4. Read `infra/SYMB-ARCHITECTURE.md` if resuming SYMB-002+

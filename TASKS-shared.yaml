@@ -8,7 +8,7 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-09"
-  updated_by: "ThinkPad / CoWork session 2026-04-09 (KH-017: Rust clippy fixed bd8823f, awaiting CI green to close; TASKS v1.7.5)"
+  updated_by: "ThinkPad / CoWork session 2026-04-09 (KH-017: CI green run 24162211827, all 5 backends pass, R0 gate DONE; TASKS v1.7.5)"
   task_registry_version: "1.7.5"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
@@ -1100,28 +1100,19 @@ projects:
         title: "CI/CD pipeline for KH-SIM project"
         priority: P3-medium
         device: both
-        status: in-progress
+        status: done
         depends_on: [KH-015]
         notes: |
-          Unblocked 2026-04-04: KH-015 done (LDE-002 confirmed).
-          Gap analysis (2026-04-04): ci-heartbeat.yml only builds platform sources/ hello-world
-          probes -- not kh-sim/backends/. Does NOT satisfy R0 gate.
-          Resolution: created .github/workflows/kh-sim-ci.yml (2026-04-04) with:
-            - rust-build-validate: cargo build --release + cargo clippy -D warnings + cargo test
-            - scala-build-validate: sbt clean compile test (scalacOptions lint built-in)
-            - cpp-build-validate: cmake -G Ninja + cmake --build + ctest (validation binary)
-            - fortran-build-validate: same cmake pattern, gfortran + C++ shim
-            - pascal-build-validate: fpc kh_validate.pas + ./build/kh_validate <ref.json>
-            - kh-sim-summary: aggregate gate (fails workflow on any backend failure)
-          All 5 backends validate against kh-sim/shared/physics/kh_reference_output.json.
-          Lint: Rust/clippy -D warnings; Scala scalacOptions -Wunused:all; C++/Fortran -Wall.
-          Rust clippy fix (2026-04-09, bd8823f): 6 errors resolved --
-            fft2d.rs lines 113,117: #[allow(clippy::needless_range_loop)] — index used for
-              paired arithmetic (i as f64 / i as f64 - n as f64), enumerate() not substitutable.
-            solver.rs fns initial_conditions/vorticity_rhs/rk4_step/compute_diagnostics:
-              #[allow(clippy::too_many_arguments)] — physics kernels mirror KH-PHYSICS.md notation.
-          4/5 backends green on prior CI run (Fortran, Scala, C++, Pascal ✓).
-          Pending: push bd8823f → CI run → confirm 5/5 green → mark done, bump to v1.7.5.
+          Done 2026-04-09. CI run 24162211827 — all 5 backends PASS (build + physics validation).
+          Rust, Scala, C++, Fortran, Pascal all green against kh_reference_output.json.
+          Implementation:
+            .github/workflows/kh-sim-ci.yml — 5 backend jobs + kh-sim-summary aggregate gate.
+            Triggers: push/PR to main,develop,thinkpad,macbook on kh-sim/** or workflow file.
+            Lint: cargo clippy -D warnings (Rust), scalacOptions -Wunused:all (Scala),
+                  -Wall (C++/Fortran), fpc strict mode (Pascal).
+          Rust clippy fix (bd8823f, 2026-04-09):
+            fft2d.rs: #[allow(clippy::needless_range_loop)] — paired index arithmetic.
+            solver.rs: #[allow(clippy::too_many_arguments)] — physics kernels mirror KH-PHYSICS.md.
       - id: KH-018
         title: "KH-SIM integration test suite — end-to-end validation of all backends + F/E"
         priority: P2-high
