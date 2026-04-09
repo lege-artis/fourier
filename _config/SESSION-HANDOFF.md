@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-09
 **Registry version at close:** TASKS-shared.yaml v1.7.5
-**Reason for close:** Session context limit — KH-017 R0 gate CLOSED (CI run 24162211827 ✓ 5/5)
+**Reason for close:** Claude relaunch — version 1062.0 update; KH-017 R0 gate fully CLOSED
 
 ---
 
@@ -106,14 +106,14 @@ Remaining R0 gates (open/blocked):
 
 ## Known Deferred Items / Tech Debt
 
-| Item | Detail |
-|---|---|
-| Node.js 20 deprecation | `actions/checkout@v4` → upgrade to v5 before June 2026 |
-| Fluent Bit routing | Per-index split (`ci-logs-*`, `test-results-*`, `kh-sim-*`) still on catch-all output |
-| ES index mapping template | Explicit `keyword` mapping for `session_id` to eliminate `.keyword` workaround |
-| PyCall.jl Python 3.11 compat | Verify before SYMB-002 starts |
-| Clojure + Scala JVM 17 alignment | Pin `:jvm-opts` in Clojure `deps.edn` to JVM 17 (SYMB-003) |
-| Vhost pre-allocation | `julia-symb.test:8601`, `clj-reason.test:8700` not yet added to Nginx config |
+| Item | Deadline | Detail |
+|---|---|---|
+| Node.js 20 deprecation | **June 2, 2026** | `actions/checkout@v4→v5`, `setup-java@v4→v5`, `setup-python@v5→v6`, `setup-node@v4→v5` — forced Node 24 after deadline |
+| Fluent Bit routing | — | Per-index split (`ci-logs-*`, `test-results-*`, `kh-sim-*`) still on catch-all output |
+| ES index mapping template | — | Explicit `keyword` mapping for `session_id` to eliminate `.keyword` workaround |
+| PyCall.jl Python 3.11 compat | — | Verify before SYMB-002 starts |
+| Clojure + Scala JVM 17 alignment | — | Pin `:jvm-opts` in Clojure `deps.edn` to JVM 17 (SYMB-003) |
+| Vhost pre-allocation | — | `julia-symb.test:8601`, `clj-reason.test:8700` not yet added to Nginx config |
 
 ---
 

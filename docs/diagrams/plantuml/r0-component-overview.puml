@@ -1,0 +1,96 @@
+@startuml r0-component-overview
+' R0 Infrastructure Baseline -- Component Overview
+' Cross-referenced from: docs/mindmaps/project-overview.drawio
+' Task gates: GEN-013 (done), DIAG-001 (done), GEN-015, LOG-001, KH-016, KH-017, SYMB-001
+'
+' Conventions:
+'   [TASK-ID done]   -- completed gate task
+'   [TASK-ID]        -- pending gate task
+'   <<layer-N>>      -- tri-layer symbolic architecture layer
+
+!define DONE(t) <color:green><b>t [done]</b></color>
+!define PEND(t) <color:gray>t</color>
+
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Arial
+skinparam componentStyle rectangle
+skinparam roundcorner 6
+
+skinparam component {
+  BackgroundColor<<done>>  #D4EDDA
+  BorderColor<<done>>      #28A745
+  BackgroundColor<<pending>> #FFF3CD
+  BorderColor<<pending>>   #FFC107
+  BackgroundColor<<layer1>> #CCE5FF
+  BorderColor<<layer1>>    #004085
+  BackgroundColor<<layer2>> #D1ECF1
+  BorderColor<<layer2>>    #0C5460
+  BackgroundColor<<layer3>> #F8D7DA
+  BorderColor<<layer3>>    #721C24
+}
+
+title VibeCodeProjects -- R0 Infrastructure Baseline\nComponent Overview (2026-03-28)
+
+' ── Developer environment ─────────────────────────────────────────────────
+package "Developer Environment [R0]" {
+  component "VS Code IDE\nThinkPad" <<done>> as ide_tp   #D4EDDA
+  component "VS Code IDE\nMacBook"  <<pending>> as ide_mb #FFF3CD
+  component "Diagram Tooling\ndraw.io + PlantUML" <<done>> as diag #D4EDDA
+  component "Git Workflow\nconventional commits" <<pending>> as git_wf #FFF3CD
+
+  note right of ide_tp : GEN-013 done
+  note right of ide_mb : GEN-014 pending
+  note right of diag   : DIAG-001 done
+  note right of git_wf : GEN-015 pending
+}
+
+' ── KH-Sim backends ───────────────────────────────────────────────────────
+package "KH-Sim Backends [R0 -> R1]" {
+  component "Rust :8001"    <<done>> as rust   #D4EDDA
+  component "Scala :8002"   <<done>> as scala  #D4EDDA
+  component "C++  :8003"    <<done>> as cpp    #D4EDDA
+  component "Fortran :8004" <<done>> as fort   #D4EDDA
+  component "Pascal :8005"  <<done>> as pas    #D4EDDA
+  component "PINN :8600"    <<pending>> as pinn #FFF3CD
+}
+
+' ── Infra services ────────────────────────────────────────────────────────
+package "Infrastructure Services [R0]" {
+  component "Docker Compose\nall backends + React" <<pending>> as docker  #FFF3CD
+  component "ELK Stack\nElastic+Logstash+Kibana"  <<pending>> as elk     #FFF3CD
+  component "PlantUML Server\n:8010"              <<done>> as puml_srv   #D4EDDA
+  component "CI/CD\nGitHub Actions"               <<pending>> as ci      #FFF3CD
+
+  note right of docker  : KH-016 pending
+  note right of elk     : LOG-001..006 pending
+  note right of puml_srv: DIAG-001 done
+  note right of ci      : KH-017 pending
+}
+
+' ── Symbolic / Reasoning tri-layer ────────────────────────────────────────
+package "Symbolic Layer [R2]" {
+  component "Julia\nSymbolics.jl" <<layer1>> as julia  #CCE5FF
+  component "Clojure\nDatahike"   <<layer2>> as clj    #D1ECF1
+  component "ELK\nEvent Store"    <<layer3>> as elk_s  #F8D7DA
+
+  note right of julia : SYMB-002 (layer 1)
+  note right of clj   : SYMB-003 (layer 2)
+  note right of elk_s : LOG-001 feeds layer 3
+}
+
+' ── Relationships ─────────────────────────────────────────────────────────
+ide_tp  --> diag     : uses
+ide_tp  --> git_wf   : enforces
+ide_tp  ..> ide_mb   : GEN-014 parity
+rust    --> docker   : containerised by
+scala   --> docker
+cpp     --> docker
+fort    --> docker
+pas     --> docker
+docker  --> elk      : logs to
+elk     --> elk_s    : ETL projection
+elk_s   --> clj      : Datalog pivot
+diag    --> puml_srv : render via HTTP
+ci      --> docker   : build + validate
+
+@enduml

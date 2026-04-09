@@ -1,0 +1,152 @@
+{
+  // =========================================================================
+  // GEN-013 — Workspace settings (ThinkPad, VibeCodeProjects)
+  // Part of R0 — Infrastructure Baseline
+  // =========================================================================
+
+  // -------------------------------------------------------------------------
+  // Editor baseline
+  // -------------------------------------------------------------------------
+  "editor.formatOnSave": true,
+  "editor.rulers": [100],
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "files.trimTrailingWhitespace": true,
+  "files.eol": "\n",
+
+  // -------------------------------------------------------------------------
+  // Rust — rust-analyzer
+  // Acceptance: open kh-sim/backends/rust/src/main.rs — no red squiggles
+  // -------------------------------------------------------------------------
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.checkOnSave.command": "clippy",
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+
+  // -------------------------------------------------------------------------
+  // Scala — Metals
+  // Acceptance: open kh-sim/backends/scala/src/main/scala/khsim/Main.scala
+  //             → import tree resolves, no red squiggles
+  // -------------------------------------------------------------------------
+  "metals.enableSemanticHighlighting": true,
+  "[scala]": {
+    "editor.defaultFormatter": "scalameta.metals"
+  },
+
+  // -------------------------------------------------------------------------
+  // C++ — ms-vscode.cpptools
+  // Acceptance: open kh-sim/backends/cpp — IntelliSense activates
+  // -------------------------------------------------------------------------
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.compilerPath": "C:\\msys64\\mingw64\\bin\\g++.exe",
+  "[cpp]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools"
+  },
+
+  // -------------------------------------------------------------------------
+  // Fortran — fortls (Modern Fortran extension: hansec.fortran-ls)
+  // Acceptance: open kh-sim/backends/fortran — fortls activates
+  // -------------------------------------------------------------------------
+  "fortran.linter.enabled": true,
+  "fortran.fortls.path": "C:\\Users\\vitez\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\Scripts\\fortls.exe",
+  "fortran.fortls.notifyInit": true,
+  "[fortran]": {
+    "editor.tabSize": 2
+  },
+  "[fortran-modern]": {
+    "editor.tabSize": 2
+  },
+
+  // -------------------------------------------------------------------------
+  // Pascal — OmniPascal (Wosi.omnipascal)
+  // Acceptance: open kh-sim/backends/pascal/src/kh_server.pas
+  // -------------------------------------------------------------------------
+  "omnipascal.defaultDevelopmentEnvironment": "FreePascal",
+  "omnipascal.freePascalSourcePath": "C:\\FPC\\3.2.2\\source",
+  "[pascal]": {
+    "editor.tabSize": 2
+  },
+
+  // -------------------------------------------------------------------------
+  // Python — ms-python.python (PINN scripts, kh_physics.py)
+  // -------------------------------------------------------------------------
+  "python.defaultInterpreterPath": "python",
+  "python.analysis.typeCheckingMode": "basic",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.tabSize": 4
+  },
+
+  // -------------------------------------------------------------------------
+  // PlantUML — jebbs.plantuml
+  // Requires: docker run -d -p 8010:8080 plantuml/plantuml-server:jetty
+  // See DIAG-001 for Docker service setup
+  // -------------------------------------------------------------------------
+  "plantuml.server": "http://localhost:8010",
+  "plantuml.render": "PlantUMLServer",
+  "plantuml.diagramsRoot": "docs/diagrams",
+  "plantuml.exportOutDir": "docs/diagrams/out",
+
+  // -------------------------------------------------------------------------
+  // draw.io — hediet.vscode-drawio
+  // No special config required; .drawio / .dio files open in editor
+  // -------------------------------------------------------------------------
+
+  // -------------------------------------------------------------------------
+  // GitLens — eamodio.gitlens
+  // -------------------------------------------------------------------------
+  "gitlens.currentLine.enabled": true,
+  "gitlens.hovers.currentLine.over": "line",
+  "gitlens.blame.format": "${author|10} ${date} ${message|40}",
+  "gitlens.views.remotes.branches.layout": "tree",
+
+  // -------------------------------------------------------------------------
+  // Git Graph — mhutchie.git-graph
+  // -------------------------------------------------------------------------
+  "git-graph.date.type": "Author Date",
+  "git-graph.showStatusBarItem": true,
+
+  // -------------------------------------------------------------------------
+  // Conventional Commits — vivaxy.vscode-conventional-commits
+  // GEN-015 gate: semantic commit discipline
+  // -------------------------------------------------------------------------
+  "conventionalCommits.scopes": [
+    "kh-sim", "diag-infra", "dashboard", "web-showcase",
+    "gr-testcases", "phys-solver", "symb-infra", "log-infra",
+    "ml-infra", "Generic", "config"
+  ],
+
+  // -------------------------------------------------------------------------
+  // File associations
+  // -------------------------------------------------------------------------
+  "files.associations": {
+    "*.pas": "pascal",
+    "*.pp":  "pascal",
+    "*.f90": "fortran-modern",
+    "*.f":   "fortran",
+    "*.puml": "plantuml",
+    "*.pu":   "plantuml",
+    "*.dio":  "drawio",
+    "*.drawio": "drawio"
+  },
+
+  // -------------------------------------------------------------------------
+  // Search / explorer exclusions (keep workspace view clean)
+  // -------------------------------------------------------------------------
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/target":       true,
+    "**/.git":         true,
+    "**/build":        true,
+    "**/__pycache__":  true,
+    "**/.metals":      true,
+    "**/.bloop":       true
+  },
+  "files.exclude": {
+    "**/.DS_Store":    true,
+    "**/__pycache__":  true
+  },
+  "files.watcherExclude": {
+    "**/

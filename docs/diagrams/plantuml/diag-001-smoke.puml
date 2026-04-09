@@ -1,0 +1,33 @@
+@startuml diag-001-smoke
+' DIAG-001 smoke test -- confirms PlantUML server on port 8010 is reachable
+' and the VS Code jebbs.plantuml extension can render via PlantUMLServer mode.
+' Preview: Alt+D in VS Code with this file open.
+
+title DIAG-001 Smoke Test\nPlantUML render via Docker (port 8010)
+
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Courier
+skinparam roundcorner 8
+
+actor Developer as dev
+node "VS Code\njebbs.plantuml" as vsc
+node "Docker\nplantuml-server:jetty\nport 8010" as srv
+database "SVG/PNG\noutput" as out
+
+dev --> vsc : Alt+D (preview)
+vsc --> srv : HTTP POST /form\n(encoded .puml source)
+srv --> vsc : SVG response
+vsc --> out : renders in\npreview panel
+
+note right of srv
+  plantuml.server = http://localhost:8010
+  plantuml.render = PlantUMLServer
+end note
+
+note bottom
+  PASS criteria: diagram renders without timeout.
+  If blank: confirm Docker container is running.
+  docker start plantuml-server
+end note
+
+@enduml

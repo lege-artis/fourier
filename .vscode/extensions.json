@@ -1,0 +1,23 @@
+{
+  // GEN-013 — Workspace extension recommendations (ThinkPad + MacBook)
+  // Run _config/vscode-extensions-setup.ps1 to install all of these in one pass.
+  "recommendations": [
+    // --- Language servers ---
+    "rust-lang.rust-analyzer",
+    "scalameta.metals",
+    "ms-vscode.cpptools",
+    "hansec.fortran-ls",
+    "Wosi.omnipascal",
+    "ms-python.python",
+
+    // --- Git integration ---
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    "vivaxy.vscode-conventional-commits",
+
+    // --- Diagram tooling ---
+    "hediet.vscode-drawio",
+    "jebbs.plantuml"
+  ],
+  "unwantedRecommendations": []
+}

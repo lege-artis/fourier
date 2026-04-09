@@ -1,0 +1,161 @@
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ── TITLE ────────────────────────────────────────────────────────── -->
+    <mxCell id="title" value="VibeCodeProjects — Project Mind Map (Projection of Truth)&#xa;Source: TASKS-shared.yaml v1.6.2  |  2026-03-28" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="427" y="20" width="800" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- ── LEGEND ────────────────────────────────────────────────────────── -->
+    <mxCell id="leg1" value="DONE"    style="rounded=1;fillColor=#d4edda;strokeColor=#28a745;fontStyle=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="30"  y="20" width="70" height="24" as="geometry"/></mxCell>
+    <mxCell id="leg2" value="PENDING" style="rounded=1;fillColor=#fff3cd;strokeColor=#ffc107;fontStyle=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="110" y="20" width="70" height="24" as="geometry"/></mxCell>
+    <mxCell id="leg3" value="PLANNED" style="rounded=1;fillColor=#cce5ff;strokeColor=#004085;fontStyle=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="190" y="20" width="70" height="24" as="geometry"/></mxCell>
+    <mxCell id="leg4" value="&#xa;Dashed arrow = semantic relationship&#xa;Solid arrow  = dependency / data flow&#xa;Bold border  = R0 gate task" style="text;html=1;strokeColor=#aaa;fillColor=#f5f5f5;fontSize=9;align=left;verticalAlign=top;" vertex="1" parent="1">
+      <mxGeometry x="30" y="50" width="230" height="55" as="geometry" />
+    </mxCell>
+
+    <!-- ================================================================
+         TOGAF LAYER BACKGROUNDS (flat rectangles, no swimlane containers)
+         ================================================================ -->
+    <mxCell id="bg-biz"  value="" style="rounded=0;fillColor=#f5f5f5;strokeColor=#cccccc;opacity=30;" vertex="1" parent="1"><mxGeometry x="410"  y="75"  width="840" height="130" as="geometry"/></mxCell>
+    <mxCell id="bg-app"  value="" style="rounded=0;fillColor=#e8f4f8;strokeColor=#0c5460;opacity=30;" vertex="1" parent="1"><mxGeometry x="1060" y="250" width="560" height="590" as="geometry"/></mxCell>
+    <mxCell id="bg-data" value="" style="rounded=0;fillColor=#f3e8ff;strokeColor=#5a2d82;opacity=30;" vertex="1" parent="1"><mxGeometry x="60"   y="250" width="240" height="500" as="geometry"/></mxCell>
+    <mxCell id="bg-tech" value="" style="rounded=0;fillColor=#fff8e8;strokeColor=#856404;opacity=30;" vertex="1" parent="1"><mxGeometry x="410"  y="890" width="1210" height="140" as="geometry"/></mxCell>
+
+    <!-- Layer labels -->
+    <mxCell id="lbl-biz"  value="TOGAF: Business Layer"     style="text;html=1;fontStyle=1;fontSize=11;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="1"><mxGeometry x="420"  y="78"  width="250" height="24" as="geometry"/></mxCell>
+    <mxCell id="lbl-app"  value="TOGAF: Application Layer"  style="text;html=1;fontStyle=1;fontSize=11;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="1"><mxGeometry x="1070" y="253" width="250" height="24" as="geometry"/></mxCell>
+    <mxCell id="lbl-data" value="TOGAF: Data / Information" style="text;html=1;fontStyle=1;fontSize=11;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="1"><mxGeometry x="65"   y="253" width="230" height="24" as="geometry"/></mxCell>
+    <mxCell id="lbl-tech" value="TOGAF: Technology Layer"   style="text;html=1;fontStyle=1;fontSize=11;strokeColor=none;fillColor=none;align=left;" vertex="1" parent="1"><mxGeometry x="420"  y="893" width="250" height="24" as="geometry"/></mxCell>
+
+    <!-- ================================================================
+         CENTRAL CONCEPT
+         ================================================================ -->
+    <mxCell id="root" value="&lt;b&gt;VibeCodeProjects&lt;/b&gt;&#xa;Nonlinear Physics + MI-M-T&#xa;Multi-language Research Platform" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1e4d78;strokeColor=#0a2d50;fontColor=#ffffff;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="577" y="460" width="300" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- ================================================================
+         BUSINESS LAYER NODES
+         ================================================================ -->
+    <mxCell id="biz-res" value="Research Platform&#xa;Nonlinear Physics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=10;" vertex="1" parent="1"><mxGeometry x="430" y="105" width="150" height="50" as="geometry"/></mxCell>
+    <mxCell id="biz-mimt" value="MI-M-T Methodology&#xa;[R3 gate]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="600" y="105" width="140" height="50" as="geometry"/></mxCell>
+    <mxCell id="biz-web" value="Web Presence&#xa;mim2000.cz / zemla.org&#xa;[WEB-001..005]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="760" y="105" width="140" height="50" as="geometry"/></mxCell>
+    <mxCell id="biz-diag" value="Diagram Strategy&#xa;PlantUML + draw.io&#xa;[DIAG-001 done]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=10;" vertex="1" parent="1"><mxGeometry x="920" y="105" width="140" height="50" as="geometry"/></mxCell>
+
+    <!-- ================================================================
+         RELEASE CHAIN (left spine)
+         ================================================================ -->
+    <mxCell id="r0" value="&lt;b&gt;R0&lt;/b&gt; Infrastructure&#xa;IN PROGRESS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#28a745;strokeWidth=3;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="310" y="330" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="r1" value="&lt;b&gt;R1&lt;/b&gt; KH Showcase&#xa;planned — needs R0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=11;" vertex="1" parent="1"><mxGeometry x="310" y="460" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="r2" value="&lt;b&gt;R2&lt;/b&gt; Symbolic/GR&#xa;planned — needs R1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=11;" vertex="1" parent="1"><mxGeometry x="310" y="590" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="r3" value="&lt;b&gt;R3&lt;/b&gt; MI-M-T Release&#xa;planned — needs R1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=11;" vertex="1" parent="1"><mxGeometry x="310" y="720" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="r4" value="&lt;b&gt;R4&lt;/b&gt; Nonlinear Physics&#xa;planned — needs R2+R3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=11;" vertex="1" parent="1"><mxGeometry x="310" y="850" width="170" height="50" as="geometry"/></mxCell>
+
+    <!-- ================================================================
+         APPLICATION LAYER NODES (right block)
+         ================================================================ -->
+
+    <!-- KH-Sim backends group label -->
+    <mxCell id="lbl-kh" value="KH-Sim Backends (all done)" style="text;html=1;fontStyle=1;fontSize=10;strokeColor=none;fillColor=none;" vertex="1" parent="1"><mxGeometry x="1075" y="282" width="220" height="20" as="geometry"/></mxCell>
+    <mxCell id="kh-rust"   value="Rust :8001&#xa;[KH-003]"    style="rounded=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=9;" vertex="1" parent="1"><mxGeometry x="1075" y="305" width="100" height="40" as="geometry"/></mxCell>
+    <mxCell id="kh-scala"  value="Scala :8002&#xa;[KH-004]"   style="rounded=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=9;" vertex="1" parent="1"><mxGeometry x="1185" y="305" width="100" height="40" as="geometry"/></mxCell>
+    <mxCell id="kh-cpp"    value="C++ :8003&#xa;[KH-005]"     style="rounded=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=9;" vertex="1" parent="1"><mxGeometry x="1295" y="305" width="100" height="40" as="geometry"/></mxCell>
+    <mxCell id="kh-fort"   value="Fortran :8004&#xa;[KH-006]" style="rounded=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=9;" vertex="1" parent="1"><mxGeometry x="1405" y="305" width="100" height="40" as="geometry"/></mxCell>
+    <mxCell id="kh-pas"    value="Pascal :8005&#xa;[KH-007]"  style="rounded=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=9;" vertex="1" parent="1"><mxGeometry x="1515" y="305" width="100" height="40" as="geometry"/></mxCell>
+
+    <mxCell id="app-fe"    value="React F/E&#xa;[KH-008..015]"         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1075" y="375" width="130" height="50" as="geometry"/></mxCell>
+    <mxCell id="app-dash"  value="Dashboard L1/L2/L3&#xa;[DASH-001..005]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1215" y="375" width="140" height="50" as="geometry"/></mxCell>
+    <mxCell id="app-pinn"  value="PINN :8600&#xa;[PINN-001..009]"       style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1365" y="375" width="130" height="50" as="geometry"/></mxCell>
+    <mxCell id="app-solv"  value="Classical Solver :8006&#xa;Julia/DiffEq [SOLV-001..005]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1505" y="375" width="110" height="50" as="geometry"/></mxCell>
+
+    <!-- Symbolic tri-layer -->
+    <mxCell id="lbl-sym" value="Symbolic Tri-Layer (SYMB-001..005)" style="text;html=1;fontStyle=1;fontSize=10;strokeColor=none;fillColor=none;" vertex="1" parent="1"><mxGeometry x="1075" y="450" width="280" height="20" as="geometry"/></mxCell>
+    <mxCell id="sym-l1"  value="Layer 1: Julia&#xa;Symbolics.jl&#xa;[SYMB-002]"      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1075" y="473" width="160" height="60" as="geometry"/></mxCell>
+    <mxCell id="sym-l2"  value="Layer 2: Clojure&#xa;Datahike/Datalog&#xa;[SYMB-003]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1ecf1;strokeColor=#0c5460;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1245" y="473" width="160" height="60" as="geometry"/></mxCell>
+    <mxCell id="sym-l3"  value="Layer 3: ELK&#xa;Event Store&#xa;[LOG-001..006]"      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8d7da;strokeColor=#721c24;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1415" y="473" width="160" height="60" as="geometry"/></mxCell>
+    <mxCell id="sym-adr" value="Tri-Layer ADR&#xa;[SYMB-001 pending]"                  style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1585" y="473" width="25" height="60" as="geometry"/></mxCell>
+
+    <!-- GR test cases -->
+    <mxCell id="app-gr" value="GR Test Cases&#xa;Minkowski / Schwarzschild / pp-waves / Kerr&#xa;[GR-001..005]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1075" y="560" width="360" height="50" as="geometry"/></mxCell>
+
+    <!-- IDE -->
+    <mxCell id="app-ide"  value="VS Code ThinkPad&#xa;[GEN-013 done]"  style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1075" y="635" width="160" height="50" as="geometry"/></mxCell>
+    <mxCell id="app-ide2" value="VS Code MacBook&#xa;[GEN-014 pending]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1245" y="635" width="160" height="50" as="geometry"/></mxCell>
+    <mxCell id="app-git"  value="Git Workflow&#xa;Conv. Commits [GEN-015]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1415" y="635" width="160" height="50" as="geometry"/></mxCell>
+
+    <!-- MI-M-T -->
+    <mxCell id="app-mimt-d1" value="MI-M-T D01 done&#xa;D02..D05 pending" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1075" y="710" width="200" height="50" as="geometry"/></mxCell>
+    <mxCell id="app-mimt-d3" value="JIRA Interface&#xa;[MI-M-T-D03]"     style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1285" y="710" width="130" height="50" as="geometry"/></mxCell>
+    <mxCell id="app-mimt-d4" value="Postman/Newman&#xa;[MI-M-T-D04]"    style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1425" y="710" width="130" height="50" as="geometry"/></mxCell>
+
+    <!-- ================================================================
+         DATA LAYER NODES (left block)
+         ================================================================ -->
+    <mxCell id="dat-ref"   value="KH Reference JSON&#xa;Python NumPy baseline&#xa;bit-identical" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=9;" vertex="1" parent="1"><mxGeometry x="75" y="285" width="200" height="55" as="geometry"/></mxCell>
+    <mxCell id="dat-diag"  value="Diagram Corpus&#xa;docs/diagrams/*.puml&#xa;docs/mindmaps/*.drawio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=9;" vertex="1" parent="1"><mxGeometry x="75" y="355" width="200" height="55" as="geometry"/></mxCell>
+    <mxCell id="dat-tasks" value="Task Registry&#xa;TASKS-shared.yaml&#xa;v1.6.2 | 142 tasks | SOURCE OF TRUTH" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;strokeWidth=3;fontSize=9;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="75" y="425" width="200" height="60" as="geometry"/></mxCell>
+    <mxCell id="dat-elk"   value="ELK Event Log&#xa;Raw operational data&#xa;[LOG-001..006]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=9;" vertex="1" parent="1"><mxGeometry x="75" y="500" width="200" height="55" as="geometry"/></mxCell>
+    <mxCell id="dat-dh"    value="Datahike Graph&#xa;Semantic relationships&#xa;[SYMB-003]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=9;" vertex="1" parent="1"><mxGeometry x="75" y="570" width="200" height="55" as="geometry"/></mxCell>
+    <mxCell id="dat-jira"  value="JIRA Read Interface&#xa;[MI-M-T-D03]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=9;" vertex="1" parent="1"><mxGeometry x="75" y="640" width="200" height="45" as="geometry"/></mxCell>
+    <mxCell id="dat-post"  value="Postman Collection v2.1&#xa;Newman [MI-M-T-D04]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=9;" vertex="1" parent="1"><mxGeometry x="75" y="700" width="200" height="40" as="geometry"/></mxCell>
+
+    <!-- ================================================================
+         TECHNOLOGY LAYER NODES (bottom strip)
+         ================================================================ -->
+    <mxCell id="tec-docker" value="Docker Compose&#xa;all backends [KH-016]"    style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="425"  y="920" width="160" height="55" as="geometry"/></mxCell>
+    <mxCell id="tec-ci"     value="GitHub Actions CI&#xa;[KH-017]"               style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="595"  y="920" width="150" height="55" as="geometry"/></mxCell>
+    <mxCell id="tec-elk"    value="ELK Stack&#xa;[LOG-001..006]"                  style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="755"  y="920" width="150" height="55" as="geometry"/></mxCell>
+    <mxCell id="tec-puml"   value="PlantUML Docker :8010&#xa;[DIAG-001 done]"    style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=10;" vertex="1" parent="1"><mxGeometry x="915"  y="920" width="170" height="55" as="geometry"/></mxCell>
+    <mxCell id="tec-git"    value="GitHub&#xa;conventional commits&#xa;[GEN-015]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1095" y="920" width="140" height="55" as="geometry"/></mxCell>
+    <mxCell id="tec-ide"    value="VS Code + 11 LSPs&#xa;[GEN-013 done]"         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1245" y="920" width="150" height="55" as="geometry"/></mxCell>
+    <mxCell id="tec-diag"   value="draw.io + PlantUML&#xa;ext [DIAG-001 done]"   style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4edda;strokeColor=#28a745;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1405" y="920" width="150" height="55" as="geometry"/></mxCell>
+    <mxCell id="tec-wp"     value="WordPress&#xa;mim2000 / zemla&#xa;[WEB-001]"  style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#004085;fontSize=10;" vertex="1" parent="1"><mxGeometry x="1565" y="920" width="90" height="55" as="geometry"/></mxCell>
+
+    <!-- ================================================================
+         EDGES — all parent="1", flat
+         ================================================================ -->
+
+    <!-- Central to releases -->
+    <mxCell id="e-root-r0" style="dashed=1;endArrow=open;endFill=0;" edge="1" source="root" target="r0" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e-root-r1" style="dashed=1;endArrow=open;endFill=0;" edge="1" source="root" target="r1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- Release chain -->
+    <mxCell id="e-r0r1" value="gates" style="endArrow=block;endFill=1;strokeColor=#28a745;" edge="1" source="r0" target="r1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e-r1r2" value="gates" style="endArrow=block;endFill=1;strokeColor=#004085;" edge="1" source="r1" target="r2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e-r1r3" value="gates" style="endArrow=block;endFill=1;strokeColor=#004085;" edge="1" source="r1" target="r3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e-r2r4" value="gates" style="endArrow=block;endFill=1;strokeColor=#004085;" edge="1" source="r2" target="r4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e-r3r4" value="gates" style="endArrow=block;endFill=1;strokeColor=#004085;" edge="1" source="r3" target="r4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- Task registry = source of truth for mind map -->
+    <mxCell id="e-tasks-root" value="projection of truth" style="endArrow=open;endFill=0;strokeColor=#5a2d82;strokeWidth=2;dashed=1;fontStyle=2;fontSize=10;" edge="1" source="dat-tasks" target="root" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- Business to root -->
+    <mxCell id="e-biz-root"  value="drives" style="dashed=1;endArrow=open;endFill=0;strokeColor=#666;" edge="1" source="biz-res"  target="root" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e-mimt-root" value="drives" style="dashed=1;endArrow=open;endFill=0;strokeColor=#666;" edge="1" source="biz-mimt" target="root" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- ELK feeds symbolic layer -->
+    <mxCell id="e-elkdat-syml3" value="ETL" style="endArrow=block;endFill=1;strokeColor=#721c24;" edge="1" source="dat-elk" target="sym-l3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="e-syml3-syml2" value="Datalog pivot" style="endArrow=block;endFill=1;strokeColor=#0c5460;" edge="1" source="sym-l3" target="sym-l2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- Diagram corpus renders via PlantUML server -->
+    <mxCell id="e-diag-puml" value="renders via" style="dashed=1;endArrow=open;endFill=0;strokeColor=#5a2d82;" edge="1" source="dat-diag" target="tec-puml" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- Docker runs backends -->
+    <mxCell id="e-docker-kh" value="containerises" style="endArrow=open;endFill=0;strokeColor=#856404;" edge="1" source="tec-docker" target="kh-rust" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- CI validates -->
+    <mxCell id="e-ci-docker" value="build + validate" style="endArrow=open;endFill=0;strokeColor=#856404;" edge="1" source="tec-ci" target="tec-docker" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- Datahike = future semantic graph for mind map -->
+    <mxCell id="e-dh-mindmap" value="will replace&#xa;manual projection" style="dashed=1;endArrow=open;endFill=0;strokeColor=#5a2d82;fontStyle=2;fontSize=9;" edge="1" source="dat-dh" target="dat-tasks" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- cross-ref note -->
+    <mxCell id="xref" value="Cross-references&#xa;PlantUML overview: docs/diagrams/plantuml/r0-component-overview.puml&#xa;Smoke test:        docs/diagrams/plantuml/diag-001-smoke.puml&#xa;This file:         docs/mindmaps/project-overview.drawio" style="text;html=1;strokeColor=#aaa;fillColor=#f5f5f5;fontSize=9;align=left;verticalAlign=top;" vertex="1" parent="1">
+      <mxGeometry x="60" y="770" width="430" height="65" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
