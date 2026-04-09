@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-09
-**Registry version at close:** TASKS-shared.yaml v1.7.8
-**Last commit:** cc50677 feat(kh-sim): KH-014 log service — simulation event recorder + viewer API
+**Registry version at close:** TASKS-shared.yaml v1.7.9
+**Last commit:** dd6045e feat(kh-sim): KH-018 integration test suite
 
 ---
 
@@ -76,6 +76,28 @@ Routes:
 
 Degraded mode: service stays up with 503 responses if MongoDB is unavailable.
 
+### KH-018 — Integration test suite — HTTP e2e for all backends + log service (commit dd6045e)
+
+pytest suite in `kh-sim/tests/integration/` covering all 6 LDE services.
+
+**Test modules (58 test functions, 5 modules):**
+- `test_health.py` — GET /health: status code 200, JSON schema, port vs manifest, status value
+- `test_info.py` — GET /info: required fields, language/port consistency
+- `test_simulate.py` — POST /simulate: schema, field lengths (2048), steps_completed, t_final,
+  KE/enstrophy/max_vorticity ±5% vs reference, divergence_rms < 1e-10
+- `test_log_service.py` — POST /event valid (all 5 backends) and 400 on invalid input;
+  GET /viewer sentinel roundtrip + limit param; GET /summary all-backends presence
+- `test_cross_backend.py` — key parity, vector field lengths, t_final, diagnostics numeric/finite
+
+**Fixtures (conftest.py):** session-scoped simulate_responses (5 HTTP calls cached); test_session_id
+(UUID per run); backend_urls + log_url (env overrides KH_RUST_URL etc.).
+
+**Runner:** `run-integration.ps1` — pre-flight LDE health check, pip install, pytest -v --tb=short
+
+**CI:** `integration-e2e` job in `kh-sim-ci.yml` — runs after all 5 backend build jobs.
+MongoDB service container (mongo:8) feeds kh-log-service; `docker compose up -d` starts stack;
+health poll gates test run; service logs dumped on failure; compose down on always.
+
 ---
 
 ### KH-017 — Rust clippy lint fix (commit bd8823f)
@@ -148,13 +170,13 @@ Remaining R0 gates:
 1. **HK-001** (ALWAYS FIRST) -- run `.\_config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff`
 2. **git push origin thinkpad** -- push thinkpad branch to remote (SSH from ThinkPad terminal);
    open PR to main; completes GEN-015 criterion 4.
-3. **KH-018** -- KH-SIM integration test suite (e2e: all 5 backends + F/E smoke, POST /event validation)
-4. **GW-009** -- CI-authored status events for platform tests (P4-low; depends PLT-007)
-5. **SYMB-002** -- Julia symbolic layer prototype (unblocked; PyCall.jl + Julia install,
+3. **GW-009** -- CI-authored status events for platform tests (P4-low; depends PLT-007)
+4. **SYMB-002** -- Julia symbolic layer prototype (unblocked; PyCall.jl + Julia install,
    vhost `julia-symb.test` -> :8601)
 
-Note: KH-014 DONE (this session). GEN-014 (MacBook IDE parity) is MacBook-only.
-Note: GEN-015 ThinkPad side DONE. GW-005..008 all DONE. R0-LDE DONE.
+Note: KH-014 DONE (this session). KH-018 DONE (this session).
+Note: GEN-014 (MacBook IDE parity) is MacBook-only. GEN-015 ThinkPad side DONE.
+Note: GW-005..008 all DONE. R0-LDE DONE.
 
 ---
 
@@ -172,7 +194,9 @@ Note: GEN-015 ThinkPad side DONE. GW-005..008 all DONE. R0-LDE DONE.
 | `kh-sim/kh-sim.config.yaml` | cc50677 | +log_service section |
 | `kh-sim/log-service/` | cc50677 | NEW: index.js, Dockerfile, package.json, smoke-test.js |
 | `kh-sim/vhost/log-service.conf` | cc50677 | NEW: Nginx vhost kh-log.test -> :8006 |
-| `_config/SESSION-HANDOFF.md` | (this update) | KH-014 complete; next priorities updated |
+| `kh-sim/tests/integration/` | dd6045e | NEW: 5 test modules + conftest + runner (KH-018) |
+| `.github/workflows/kh-sim-ci.yml` | dd6045e | +integration-e2e job (Docker Compose + MongoDB svc) |
+| `_config/SESSION-HANDOFF.md` | (this update) | KH-014 + KH-018 complete; priorities updated |
 
 ---
 
