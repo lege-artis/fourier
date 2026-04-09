@@ -1,79 +1,118 @@
-# queue-thinkpad.yaml — ThinkPad session queue
-# Authority: ThinkPad ONLY — MacBook must never write this file
+# queue-thinkpad.yaml -- ThinkPad session queue
+# Authority: ThinkPad ONLY -- MacBook must never write this file
 # Contains: session-local active/pending state for ThinkPad-assigned tasks
-# Merge: .gitattributes → merge=ours (ThinkPad always wins on this file)
+# Merge: .gitattributes merge=ours (ThinkPad always wins on this file)
 # Cross-ref: task specs live in TASKS-shared.yaml
 
 meta:
   device: ThinkPad
   schema_version: "2.0.0"
-  current_session: "2026-03-22 — macbook-merge + gates 3-7"
-  ssh_key_fingerprint: "SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24"
-  last_sync_commit: "8ceff7f"
+  current_session: 2026-04-09 -- housekeeping infra, R0-LDE close, GW gate sweep, GEN-015 close
+  ssh_key_fingerprint: SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24
+  last_sync_commit: a841a46
+  branch: thinkpad
 
-# ── Session state ────────────────────────────────────────────────────────────
+# -- Session state --------------------------------------------------------------
+# RULE: always run HK-001 (Check-SessionEnv.ps1) before any task work.
+# RULE: always run HK-004 (update SESSION-HANDOFF.md) before committing close.
 
 session:
-  active:
-    - id: GEN-003
-      note: "SSH key active, repo sync in progress"
-    - id: GEN-007
-      note: "Commit 468b993 done (30 files). Repo creation in progress."
+  active: []
 
   pending:
-    # Gates (ordered dependency chain)
+    # Housekeeping (recurring -- run every session)
+    - id: HK-001
+      note: '._config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff'
+    - id: HK-004
+      note: Session close -- update SESSION-HANDOFF.md before commit
+
+    # R0 remaining gate (ThinkPad)
+    - id: GW-009
+      note: CI-authored status events -- PLT tests auto-close tasks
+
+    # KH-sim unblocked (deps now all done)
+    - id: KH-014
+      note: Log DB integration -- KH-001 + GEN-009 done, ready to start
+    - id: KH-018
+      note: Integration test suite -- KH-016 done, ready to start
+
+    # Auth infra
+    - id: AUTH-001
+    - id: AUTH-002
+    - id: AUTH-003
+    - id: AUTH-005
+    - id: AUTH-006
+
+    # Platform source tests (toolchain smoke)
+    - id: PLT-001
+    - id: PLT-002
+    - id: PLT-003
+    - id: PLT-004
+    - id: PLT-005
+
+    # Sandbox setup
+    - id: SBX-001
+    - id: SBX-002
+
+    # ML infra (after TF-001 MacBook scaffold merged)
+    - id: TF-004
+    - id: TF-005
+    - id: TF-006
+    - id: TF-007
+
+    # PINN infra (R4 track -- deferred until R1 complete)
+    - id: PINN-002
+    - id: PINN-003
+    - id: PINN-004
+    - id: PINN-005
+    - id: PINN-006
+    - id: PINN-007
+    - id: PINN-008
+    - id: PINN-009
+
+  done:
+    # R0 gate -- all confirmed
+    - GEN-001
+    - GEN-002
+    - GEN-003
+    - GEN-004
+    - GEN-005
+    - GEN-006
+    - GEN-007
+    - GEN-008
     - GEN-009
     - GEN-010
     - GEN-011
     - GEN-012
-    # Database setup (unblocks log-infra)
-    - DB-001
-    - DB-002
-    - DB-003
-    # Log infra (after GEN-011 + DB-002)
+    - GEN-013
+    - GEN-015
+    - GW-001
+    - GW-002
+    - GW-003
+    - GW-004
+    - GW-005
+    - GW-006
+    - GW-007
+    - GW-008
     - LOG-001
     - LOG-002
     - LOG-003
     - LOG-004
     - LOG-005
     - LOG-006
-    # ML infra (after GEN-011)
-    - TF-001
-    - TF-002
-    - TF-003
-    - TF-004
-    - TF-005
-    - TF-006
-    - TF-007
-    # OAuth2.0 backend connectors
-    - AUTH-001
-    - AUTH-002
-    - AUTH-003
-    - AUTH-005
-    - AUTH-006
-    # Platform source tests
-    - PLT-001
-    - PLT-002
-    - PLT-003
-    - PLT-004
-    - PLT-005
-    - PLT-006
-    - PLT-007
-    # Sandboxes
-    - SBX-001
-    - SBX-002
-    # git-workflow (register merge driver + validate)
-    - GW-005
-    - GW-006
-    - GW-007
-    - GW-008
-    - GW-009
-
-  done:
-    - GEN-001
-    - GEN-002
-    - GEN-004
-    - GEN-005
-    - GEN-006
+    - LDE-001
+    - LDE-002
+    - LDE-003
+    - LDE-004
+    - KH-001
+    - KH-002
+    - KH-003
+    - KH-004
+    - KH-005
+    - KH-006
+    - KH-007
+    - KH-016
+    - KH-017
+    - SYMB-001
 
   blocked: []

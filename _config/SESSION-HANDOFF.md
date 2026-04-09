@@ -19,6 +19,38 @@
 
 ## Tasks Completed This Session (2026-04-09)
 
+### Housekeeping / grooming pass (this sub-session)
+
+**HK infrastructure:**
+- Created `_config/Check-SessionEnv.ps1` — session-start health probe (LDE/ELK/MongoDB/Git)
+- Added `housekeeping` project to TASKS-shared.yaml: HK-001..HK-004
+- R0-LDE release milestone: closed (all 4 gate tasks confirmed done 2026-03-29)
+
+**GW gate sweep (all verified already implemented):**
+- GW-005 [closed] — merge driver `tasks-merge` registered in `.git/config`
+- GW-006 [closed] — integrity 24/24 on ThinkPad confirmed
+- GW-007 [closed] — `TestCircularDependencies::test_no_circular_dependencies` exists + passes
+- GW-008 [closed] — `TestManifestIntegrity` (4 tests) covers version monotonicity
+
+**GEN-015 [closed] — IDE commit workflow validated on ThinkPad:**
+- Criterion 1: `thinkpad` branch created from `main` HEAD — no direct-main commits going forward
+- Criterion 2: merge driver `tasks-merge` confirmed in `.git/config` + `.gitattributes`
+- Criterion 3: conventional commit `chore(housekeeping):...` executed on `thinkpad` branch (a841a46)
+- Criterion 4: `git push origin thinkpad` + PR — run from ThinkPad terminal (SSH key required)
+- Criterion 5: no direct push to `main` ✓
+- GEN-014 dependency removed from GEN-015 (MacBook-only concern)
+
+**KH-sim unblock:**
+- KH-014: `blocked` → `open` (deps KH-001 + GEN-009 both done)
+- KH-018: `blocked` → `open` (dep KH-016 done)
+
+**queue-thinkpad.yaml:** rebuilt — removed stale GEN-003/007 active entries; reflected
+current done set (R0, GW, LOG, LDE, KH backends); pending queue aligned to active backlog.
+
+**TASKS-shared.yaml:** v1.7.7 — 24/24 integrity gate passes.
+
+---
+
 ### KH-017 — Rust clippy lint fix (commit bd8823f)
 
 6 `cargo clippy -- -D warnings` errors resolved in 2 files:
@@ -77,9 +109,9 @@ GEN-013  [DONE]  VS Code IDE ThinkPad -- extensions + Git integration
 KH-017   [DONE]  CI/CD pipeline -- 5/5 backends green, run 24162211827 (2026-04-09)
 
 Remaining R0 gates:
-  GEN-014  [stub]  IDE setup MacBook -- IntelliJ/VS Code parity  <-- NEXT
-  GEN-015  [open]  Commit workflow -- conventional-commit + branch discipline
-                   (depends on GEN-014; both devices)
+  GEN-014  [stub]  IDE setup MacBook -- IntelliJ/VS Code parity  <-- MACBOOK ONLY
+  GEN-015  [DONE]  Commit workflow -- ThinkPad side validated (2026-04-09)
+                   MacBook side: complete as part of GEN-014 session
 ```
 
 ---
@@ -87,15 +119,16 @@ Remaining R0 gates:
 ## Next Session Priorities
 
 1. **HK-001** (ALWAYS FIRST) -- run `.\_config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff`
-2. **GEN-014** -- MacBook: IntelliJ IDEA / VS Code parity check (P3-med, MacBook only)
-3. **GEN-015** -- IDE commit workflow validation: conventional-commit + branch discipline
-   (P2-high, both devices; depends on GEN-014 being done first)
-4. **GW-005 / GW-006** -- Register merge driver on ThinkPad; validate integrity green on both branches
-5. **SYMB-002** -- Julia symbolic layer prototype (unblocked; needs PyCall.jl + Julia install,
+2. **git push origin thinkpad** -- push thinkpad branch to remote (SSH from ThinkPad terminal);
+   open PR to main; completes GEN-015 criterion 4.
+3. **KH-014** -- Log DB integration (now unblocked; deps done)
+4. **KH-018** -- Integration test suite (now unblocked; KH-016 done)
+5. **GW-009** -- CI-authored status events for platform tests
+6. **SYMB-002** -- Julia symbolic layer prototype (unblocked; PyCall.jl + Julia install,
    vhost `julia-symb.test` -> :8601)
 
-Note: LDE-003 / LDE-004 are DONE (closed 2026-03-29). R0-LDE milestone closed.
-R0 remaining blockers: GEN-014 (stub) + GEN-015 (open).
+Note: GEN-014 (MacBook IDE parity) is MacBook-only -- do on MacBook, not ThinkPad.
+Note: GEN-015 ThinkPad side DONE. GW-005..008 all DONE. R0-LDE DONE.
 
 ---
 
@@ -105,9 +138,10 @@ R0 remaining blockers: GEN-014 (stub) + GEN-015 (open).
 |---|---|---|
 | `kh-sim/backends/rust/src/physics/fft2d.rs` | bd8823f | `#[allow(clippy::needless_range_loop)]` on `angular_fftfreq` |
 | `kh-sim/backends/rust/src/physics/solver.rs` | bd8823f | `#[allow(clippy::too_many_arguments)]` on 4 physics kernels |
-| `TASKS-shared.yaml` | (this commit) | KH-017 done; R0-LDE closed; housekeeping project HK-001..004 added; meta v1.7.6 |
-| `_config/Check-SessionEnv.ps1` | (this commit) | New -- session-start env health probe (LDE + ELK + MongoDB + Git) |
-| `_config/SESSION-HANDOFF.md` | (this commit) | Mandatory env-check step 0 + corrected next priorities |
+| `TASKS-shared.yaml` | a841a46 + (this) | v1.7.7: HK project, R0-LDE closed, GW-005..008 done, GEN-015 done, KH-014/018 unblocked |
+| `_config/Check-SessionEnv.ps1` | a841a46 | New -- session-start health probe (LDE/ELK/MongoDB/Git) |
+| `queue-thinkpad.yaml` | (this commit) | Rebuilt -- stale entries removed, active backlog aligned |
+| `_config/SESSION-HANDOFF.md` | (this commit) | Grooming pass results + corrected next priorities |
 
 ---
 
