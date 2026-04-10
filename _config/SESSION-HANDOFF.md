@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-09
 **Registry version at close:** TASKS-shared.yaml v1.8.0
-**Last commit:** fa47cbf feat(git-workflow): GW-009 CI-authored queue update
+**Last commit:** 7c91a41 fix(kh-sim): log-service Docker build — package-lock.json + .dockerignore
 
 ---
 
