@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-09
-**Registry version at close:** TASKS-shared.yaml v1.7.9
-**Last commit:** dd6045e feat(kh-sim): KH-018 integration test suite
+**Registry version at close:** TASKS-shared.yaml v1.8.0
+**Last commit:** fa47cbf feat(git-workflow): GW-009 CI-authored queue update
 
 ---
 
@@ -75,6 +75,29 @@ Routes:
 - `GET /info` — static service metadata
 
 Degraded mode: service stays up with 503 responses if MongoDB is unavailable.
+
+### GW-009 — CI-authored queue update — auto-close PLT tasks on green (commit fa47cbf)
+
+Event-sourcing lite pattern: CI writes task state back to the registry after a green run.
+
+**`_config/ci-queue-update.py`** — CLI script:
+- Reads TASKS-shared.yaml, locates task block by ID, patches status/completed/notes in-place
+- Skips tasks already in terminal status (done/deferred) — idempotent
+- Appends GITHUB_WORKFLOW + GITHUB_RUN_ID context to notes when running in Actions
+- Supports `--dry-run`, `--file`, `--note` flags; exit codes 0/1/2
+
+**`ci-heartbeat.yml` — `queue-autoupdate` job:**
+- Triggers after all 5 PLT build jobs pass (`needs: cpp/rust/scala/pascal/fortran-build-test`)
+- Only fires on `push` events (not PR or schedule)
+- `permissions: contents: write` — pushes directly to triggering branch
+- Runs `ci-queue-update.py --tasks PLT-001..005 --status done`
+- Integrity gate (24/24) validates before commit
+- `git diff` guard: no-op commit if tasks already done
+- Commit message includes `[skip ci]` to prevent trigger loop
+
+**Grooming:** PLT-001..005 closed (CI evidence: heartbeat run #27, all 5 build jobs green).
+
+---
 
 ### KH-018 — Integration test suite — HTTP e2e for all backends + log service (commit dd6045e)
 
@@ -170,13 +193,13 @@ Remaining R0 gates:
 1. **HK-001** (ALWAYS FIRST) -- run `.\_config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff`
 2. **git push origin thinkpad** -- push thinkpad branch to remote (SSH from ThinkPad terminal);
    open PR to main; completes GEN-015 criterion 4.
-3. **GW-009** -- CI-authored status events for platform tests (P4-low; depends PLT-007)
-4. **SYMB-002** -- Julia symbolic layer prototype (unblocked; PyCall.jl + Julia install,
-   vhost `julia-symb.test` -> :8601)
+3. **AUTH-001** -- OAuth2.0 provider evaluation ADR (infra/auth/AUTH-PROVIDER-ADR.md;
+   options: Keycloak, Auth0, GitHub OAuth, PKCE)
+4. **SYMB-002** -- Julia symbolic layer prototype (device: MacBook; deferred until MacBook session)
 
-Note: KH-014 DONE (this session). KH-018 DONE (this session).
-Note: GEN-014 (MacBook IDE parity) is MacBook-only. GEN-015 ThinkPad side DONE.
-Note: GW-005..008 all DONE. R0-LDE DONE.
+Note: KH-014 DONE. KH-018 DONE. GW-009 DONE. PLT-001..005 DONE (all this session).
+Note: GEN-014 + SYMB-002 are MacBook-only — do on MacBook, not ThinkPad.
+Note: GW-005..009 all DONE. R0-LDE DONE. All R0 gate tasks complete.
 
 ---
 
@@ -195,8 +218,10 @@ Note: GW-005..008 all DONE. R0-LDE DONE.
 | `kh-sim/log-service/` | cc50677 | NEW: index.js, Dockerfile, package.json, smoke-test.js |
 | `kh-sim/vhost/log-service.conf` | cc50677 | NEW: Nginx vhost kh-log.test -> :8006 |
 | `kh-sim/tests/integration/` | dd6045e | NEW: 5 test modules + conftest + runner (KH-018) |
-| `.github/workflows/kh-sim-ci.yml` | dd6045e | +integration-e2e job (Docker Compose + MongoDB svc) |
-| `_config/SESSION-HANDOFF.md` | (this update) | KH-014 + KH-018 complete; priorities updated |
+| `.github/workflows/kh-sim-ci.yml` | dd6045e + fa47cbf | +integration-e2e (KH-018) + queue-autoupdate (GW-009) |
+| `_config/ci-queue-update.py` | fa47cbf | NEW: CI task status updater script |
+| `.github/workflows/ci-heartbeat.yml` | fa47cbf | +queue-autoupdate job (GW-009) |
+| `_config/SESSION-HANDOFF.md` | (this update) | KH-014, KH-018, GW-009 complete; priorities updated |
 
 ---
 
