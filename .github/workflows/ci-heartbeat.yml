@@ -322,6 +322,67 @@ jobs:
         if: success()
         run: echo "Log infrastructure test passed -- ES ingestion pipeline operational"
 
+  # ── Queue auto-update (GW-009) ───────────────────────────────────────────────
+  # When all PLT build jobs pass, mark PLT-001..005 done in TASKS-shared.yaml
+  # and commit back.  Uses [skip ci] to prevent an infinite trigger loop.
+  # Only runs on push (not pull_request or schedule) to avoid redundant writes.
+  queue-autoupdate:
+    name: Queue auto-update — close PLT tasks on green
+    needs:
+      - cpp-build-test
+      - rust-build-test
+      - scala-build-test
+      - pascal-build-test
+      - fortran-build-test
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' &&
+      needs.cpp-build-test.result     == 'success' &&
+      needs.rust-build-test.result    == 'success' &&
+      needs.scala-build-test.result   == 'success' &&
+      needs.pascal-build-test.result  == 'success' &&
+      needs.fortran-build-test.result == 'success'
+    permissions:
+      contents: write   # required to push back to the branch
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          # Use the default GITHUB_TOKEN — write permission granted above.
+          # fetch-depth 1 is sufficient; we only update one file.
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pyyaml (for integrity gate)
+        run: pip install pyyaml pytest --quiet
+
+      - name: Run ci-queue-update — close PLT-001..005
+        run: |
+          python _config/ci-queue-update.py \
+            --tasks PLT-001,PLT-002,PLT-003,PLT-004,PLT-005 \
+            --status done \
+            --completed "$(date +%Y-%m-%d)"
+
+      - name: Run integrity gate (24 checks)
+        run: pytest _tests/test_task_integrity.py -q --tb=short
+
+      - name: Commit queue update back to branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet TASKS-shared.yaml; then
+            echo "No changes — PLT tasks already done. Skipping commit."
+          else
+            git add TASKS-shared.yaml
+            git commit -m "chore(ci): auto-close PLT-001..005 after green heartbeat [skip ci]"
+            git push
+            echo "Queue update committed and pushed."
+          fi
+
   # ── Summary ───────────────────────────────────────────────────────────────────
   summary-notification:
     name: CI Summary

@@ -8,8 +8,8 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-09"
-  updated_by: "ThinkPad / CoWork session 2026-04-09 (HK infra, R0-LDE closed, GW-005..008 done, KH-014 done, KH-018 done, GEN-015 done; v1.7.9)"
-  task_registry_version: "1.7.9"
+  updated_by: "ThinkPad / CoWork session 2026-04-09 (HK infra, R0-LDE closed, GW-005..008 done, GW-009 done, KH-014 done, KH-018 done, PLT-001..005 done, GEN-015 done; v1.8.0)"
+  task_registry_version: "1.8.0"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -730,36 +730,46 @@ projects:
         title: "C++ hello_test — compile and run (g++ / MSYS2)"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         tags: [cpp, testing]
+        notes: "Done — cpp-build-test job in ci-heartbeat.yml. CI run #27 green (g++ hello_test.cpp compiles and runs)."
 
       - id: PLT-002
         title: "Rust hello_test — cargo test"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         tags: [rust, testing]
+        notes: "Done — rust-build-test job in ci-heartbeat.yml. CI run #27 green (cargo build --release + cargo test)."
 
       - id: PLT-003
         title: "Scala HelloTest — sbt test"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         tags: [scala, sbt, testing]
+        notes: "Done — scala-build-test job in ci-heartbeat.yml. CI run #27 green (sbt clean compile test)."
 
       - id: PLT-004
         title: "Pascal hello_test — fpc compile"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         tags: [pascal, fpc, testing]
+        notes: "Done — pascal-build-test job in ci-heartbeat.yml. CI run #27 green (fpc hello_test.pas)."
 
       - id: PLT-005
         title: "Fortran hello_test — gfortran compile"
         priority: medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         tags: [fortran, gfortran, testing]
+        notes: "Done — fortran-build-test job in ci-heartbeat.yml. CI run #27 green (gfortran hello_test.f90)."
 
       - id: PLT-006
         title: "React hello_test — npm test + Playwright"
@@ -924,13 +934,15 @@ projects:
         title: "Add CI-authored status events: completed platform tests auto-close PLT-* tasks"
         priority: P4-low
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-09"
         depends_on: [GW-004, PLT-007]
         tags: [git-workflow, event-sourcing, ci-cd, automation]
         notes: |
           Post-green CI run: GitHub Actions job updates queue-thinkpad.yaml task status to done.
           Prototype of event-sourcing lite pattern. Unblocks auto-advancement of task state.
 
+          Auto-closed by ci-queue-update.py. ci-queue-update.py + queue-autoupdate job in ci-heartbeat.yml
   # ══════════════════════════════════════════════════════════════════════
   # PROJECT: kh-sim
   # Kelvin-Helmholtz Instability Simulation — full-stack integration test
