@@ -8,8 +8,8 @@
 meta:
   schema_version: "2.0.0"
   last_updated: "2026-04-11"
-  updated_by: "ThinkPad / CoWork session 2026-04-11 (AUTH-001 done — Keycloak ADR written; v1.8.1)"
-  task_registry_version: "1.8.1"
+  updated_by: "ThinkPad / CoWork session 2026-04-11 (AUTH-002 done — Keycloak compose + kc.sh + Node.js OIDC client; v1.8.2)"
+  task_registry_version: "1.8.2"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -682,9 +682,11 @@ projects:
         title: "OAuth2.0 Node.js integration module (openid-client + PKCE)"
         priority: P3-medium
         device: ThinkPad
-        status: pending
+        status: done
+        completed: "2026-04-11"
         depends_on: [AUTH-001]
-        tags: [oauth2, nodejs, pkce, connector]
+        tags: [oauth2, nodejs, pkce, connector, keycloak, compose]
+        notes: "Keycloak 24.0 + keycloak-db (postgres:15-alpine) added to docker-compose.r0-lde.yml (:8090). Realm bootstrap: infra/auth/kc.sh (status/export/import/create-realm/create-clients/bootstrap). Node.js OIDC client: kh-sim/auth/node/oidc-client.js (openid-client v5; PKCE S256 + Client Credentials; discoverIssuer/generatePkceParams/buildAuthUrl/exchangeCode/getM2mToken/introspect/isKeycloakReachable). Check-SessionEnv.ps1 + Start-LocalEnv.ps1 updated for :8090/health/ready. CLAUDE.md port table updated. Clients registered: kh-sim-spa (public/PKCE), kh-node-svc (CC), kh-py-svc (CC), gh-actions-oidc (stub). Dev defaults: KC_ADMIN_PASSWORD=admin_dev, KC_DB_PASSWORD=keycloak_dev."
 
       - id: AUTH-003
         title: "OAuth2.0 Python integration module (authlib + FastAPI/Flask)"

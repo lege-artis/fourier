@@ -15,6 +15,9 @@
 #   kh-pascal        :8005
 #   kh-log-service   :8006
 #   plantuml-server  :8010
+#   keycloak         :8090  (OIDC IdP -- vibedev realm; AUTH-002)
+#                           Admin UI: http://localhost:8090  user: admin
+#   keycloak-db      (postgres:15-alpine, internal only, no host port)
 #
 # ELK stack services:
 #   elasticsearch    :9200
@@ -90,6 +93,7 @@ $HealthMapLDE = [ordered]@{
     "kh-pascal"        = "http://localhost:8005/health"
     "kh-log-service"   = "http://localhost:8006/health"
     "plantuml-server"  = "http://localhost:8010"
+    "keycloak"         = "http://localhost:8090/health/ready"
 }
 
 $HealthMapELK = [ordered]@{

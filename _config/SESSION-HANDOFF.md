@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-11  
-**Registry version at close:** TASKS-shared.yaml v1.8.1  
-**Last commit:** f4936ae docs(auth): AUTH-001 — OAuth2.0 provider evaluation ADR  
+**Registry version at close:** TASKS-shared.yaml v1.8.2  
+**Last commit:** (AUTH-002 — commit pending session close HK-004)  
 **CoWork version at close:** 1.1617.0
 
 ---
@@ -25,7 +25,7 @@ Port allocation (current):
 | 8005 | kh-pascal (fphttpapp) |
 | 8006 | kh-log-service (Node/Express + MongoDB) |
 | 8010 | plantuml-server |
-| 8090 | keycloak (reserved — AUTH-002; not yet in compose) |
+| 8090 | keycloak (AUTH-002 DONE; vibedev realm; postgres backend) |
 | 8601 | julia-symb (reserved — SYMB-002; not yet in compose) |
 | 8700 | clj-reason (reserved — SYMB-003; not yet in compose) |
 | 8701 | etl-bridge (reserved — SYMB-005; not yet in compose) |
@@ -33,6 +33,38 @@ Port allocation (current):
 ---
 
 ## Tasks Completed This Session (2026-04-11)
+
+### AUTH-002 — Keycloak compose service + realm config + Node.js OIDC client (commit pending)
+
+**Files created/modified:**
+- `infra/docker/docker-compose.r0-lde.yml` — +keycloak-db (postgres:15-alpine) + keycloak 24.0 (:8090);
+  PostgreSQL backend (persistent volume `kh-sim-keycloak-db-data`); healthcheck start_period: 60s
+- `infra/auth/kc.sh` — NEW; realm admin helper: status / export / import / create-realm / create-clients / bootstrap
+- `infra/auth/realm-export/` — NEW empty dir; populated by `kc.sh export` after first-run bootstrap
+- `kh-sim/auth/node/oidc-client.js` — NEW; openid-client v5; PKCE S256 (kh-sim-spa) + Client
+  Credentials M2M (kh-node-svc); discoverIssuer / generatePkceParams / buildAuthUrl / exchangeCode /
+  getM2mToken / introspect / isKeycloakReachable
+- `_config/Check-SessionEnv.ps1` — +keycloak :8090/health/ready probe in Invoke-LdeCheck
+- `_config/Start-LocalEnv.ps1` — +keycloak :8090/health/ready in $HealthMapLDE; header comment updated
+- `CLAUDE.md` — port table updated (+kh-log-service 8006, +keycloak 8090)
+- `TASKS-shared.yaml` — v1.8.2; AUTH-002 pending→done, completed 2026-04-11
+- `_config/SESSION-HANDOFF.md` — (this update)
+
+**Clients registered (via kc.sh bootstrap/create-clients):**
+| Client ID | Type | Grant | Purpose |
+|---|---|---|---|
+| kh-sim-spa | public | Auth Code + PKCE S256 | React SPA browser login |
+| kh-node-svc | confidential | client_credentials | Node.js M2M Bearer token |
+| kh-py-svc | confidential | client_credentials | Python M2M Bearer token |
+| gh-actions-oidc | confidential | token exchange (stub) | AUTH-005 CI keyless auth |
+
+**Post-deploy step required (one-time, after `Start-LocalEnv.ps1 -Action up`):**
+```bash
+cd infra/auth && ./kc.sh bootstrap && ./kc.sh export
+# Then: git add infra/auth/realm-export/ && git commit -m "chore(auth): keycloak vibedev realm initial export"
+```
+
+---
 
 ### AUTH-001 — OAuth2.0 provider evaluation ADR (commit f4936ae)
 
@@ -109,6 +141,7 @@ KH-014   [DONE]  Log service (kh-log-service :8006) (2026-04-09)
 KH-018   [DONE]  Integration test suite 58/58 (2026-04-09)
 GW-009   [DONE]  CI-authored queue update (2026-04-09)
 AUTH-001 [DONE]  OAuth2.0 provider ADR → Keycloak (2026-04-11)
+AUTH-002 [DONE]  Keycloak compose + kc.sh + Node.js OIDC client (2026-04-11)
 
 Remaining R0 gates:
   GEN-014  [stub]  IDE setup MacBook -- IntelliJ/VS Code parity  <-- MACBOOK ONLY
@@ -121,19 +154,21 @@ Remaining R0 gates:
 ## Next Session Priorities
 
 1. **HK-001** (ALWAYS FIRST) — run `.\_config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff`
-2. **git push origin thinkpad** — push thinkpad branch to remote (SSH from ThinkPad terminal);
-   confirm all commits including f4936ae are on origin/thinkpad
-3. **AUTH-002** — Keycloak compose service + realm config + Node.js `openid-client` PKCE module
-   - Add `keycloak` service to `infra/docker/docker-compose.r0-lde.yml` (port :8090, image 24.0)
-   - Add PostgreSQL backend (`keycloak-db`, postgres:15-alpine) — production-grade for LDE
-   - Realm export/import script (`kc.sh export --dir /opt/keycloak/data/import`)
-   - Node.js module: `kh-sim/auth/node/oidc-client.js` using `openid-client` + PKCE S256
-   - Update `_config/Check-SessionEnv.ps1` and `Start-LocalEnv.ps1` for :8090
-   - Update port allocation in CLAUDE.md
-4. **AUTH-003** — Python `authlib` OIDC integration module (depends AUTH-001 ✅)
+2. **git push origin thinkpad** — push thinkpad branch to remote (SSH from ThinkPad terminal)
+3. **Keycloak first-run bootstrap** — after `docker compose up` confirms Keycloak healthy (:8090):
+   ```bash
+   cd infra/auth && ./kc.sh bootstrap
+   ./kc.sh export
+   ```
+   Then commit the realm-export JSON (first-time realm state snapshot).
+4. **AUTH-003** — Python `authlib` OIDC integration module
+   - `kh-sim/auth/python/oidc_client.py` using `authlib` + `httpx`
+   - Patterns: Authorization Code + PKCE (FastAPI route), Client Credentials (M2M)
+   - JWT validation via JWKS endpoint (`/realms/vibedev/protocol/openid-connect/certs`)
+   - Update `Check-SessionEnv.ps1` note if any Python probe warranted
 5. **SYMB-002** — Julia symbolic layer prototype (device: MacBook; deferred until MacBook session)
 
-Note: AUTH-001 DONE. GW-009 DONE. KH-014 DONE. KH-018 DONE. R0-LDE DONE.
+Note: AUTH-001 DONE. AUTH-002 DONE. GW-009 DONE. KH-014 DONE. KH-018 DONE. R0-LDE DONE.
 Note: GEN-014 + SYMB-002 are MacBook-only — skip on ThinkPad.
 
 ---

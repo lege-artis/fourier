@@ -28,4 +28,5 @@ See `TASKS-shared.yaml` → `milestones.R0` for current status.
 - Commits: Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`)
 - Task IDs: `<PREFIX>-NNN` (KH, LOG, SYMB, LDE, GEN, DIAG, GR, WEB)
 - Ports: kh-rust 8001, kh-scala 8002, kh-cpp 8003, kh-fortran 8004, kh-pascal 8005,
-         plantuml 8010, julia-symb 8601, clj-reason 8700, etl-bridge 8701
+         kh-log-service 8006, plantuml 8010, keycloak 8090 (AUTH-002; vibedev realm),
+         julia-symb 8601, clj-reason 8700, etl-bridge 8701

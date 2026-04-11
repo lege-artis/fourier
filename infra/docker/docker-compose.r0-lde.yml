@@ -1,5 +1,5 @@
 # R0-LDE — Local Development Environment (unified stack)
-# Includes: all 5 KH-sim backends + PlantUML diagram server
+# Includes: all 5 KH-sim backends + PlantUML diagram server + Keycloak IdP
 # ELK stack deliberately excluded until LOG-001..006 are gated (R0 complete)
 #
 # USAGE
@@ -20,6 +20,8 @@
 #   8005  kh-pascal
 #   8006  kh-log-service  (simulation event recorder + viewer API -- KH-014)
 #   8010  plantuml-server
+#   8090  keycloak         (OIDC IdP -- vibedev realm; AUTH-002)
+#          keycloak-db     (postgres:15-alpine backend for keycloak; no host port)
 
 x-backend-defaults: &backend-defaults
   restart: unless-stopped
@@ -150,7 +152,60 @@ services:
       retries: 3
       start_period: 10s
 
+  # ── Keycloak OIDC IdP (AUTH-002) ──────────────────────────────────────────
+  # PostgreSQL backing store for Keycloak -- no host port (internal only)
+  keycloak-db:
+    <<: *backend-defaults
+    image: postgres:15-alpine
+    container_name: keycloak-db
+    environment:
+      POSTGRES_DB:       keycloak
+      POSTGRES_USER:     keycloak
+      POSTGRES_PASSWORD: "${KC_DB_PASSWORD:-keycloak_dev}"
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Keycloak 24.0 -- realm: vibedev -- host port :8090
+  # Admin UI:     http://localhost:8090  (admin / ${KC_ADMIN_PASSWORD:-admin_dev})
+  # Discovery:    http://localhost:8090/realms/vibedev/.well-known/openid-configuration
+  # start-dev mode; PostgreSQL backend (persistent across container restarts)
+  # JVM startup: ~30-60 s cold; health poll uses start_period: 60s + 8 retries
+  keycloak:
+    <<: *backend-defaults
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN:          admin
+      KEYCLOAK_ADMIN_PASSWORD: "${KC_ADMIN_PASSWORD:-admin_dev}"
+      KC_DB:                   postgres
+      KC_DB_URL:               jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME:          keycloak
+      KC_DB_PASSWORD:          "${KC_DB_PASSWORD:-keycloak_dev}"
+      KC_HTTP_PORT:            "8090"
+    ports:
+      - "8090:8090"
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8090/health/ready || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 60s
+
 networks:
   kh-sim-net:
     name: kh-sim-net
     driver: bridge
+
+volumes:
+  keycloak-db-data:
+    name: kh-sim-keycloak-db-data
