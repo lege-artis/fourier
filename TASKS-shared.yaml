@@ -7,9 +7,9 @@
 
 meta:
   schema_version: "2.0.0"
-  last_updated: "2026-04-09"
-  updated_by: "ThinkPad / CoWork session 2026-04-09 (HK infra, R0-LDE closed, GW-005..008 done, GW-009 done, KH-014 done, KH-018 done, PLT-001..005 done, GEN-015 done; v1.8.0)"
-  task_registry_version: "1.8.0"
+  last_updated: "2026-04-11"
+  updated_by: "ThinkPad / CoWork session 2026-04-11 (AUTH-001 done — Keycloak ADR written; v1.8.1)"
+  task_registry_version: "1.8.1"
   valid_statuses:    [pending, open, in-progress, done, blocked, stub, deferred]
   valid_priorities:  [P1-critical, P2-high, P3-medium, P4-low, high, medium, low]
   valid_devices:     [MacBook, ThinkPad, any, both]
@@ -673,9 +673,10 @@ projects:
         title: "OAuth2.0 provider evaluation and ADR"
         priority: P3-medium
         device: any
-        status: pending
+        status: done
+        completed: "2026-04-11"
         tags: [oauth2, auth, planning, provider]
-        notes: "Output: infra/auth/AUTH-PROVIDER-ADR.md. Options: Keycloak, Auth0, GitHub OAuth, PKCE."
+        notes: "Output: infra/auth/AUTH-PROVIDER-ADR.md. Options evaluated: Keycloak, Auth0, GitHub OAuth, PKCE-only. Decision: Keycloak self-hosted (quay.io/keycloak/keycloak:24.0, port :8090, realm vibedev). Rationale: only option satisfying all 5 surfaces (SPA PKCE, Node.js CC, Python CC, WordPress SSO, GitHub Actions OIDC federation via IdP brokering). Auth0 eliminated: SaaS dependency + AUTH-005 gap on free tier. GitHub OAuth eliminated: no OIDC id_token, PKCE not enforced. ADR v1.0.0 written 2026-04-11."
 
       - id: AUTH-002
         title: "OAuth2.0 Node.js integration module (openid-client + PKCE)"

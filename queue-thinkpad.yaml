@@ -7,7 +7,7 @@
 meta:
   device: ThinkPad
   schema_version: "2.0.0"
-  current_session: 2026-04-09 -- housekeeping infra, R0-LDE close, GW gate sweep, GEN-015 close, KH-014 done, KH-018 done, GW-009 done, PLT-001..005 done
+  current_session: 2026-04-11 -- AUTH-001 done (Keycloak ADR written)
   ssh_key_fingerprint: SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24
   last_sync_commit: a841a46
   branch: thinkpad
@@ -29,7 +29,6 @@ session:
     # KH-sim
 
     # Auth infra
-    - id: AUTH-001
     - id: AUTH-002
     - id: AUTH-003
     - id: AUTH-005
@@ -109,5 +108,6 @@ session:
     - PLT-004
     - PLT-005
     - SYMB-001
+    - AUTH-001
 
   blocked: []
