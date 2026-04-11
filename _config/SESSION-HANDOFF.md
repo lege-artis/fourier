@@ -216,3 +216,25 @@ Run `.\_config\Check-SessionEnv.ps1 -Stack all -UpdateHandoff` to capture
 final env state, then update the sections above (Environment State at Close,
 Tasks Completed, Next Session Priorities, Files Modified).
 See HK-004 in TASKS-shared.yaml.
+
+---
+## Session-Start Env Snapshot -- 2026-04-11 12:14
+
+| Component | Target | Status |
+|---|---|---|
+| kh-rust | http://localhost:8001/health | OK |
+| kh-scala | http://localhost:8002/health | OK |
+| kh-cpp | http://localhost:8003/health | OK |
+| kh-fortran | http://localhost:8004/health | OK |
+| kh-pascal | http://localhost:8005/health | OK |
+| kh-log-service | http://localhost:8006/health | OK |
+| plantuml-server | http://localhost:8010 | OK |
+| elasticsearch | http://localhost:9200/_cluster/health | OK |
+| kibana | http://localhost:5601/api/status | OK |
+| fluent-bit | http://localhost:2020/api/v1/health | OK |
+| MongoDB service | Windows service 'MongoDB' (Running) | OK |
+| Git branch | thinkpad (not main -- OK) | OK |
+| Git remote | origin (reachable) | OK |
+
+**Overall: GREEN (13/13)**
+
