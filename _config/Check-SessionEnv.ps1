@@ -65,10 +65,12 @@ function Test-Http {
 
 # ── TCP probe (for MongoDB :27017) ────────────────────────────────────────────
 function Test-Tcp {
-    param([string]$Host = "localhost", [int]$Port, [int]$TimeoutMs = 2000)
+    # NOTE: do NOT name the host param $Host -- that is a PowerShell automatic variable
+    # (holds the host UI object) and is read-only inside function scope.
+    param([string]$Hostname = "localhost", [int]$Port, [int]$TimeoutMs = 2000)
     try {
         $tcp = [System.Net.Sockets.TcpClient]::new()
-        $ar  = $tcp.BeginConnect($Host, $Port, $null, $null)
+        $ar  = $tcp.BeginConnect($Hostname, $Port, $null, $null)
         $ok  = $ar.AsyncWaitHandle.WaitOne($TimeoutMs)
         if ($ok -and $tcp.Connected) { $tcp.Close(); return $true }
         $tcp.Close(); return $false
@@ -141,7 +143,7 @@ function Invoke-MongoCheck {
            -Note $(if ($svc) { $svc.Status } else { "service not found" })
 
     # TCP port probe
-    $tcpOk = Test-Tcp -Port 27017
+    $tcpOk = Test-Tcp -Hostname "localhost" -Port 27017
     Record -Component "MongoDB TCP"    -Target "localhost:27017"              -Pass $tcpOk
 }
 
