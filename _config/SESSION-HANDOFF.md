@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-11  
 **Registry version at close:** TASKS-shared.yaml v1.8.2  
-**Last commit:** (AUTH-002 — commit pending session close HK-004)  
+**Last commit:** 318d211 feat(auth): AUTH-002 -- Keycloak compose service + kc.sh + Node.js OIDC client  
 **CoWork version at close:** 1.1617.0
 
 ---
@@ -34,7 +34,7 @@ Port allocation (current):
 
 ## Tasks Completed This Session (2026-04-11)
 
-### AUTH-002 — Keycloak compose service + realm config + Node.js OIDC client (commit pending)
+### AUTH-002 — Keycloak compose service + realm config + Node.js OIDC client (commit 318d211)
 
 **Files created/modified:**
 - `infra/docker/docker-compose.r0-lde.yml` — +keycloak-db (postgres:15-alpine) + keycloak 24.0 (:8090);
@@ -272,4 +272,27 @@ See HK-004 in TASKS-shared.yaml.
 | Git remote | origin (reachable) | OK |
 
 **Overall: GREEN (13/13)**
+
+
+---
+## Session-Start Env Snapshot -- 2026-04-11 23:10
+
+| Component | Target | Status |
+|---|---|---|
+| kh-rust | http://localhost:8001/health | OK |
+| kh-scala | http://localhost:8002/health | OK |
+| kh-cpp | http://localhost:8003/health | OK |
+| kh-fortran | http://localhost:8004/health | OK |
+| kh-pascal | http://localhost:8005/health | OK |
+| kh-log-service | http://localhost:8006/health | OK |
+| plantuml-server | http://localhost:8010 | OK |
+| keycloak | http://localhost:8090/health/ready | FAIL |
+| elasticsearch | http://localhost:9200/_cluster/health | OK |
+| kibana | http://localhost:5601/api/status | OK |
+| fluent-bit | http://localhost:2020/api/v1/health | OK |
+| MongoDB service | Windows service 'MongoDB' (Running) | OK |
+| Git branch | thinkpad (not main -- OK) | OK |
+| Git remote | origin (reachable) | OK |
+
+**Overall: DEGRADED (13/14)**
 
