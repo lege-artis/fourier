@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-11  
-**Registry version at close:** TASKS-shared.yaml v1.8.2  
-**Last commit:** 318d211 feat(auth): AUTH-002 -- Keycloak compose service + kc.sh + Node.js OIDC client  
+**Registry version at close:** TASKS-shared.yaml v1.8.3  
+**Last commit:** (AUTH-003 — commit pending session close HK-004)  
 **CoWork version at close:** 1.1617.0
 
 ---
@@ -33,6 +33,22 @@ Port allocation (current):
 ---
 
 ## Tasks Completed This Session (2026-04-11)
+
+### AUTH-003 — Python authlib OIDC integration module (commit pending)
+
+**Files created:**
+- `kh-sim/auth/python/oidc_client.py` — NEW; authlib>=1.3 + httpx>=0.27; async-native.
+  PKCE S256: `generate_pkce_params` / `build_auth_url` / `exchange_code` (kh-sim-spa).
+  M2M: `get_m2m_token` (client_credentials; kh-py-svc). Local JWT validation via JWKS:
+  `validate_token_local` (authlib JsonWebKeySet + jwt.decode; cached keyset).
+  Introspection: `introspect` (RFC 7662 network round-trip; revocation-aware).
+  Health: `is_keycloak_reachable`. Sync wrappers for scripts/pytest.
+  Optional-import guards + EnvironmentError for missing KC_PY_SVC_SECRET.
+- `kh-sim/auth/python/requirements.txt` — NEW; authlib>=1.3,<2 + httpx>=0.27,<1
+- `TASKS-shared.yaml` — v1.8.3; AUTH-003 pending→done 2026-04-11
+- `_config/SESSION-HANDOFF.md` — (this update)
+
+---
 
 ### AUTH-002 — Keycloak compose service + realm config + Node.js OIDC client (commit 318d211)
 
@@ -142,6 +158,7 @@ KH-018   [DONE]  Integration test suite 58/58 (2026-04-09)
 GW-009   [DONE]  CI-authored queue update (2026-04-09)
 AUTH-001 [DONE]  OAuth2.0 provider ADR → Keycloak (2026-04-11)
 AUTH-002 [DONE]  Keycloak compose + kc.sh + Node.js OIDC client (2026-04-11)
+AUTH-003 [DONE]  Python authlib OIDC client (2026-04-11)
 
 Remaining R0 gates:
   GEN-014  [stub]  IDE setup MacBook -- IntelliJ/VS Code parity  <-- MACBOOK ONLY
@@ -161,14 +178,14 @@ Remaining R0 gates:
    ./kc.sh export
    ```
    Then commit the realm-export JSON (first-time realm state snapshot).
-4. **AUTH-003** — Python `authlib` OIDC integration module
-   - `kh-sim/auth/python/oidc_client.py` using `authlib` + `httpx`
-   - Patterns: Authorization Code + PKCE (FastAPI route), Client Credentials (M2M)
-   - JWT validation via JWKS endpoint (`/realms/vibedev/protocol/openid-connect/certs`)
-   - Update `Check-SessionEnv.ps1` note if any Python probe warranted
+4. **AUTH-005** — GitHub Actions OIDC token exchange (keyless CI/CD)
+   - Configure `gh-actions-oidc` client in Keycloak: IdP broker trusting GitHub JWKS
+     (`https://token.actions.githubusercontent.com/.well-known/jwks`)
+   - Update CI workflow to request `id-token: write` permission + exchange for KC token
+   - Depends on: AUTH-002 ✅ (keycloak compose + gh-actions-oidc client stub)
 5. **SYMB-002** — Julia symbolic layer prototype (device: MacBook; deferred until MacBook session)
 
-Note: AUTH-001 DONE. AUTH-002 DONE. GW-009 DONE. KH-014 DONE. KH-018 DONE. R0-LDE DONE.
+Note: AUTH-001 DONE. AUTH-002 DONE. AUTH-003 DONE. GW-009 DONE. KH-014 DONE. KH-018 DONE. R0-LDE DONE.
 Note: GEN-014 + SYMB-002 are MacBook-only — skip on ThinkPad.
 
 ---
@@ -243,7 +260,7 @@ See HK-001 / HK-002 / HK-003 in TASKS-shared.yaml for acceptance criteria.
 
 ### Step 1 — Context
 1. Read this file (`_config/SESSION-HANDOFF.md`)
-2. Read `TASKS-shared.yaml` — AUTH-002 is next, then AUTH-003
+2. Read `TASKS-shared.yaml` — AUTH-005 is next (GitHub Actions OIDC token exchange)
 3. Read `infra/auth/AUTH-PROVIDER-ADR.md` — Keycloak decisions for AUTH-002 implementation
 
 ### Session close (MANDATORY before commit)
@@ -272,27 +289,4 @@ See HK-004 in TASKS-shared.yaml.
 | Git remote | origin (reachable) | OK |
 
 **Overall: GREEN (13/13)**
-
-
----
-## Session-Start Env Snapshot -- 2026-04-11 23:10
-
-| Component | Target | Status |
-|---|---|---|
-| kh-rust | http://localhost:8001/health | OK |
-| kh-scala | http://localhost:8002/health | OK |
-| kh-cpp | http://localhost:8003/health | OK |
-| kh-fortran | http://localhost:8004/health | OK |
-| kh-pascal | http://localhost:8005/health | OK |
-| kh-log-service | http://localhost:8006/health | OK |
-| plantuml-server | http://localhost:8010 | OK |
-| keycloak | http://localhost:8090/health/ready | FAIL |
-| elasticsearch | http://localhost:9200/_cluster/health | OK |
-| kibana | http://localhost:5601/api/status | OK |
-| fluent-bit | http://localhost:2020/api/v1/health | OK |
-| MongoDB service | Windows service 'MongoDB' (Running) | OK |
-| Git branch | thinkpad (not main -- OK) | OK |
-| Git remote | origin (reachable) | OK |
-
-**Overall: DEGRADED (13/14)**
 
