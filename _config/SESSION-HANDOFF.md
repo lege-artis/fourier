@@ -1,7 +1,7 @@
 # Session Handoff -- VibeCodeProjects
 **Written:** 2026-04-11  
 **Registry version at close:** TASKS-shared.yaml v1.8.3  
-**Last commit:** (AUTH-003 — commit pending session close HK-004)  
+**Last commit:** be21afe feat(auth): AUTH-003 -- Python authlib OIDC client (PKCE S256 + Client Credentials)  
 **CoWork version at close:** 1.1617.0
 
 ---
@@ -34,7 +34,7 @@ Port allocation (current):
 
 ## Tasks Completed This Session (2026-04-11)
 
-### AUTH-003 — Python authlib OIDC integration module (commit pending)
+### AUTH-003 — Python authlib OIDC integration module (commit be21afe)
 
 **Files created:**
 - `kh-sim/auth/python/oidc_client.py` — NEW; authlib>=1.3 + httpx>=0.27; async-native.
@@ -289,4 +289,28 @@ See HK-004 in TASKS-shared.yaml.
 | Git remote | origin (reachable) | OK |
 
 **Overall: GREEN (13/13)**
+
+
+---
+## Session-Start Env Snapshot -- 2026-04-12 09:58
+
+| Component | Target | Status |
+|---|---|---|
+| kh-rust | http://localhost:8001/health | OK |
+| kh-scala | http://localhost:8002/health | OK |
+| kh-cpp | http://localhost:8003/health | OK |
+| kh-fortran | http://localhost:8004/health | OK |
+| kh-pascal | http://localhost:8005/health | OK |
+| kh-log-service | http://localhost:8006/health | OK |
+| plantuml-server | http://localhost:8010 | OK |
+| keycloak | http://localhost:8090/health/ready | FAIL |
+| elasticsearch | http://localhost:9200/_cluster/health | OK |
+| kibana | http://localhost:5601/api/status | OK |
+| fluent-bit | http://localhost:2020/api/v1/health | OK |
+| MongoDB service | Windows service 'MongoDB' (Running) | OK |
+| MongoDB TCP | localhost:27017 | OK |
+| Git branch | thinkpad (not main -- OK) | OK |
+| Git remote | origin (reachable) | OK |
+
+**Overall: DEGRADED (14/15)**
 
