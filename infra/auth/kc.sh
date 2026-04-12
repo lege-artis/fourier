@@ -62,11 +62,13 @@ kc_token() {
 # ── Commands ──────────────────────────────────────────────────────────────────
 
 cmd_status() {
-  info "Probing ${KC_BASE}/health/ready ..."
-  if curl -sf "${KC_BASE}/health/ready" | python3 -m json.tool; then
-    ok "Keycloak is healthy."
+  # KC24: /health/ready is on the management port (9000, container-internal only).
+  # Host-side probe uses /realms/master on the main port (KC_BASE = :8090).
+  info "Probing ${KC_BASE}/realms/master ..."
+  if curl -sf "${KC_BASE}/realms/master" | python3 -m json.tool; then
+    ok "Keycloak is reachable (realm/master endpoint OK)."
   else
-    fail "Keycloak health/ready probe failed."
+    fail "Keycloak probe failed -- is the container running? (docker ps --filter name=keycloak)"
     exit 1
   fi
 }

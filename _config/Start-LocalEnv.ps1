@@ -17,6 +17,8 @@
 #   plantuml-server  :8010
 #   keycloak         :8090  (OIDC IdP -- vibedev realm; AUTH-002)
 #                           Admin UI: http://localhost:8090  user: admin
+#                           Health:   http://localhost:9000/health/ready (mgmt port, KC24; container-internal)
+#                           Host probe: http://localhost:8090/realms/master
 #   keycloak-db      (postgres:15-alpine, internal only, no host port)
 #
 # ELK stack services:
@@ -93,7 +95,7 @@ $HealthMapLDE = [ordered]@{
     "kh-pascal"        = "http://localhost:8005/health"
     "kh-log-service"   = "http://localhost:8006/health"
     "plantuml-server"  = "http://localhost:8010"
-    "keycloak"         = "http://localhost:8090/health/ready"
+    "keycloak"         = "http://localhost:8090/realms/master"
 }
 
 $HealthMapELK = [ordered]@{

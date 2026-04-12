@@ -8,7 +8,9 @@
 #
 # CHECKS
 #   LDE stack  : kh-rust/scala/cpp/fortran/pascal (:8001-8005), log-service (:8006),
-#                plantuml (:8010), keycloak (:8090)
+#                plantuml (:8010), keycloak (:8090/realms/master)
+#                NOTE: KC24 health endpoint is on mgmt port 9000 (container-internal).
+#                      Host-side probe uses /realms/master on port 8090.
 #   ELK stack  : elasticsearch (:9200), kibana (:5601), fluent-bit (:2020)
 #   MongoDB    : Windows service "MongoDB" + TCP :27017
 #   Git state  : active branch NOT main, remote origin reachable
@@ -108,7 +110,7 @@ function Invoke-LdeCheck {
         "kh-pascal"       = "http://localhost:8005/health"
         "kh-log-service"  = "http://localhost:8006/health"
         "plantuml-server" = "http://localhost:8010"
-        "keycloak"        = "http://localhost:8090/health/ready"
+        "keycloak"        = "http://localhost:8090/realms/master"
     }
     foreach ($svc in $endpoints.Keys) {
         $url  = $endpoints[$svc]
