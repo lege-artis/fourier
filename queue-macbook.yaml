@@ -6,43 +6,55 @@
 
 meta:
   device: MacBook
-  schema_version: "2.0.0"
-  current_session: "2026-03-22 — git-workflow migration + TASKS split"
+  schema_version: "2.1.0"
+  current_session: "2026-04-30 — MI-M-T-D08 DONE: Python FastAPI layer SMK9 20/20 PASS (40 routes, 14 root causes). ThinkPad delta D-08 ready. GH-UPL unblocked 2026-05-01."
   ssh_key_fingerprint: "SHA256:J7xkMdGfpsTbw7tCNrnAMc0yfOnm/O4QRrT+4l+1MPQ"
-  last_sync_commit: "1d29cf2"
+  last_sync_commit: "pending-commit"   # commit pending post-session (GH-UPL blocked until May 1)
 
 # ── Session state ────────────────────────────────────────────────────────────
-# active: being worked on RIGHT NOW in this session (max 1-2 at a time)
-# pending: queued for this device, not yet started
-# done: completed on this device (canonical status updated in TASKS-shared.yaml)
-# blocked: waiting on external input or another task
-
 session:
-  active:
-    - id: GW-001
-      note: "TASKS split migration — in progress this session"
+  active: []
 
   pending:
-    # P1 hotfix track (highest priority, unblocked)
-    - GAL-D01-INV
-    - GAL-D01-FIX
-    - GAL-D01-TEST
-    - GAL-D01-REL
-    # GitHub uploads
-    - GH-UPL-01
-    - GH-UPL-02
-    - GH-UPL-03
-    # 8GSP docs
-    - 8GSP-UPL-01
-    - 8GSP-UPL-02
-    - 8GSP-UPL-03
-    - 8GSP-UPL-04
-    # OAuth2.0 WordPress integration (MacBook-assigned)
-    - AUTH-004
-    # git-workflow validation
-    - GW-006
+    # ── WP Admin apply — Tier 1 ───────────────────────────────────────────────
+
+    # ── MI-M-T prototype ─────────────────────────────────────────────────────
+    # D03 + D04: DONE — ThinkPad built adapters (43/43 PASS); MacBook wrote contracts 2026-04-26
+    # D05: LIVE — page_id=176 at mim2000.cz/projects/mi-m-t/ (slug CONFIRMED: mi-m-t — verified 2026-05-01)
+    # D06: DONE — MI-M-T-ARCH-ANALYSIS-v0.1.md (717 lines, Opus session input)
+    # D07: DONE — Opus inception session: 6 artifacts, 8324 lines, ThinkPad handover ready
+    - id: THINKPAD-DELTA-D08
+      note: "READY — _config/thinkpad-delta-D08-2026-04-30.tar.gz verified 2026-05-01 (109K, full mi_m_t package). Transfer to ThinkPad for D-09 portability pass. See _config/SYNC-BYPASS-MACBOOK-TO-THINKPAD.md."
+
+    - id: MI-M-T-DELTA-REBUILD
+      note: "DONE 2026-05-01 — _config/macbook-delta-2026-04-27.tar.gz rebuilt (87K, 7 Opus backlog files). Transfer to ThinkPad."
+
+    # ── Podcast pipeline (requires audio stems on disk) ──────────────────────
+    - id: PIL-07
+      note: "Run pilot harness on ep00 real stems. Requires stems in podcast/suche-kosti/ep00/raw/"
+
+    # ── GitHub uploads — 2026-05-01 state ────────────────────────────────────
+    # GH-UPL-09 DONE: zemla-theme-v1.7.4.zip uploaded 2026-05-01. v1.7.4 = live dev baseline.
+    # GH-UPL-04/06/07: DEFERRED — zips not in local archive (v1.6.9/v1.7.0/v1.7.1 are superseded
+    #   intermediate releases). Local archive has: bodyterapie-v1.3.0, zemla-v1.7.2, zemla-v1.7.3,
+    #   zemla-v1.7.4. Historical releases not built from git; v1.7.4 is the live baseline.
+    - id: GH-UPL-05
+      note: "PENDING. Upload bodyterapie-theme-v1.3.0.zip to GitHub Releases. Zip present at theme-archives/."
+    - id: GH-UPL-08
+      note: "PENDING. Upload zemla-theme-v1.7.2.zip to GitHub Releases. Zip present at theme-archives/."
+    - id: GH-UPL-10
+      note: "PENDING. Upload zemla-theme-v1.7.3.zip to GitHub Releases. Zip present at theme-archives/ (found 2026-05-01, not in original batch)."
+
+    # ── Credentials — WP Admin passwords still needed ─────────────────────────
+    - id: CREDENTIALS-WPADMIN
+      note: "Fill WP Admin FILL_IN_* passwords in _config/credentials.yaml for zemla / mim2000 / bodyterapie."
+
+    # ── OAuth2 WP SSO (lower priority) ───────────────────────────────────────
+    - id: AUTH-004
+      note: "OAuth2.0 WP SSO plugin — P3, not started"
 
   done:
+    # Session 2026-04-01
     - GEN-008
     - MAC-S01
     - MI-M-T-D01
@@ -50,9 +62,95 @@ session:
     - GW-002
     - GW-003
     - GW-004
+    # Session 2026-04-17
+    - CONT-01
+    - Z-15
+    - Z-16
+    - CONT-02
+    - CONT-03
+    - BUG-009
+    - BUG-010
+    - BUG-011
+    - BUG-012
+    # Session 2026-04-19 (Chrome)
+    - PHYS-01
+    - PHYS-AMP-01
+    - PHYS-AMP-02
+    # Session 2026-04-30 (CoWork)
+    - MI-M-T-D08
+    - PHYS-AMP-03
+    - PHYS-MIM-01
+    # Session 2026-04-24
+    - ARCH-05
+    - THEMEPORT-02
+    - CONT-04
+    - HOW-TO
+    - CREDENTIALS
+    - HOTFIX-ZP-001
+    - BUG-003
+    - BUG-004
+    - BUG-018
+    - CC-001
+    - CC-002
+    - CC-003
+    - CC-004
+    # Session 2026-04-24/25
+    - CC-005-ARTIFACT
+    - CC-005-SCAN
+    - CC-006-SCAN
+    # Session 2026-04-25
+    - THEMEPORT-03-APPLY
+    - CC-005-BUILD
+    - CC-006-BUILD
+    - ZEMLA-V170-APPLY
+    - HOTFIX-ZP-002-BUILD
+    - ZEMLA-V171-APPLY
+    - MI-M-T-SYNC-TRANSFER
+    - PAV-DELTA-APPLY
+    # ThinkPad sync — confirmed done 2026-04-26 (from delta package)
+    - PAV-00              # pavel-50 project closing (ThinkPad side)
+    - MI-M-T-D02          # adapter interface + base_adapter.py (43/43 smoke PASS)
+    - MI-M-T-D03          # JiraAdapter (ThinkPad code) + D03-JIRA-CONTRACT.md (MacBook)
+    - MI-M-T-D04          # PostmanAdapter (ThinkPad code) + D04-POSTMAN-CONTRACT.md (MacBook)
+    - DIAG-002            # C4 system context diagram (draw.io + puml)
+    - DIAG-003            # C4 container diagram
+    - DIAG-004            # PlantUML sequence diagrams (3 files)
+    - DIAG-005            # R0 snapshot structure + export-snapshots.sh
+    # Session 2026-04-26
+    - MI-M-T-D05          # mim2000.cz/projects/mi-m-t/ live (page_id=176, 2026-04-26)
+    - PAV50-CLOSING
+    - ZEMLA-V172-BUILD
+    - ZEMLA-V172-APPLY
+    - ZEMLA-V173-BUILD
+    - ZEMLA-V174-BUILD
+    - ZEMLA-V174-APPLY
+    - HOTFIX-ZP-003
+    - HOTFIX-ZP-004
+    - BUG-019-CLOSED
+    - BUG-020-CLOSED
+    - BUG-021-CLOSED
+    # Session 2026-04-27
+    - MI-M-T-D06          # ARCH-ANALYSIS-v0.1.md — 717 lines, CAST decomposition, Opus session input
+    - MI-M-T-D07          # Opus inception session — 6 artifacts, 8324 lines (ARCH-SPEC + ARCH-MODELS + ARCH-TAGS + MOCK-FIXTURES + DEV-SONNET-INSTRUCTIONS + HANDOVER-PROMPT + OPEN-QUESTIONS-LOG)
+    # Session 2026-05-01
+    - SMK9-2026-05-01     # Daily smoke: MI-M-T SMK9 20/20 PASS (SQLite, pydantic-settings installed)
+    - MI-M-T-SLUG-FIX     # Verified: page_id=176 slug already mi-m-t, link mim2000.cz/projects/mi-m-t/
+    - GH-UPL-09           # zemla-theme-v1.7.4.zip uploaded to GitHub Releases (2026-05-01)
+    - MI-M-T-DELTA-REBUILD  # macbook-delta-2026-04-27.tar.gz rebuilt (87K, 7 Opus files)
+    - THINKPAD-DELTA-D08-VERIFY  # thinkpad-delta-D08-2026-04-30.tar.gz verified (109K, mi_m_t package)
 
   blocked:
-    - id: C-00
-      reason: "Awaiting source files from user"
-    - id: B-02
-      reason: "Requires manual LinkedIn write access"
+    - id: GH-UPL-04
+      reason: "DEFERRED — zemla-theme-v1.6.9.zip not in local archive. Superseded intermediate release. v1.7.4 is live dev baseline."
+    - id: GH-UPL-06
+      reason: "DEFERRED — zemla-theme-v1.7.0.zip not in local archive. Superseded intermediate release."
+    - id: GH-UPL-07
+      reason: "DEFERRED — zemla-theme-v1.7.1.zip not in local archive. Superseded intermediate release."
+    - id: MI-M-T-P06
+      reason: "Unblocked — sync done. ThinkPad must run first testrun mim2000 CEO blog."
+    - id: ARCH-E01
+      reason: "Parked — architecture epic, requires dedicated sprint"
+    - id: MOB-E01
+      reason: "Blocked until ARCH-E01"
+    - id: COMP-ZP-01
+      reason: "Podcast player component rework — deferred to master plan sprint. Depends on ThinkPad sync + POD-MIM-01 + POD-BT-01. Full spec: extract inline JS to assets/js/zp-engine.js, wp_enqueue_script, data-zp-init guard, CPT-agnostic."
