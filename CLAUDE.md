@@ -303,9 +303,27 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 | Device | Branch | Last commit | Notes |
 |--------|--------|-------------|-------|
-| MacBook | macbook | pending-commit | Session 2026-04-17: Z-15/Z-16 hotfix artifacts, BUG-009/010/011 WP fixes, MANIFEST+bugs.yaml updates |
-| ThinkPad | thinkpad | 8ceff7f | MI-M-T deploy infra primary — needs sync from MacBook |
+| MacBook | macbook | ac8914b | Session 2026-05-02 close: queue-macbook restored + KB-034/035 |
+| ThinkPad | thinkpad | 8ceff7f | MI-M-T deploy infra primary — kh-sim backends, infra/docker |
 
 Sync protocol: `_config/FALLBACK_PROTOCOL.md`
 GitHub SSH: `_config/MACBOOK-GITHUB-SETUP.md`
 Token policy: `_config/GITHUB-TOKEN-POLICY.md`
+
+### Branch ownership rules (ENFORCED — KB-034)
+
+| Branch | Owner | Push rights | Rule |
+|--------|-------|-------------|------|
+| macbook | MacBook | MacBook only | GitHub branch protection: restrict direct push |
+| thinkpad | ThinkPad | ThinkPad only | GitHub branch protection: restrict direct push |
+| main | Both (via PR) | PR merge only | Protected — no direct push |
+
+**GitHub branch protection setup** (one-time, owner action required):
+Settings → Branches → Add rule → Branch name pattern: `macbook`
+→ Check: "Restrict pushes that create matching branches" OR require PRs.
+Repeat for `thinkpad`.
+
+**Rationale:** ThinkPad force-pushed `macbook` branch twice in session 2026-05-02,
+reverting `queue-macbook.yaml` state and generating CI conflict resolution overhead.
+`.gitattributes merge=ours` is a merge strategy hint only — it does not prevent force-push.
+Branch protection is the correct enforcement layer. See KB-034.
