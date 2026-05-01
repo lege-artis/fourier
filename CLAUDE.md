@@ -275,16 +275,17 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ## § HANDOFF BLOCK — 2026-05-01
 **Last session:** 2026-05-01  
-**Closed because:** GH-UPL batch partially complete; remaining items are low-priority pending  
+**Closed because:** GH-UPL batch complete; all available zips on GitHub Releases; session fully closed  
 **Restart reads:** CLAUDE.md → SESSION-LIFECYCLE-SOP.md → MANIFEST.yaml → queue-macbook.yaml  
 **SMK9:** 20/20 PASS (2026-05-01, SQLite) — pydantic-settings now installed in sandbox  
 **MI-M-T-SLUG-FIX:** VERIFIED DONE — page_id=176 slug=mi-m-t, link=mim2000.cz/projects/mi-m-t/  
 **GH-UPL-09:** DONE — zemla-theme-v1.7.4.zip uploaded 2026-05-01. **v1.7.4 = live dev baseline.**  
 **GH-UPL-04/06/07:** DEFERRED — intermediate zips not in local archive; v1.7.4 supersedes  
-**GH-UPL-05/08/10:** PENDING — bodyterapie-v1.3.0, zemla-v1.7.2, zemla-v1.7.3 zips present in theme-archives/, not yet uploaded  
+**GH-UPL-05/08/10:** DONE — bodyterapie-v1.3.0, zemla-v1.7.2, zemla-v1.7.3 uploaded 2026-05-01. All available zips now on GitHub Releases.  
 **Deltas ready:** `_config/thinkpad-delta-D08-2026-04-30.tar.gz` (109K) + `_config/macbook-delta-2026-04-27.tar.gz` (87K, rebuilt) — both awaiting ThinkPad transfer  
-**Next session first task:** Phase 2 smoke gate, then GH-UPL-05/08/10 (PowerShell gh commands), then ThinkPad delta transfer  
-**Do NOT start:** D-09 (ThinkPad only)
+**KB:** LL-ENV-001..004 added (PowerShell curl, gh PATH, index.lock, pydantic-settings)  
+**Next session first task:** Phase 2 smoke gate, then ThinkPad delta transfer → D-09  
+**Do NOT start:** D-09 (ThinkPad only), any GH push (save tokens for D-09 push)
 
 ---
 

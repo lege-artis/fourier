@@ -35,15 +35,11 @@ session:
 
     # ── GitHub uploads — 2026-05-01 state ────────────────────────────────────
     # GH-UPL-09 DONE: zemla-theme-v1.7.4.zip uploaded 2026-05-01. v1.7.4 = live dev baseline.
-    # GH-UPL-04/06/07: DEFERRED — zips not in local archive (v1.6.9/v1.7.0/v1.7.1 are superseded
-    #   intermediate releases). Local archive has: bodyterapie-v1.3.0, zemla-v1.7.2, zemla-v1.7.3,
-    #   zemla-v1.7.4. Historical releases not built from git; v1.7.4 is the live baseline.
-    - id: GH-UPL-05
-      note: "PENDING. Upload bodyterapie-theme-v1.3.0.zip to GitHub Releases. Zip present at theme-archives/."
-    - id: GH-UPL-08
-      note: "PENDING. Upload zemla-theme-v1.7.2.zip to GitHub Releases. Zip present at theme-archives/."
-    - id: GH-UPL-10
-      note: "PENDING. Upload zemla-theme-v1.7.3.zip to GitHub Releases. Zip present at theme-archives/ (found 2026-05-01, not in original batch)."
+    # GH-UPL-05 DONE: bodyterapie-theme-v1.3.0.zip uploaded 2026-05-01.
+    # GH-UPL-08 DONE: zemla-theme-v1.7.2.zip uploaded 2026-05-01.
+    # GH-UPL-10 DONE: zemla-theme-v1.7.3.zip uploaded 2026-05-01.
+    # GH-UPL-04/06/07: DEFERRED — zips not in local archive (v1.6.9/v1.7.0/v1.7.1 superseded).
+    #   All available zips now on GitHub Releases. v1.7.4 is live dev baseline.
 
     # ── Credentials — WP Admin passwords still needed ─────────────────────────
     - id: CREDENTIALS-WPADMIN
@@ -136,6 +132,9 @@ session:
     - SMK9-2026-05-01     # Daily smoke: MI-M-T SMK9 20/20 PASS (SQLite, pydantic-settings installed)
     - MI-M-T-SLUG-FIX     # Verified: page_id=176 slug already mi-m-t, link mim2000.cz/projects/mi-m-t/
     - GH-UPL-09           # zemla-theme-v1.7.4.zip uploaded to GitHub Releases (2026-05-01)
+    - GH-UPL-05           # bodyterapie-theme-v1.3.0.zip uploaded to GitHub Releases (2026-05-01)
+    - GH-UPL-08           # zemla-theme-v1.7.2.zip uploaded to GitHub Releases (2026-05-01)
+    - GH-UPL-10           # zemla-theme-v1.7.3.zip uploaded to GitHub Releases (2026-05-01)
     - MI-M-T-DELTA-REBUILD  # macbook-delta-2026-04-27.tar.gz rebuilt (87K, 7 Opus files)
     - THINKPAD-DELTA-D08-VERIFY  # thinkpad-delta-D08-2026-04-30.tar.gz verified (109K, mi_m_t package)
 
