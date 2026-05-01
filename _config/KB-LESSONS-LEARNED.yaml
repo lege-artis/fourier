@@ -606,3 +606,52 @@ python_dev:
     - _config/daily-smoke-runner.sh
   tags: [session, lifecycle, sop, workflow, restart, smoke-test]
 
+- id: KB-034
+  date: 2026-05-02
+  project: meta
+  component: git-workflow
+  category: workflow
+  title: "ThinkPad force-pushed macbook branch — authority violation pattern"
+  description: |
+    During 2026-05-02 session, ThinkPad force-pushed origin/macbook
+    (+ 2eb73f3...1364eb8 forced update). This reverted queue-macbook.yaml
+    to a prior state, erasing the Session 2026-05-02 done entries and the
+    DESIGN-BT-01/DESIGN-MIM-01/MI-M-T-D08 pending block.
+    The macbook branch is MacBook authority per .gitattributes (merge=ours on
+    queue-macbook.yaml). Force-push from ThinkPad bypasses this entirely.
+    Subsequent git pull --rebase surfaced conflicts in ci-heartbeat.yml and
+    App.css (both devices independently fixed the same bugs). Resolved by
+    taking ThinkPad's superior fixes (sbt/setup-sbt@v1, fpc without -o flag).
+  root_cause: "ThinkPad has push rights to macbook branch — no branch protection rule enforced."
+  fix: |
+    1. Restored queue-macbook.yaml to correct state manually post-rebase.
+    2. Added note to meta.current_session documenting the violation.
+    3. Recommendation: add branch protection rule on GitHub — require PR or
+       restrict direct push to macbook branch to MacBook identity only.
+  prevention: |
+    - Enable GitHub branch protection: Settings → Branches → Add rule → macbook
+      → "Restrict pushes that create matching branches" (or require PR review)
+    - ThinkPad should push to thinkpad branch only; cross-branch merges via PR.
+    - .gitattributes merge=ours is a merge strategy hint, not a push guard.
+  tags: [git, branch-protection, authority, force-push, macbook, thinkpad, workflow]
+
+- id: KB-035
+  date: 2026-05-02
+  project: meta
+  component: ci
+  category: toolchain
+  title: "CI concurrent conflict pattern — two devices independently fix same CI failures"
+  description: |
+    MacBook and ThinkPad both diagnosed and fixed the same ci-heartbeat.yml failures
+    in the same session (2026-05-02), producing conflicting commits:
+    - Scala SBT: MacBook added apt GPG repo manually; ThinkPad used sbt/setup-sbt@v1 action.
+    - Pascal fpc: MacBook added -o hello_test flag; ThinkPad omitted -o entirely.
+    - App.css: both created the file independently.
+    ThinkPad's fixes were architecturally superior in both cases.
+  resolution: "Took ThinkPad's version for all three conflicts during git rebase."
+  lesson: |
+    When two devices are active simultaneously on the same CI workflow file,
+    coordinate via TASKS-shared.yaml before both starting diagnosis. The first
+    device to commit should note the fix in the task registry so the second
+    device skips duplicate work.
+  tags: [ci, conflict, concurrent-edit, scala, pascal, react, workflow]

@@ -7,9 +7,9 @@
 meta:
   device: MacBook
   schema_version: "2.1.0"
-  current_session: "2026-04-30 — MI-M-T-D08 DONE: Python FastAPI layer SMK9 20/20 PASS (40 routes, 14 root causes). ThinkPad delta D-08 ready. GH-UPL unblocked 2026-05-01."
+  current_session: "2026-05-02 — GH-UPL-04..11 DONE (8 theme zips on GitHub Releases via gh CLI). CI fixes: heartbeat scala/pascal/react/playwright + kh-sim-ci hashFiles guards for ThinkPad-primary backends. commit bb49dc9 pushed. NOTE: ThinkPad force-pushed macbook branch (authority violation) — reverted queue-macbook.yaml; restored 2026-05-02."
   ssh_key_fingerprint: "SHA256:J7xkMdGfpsTbw7tCNrnAMc0yfOnm/O4QRrT+4l+1MPQ"
-  last_sync_commit: "pending-commit"   # commit pending post-session (GH-UPL blocked until May 1)
+  last_sync_commit: "bb49dc9"
 
 # ── Session state ────────────────────────────────────────────────────────────
 session:
@@ -20,26 +20,34 @@ session:
 
     # ── MI-M-T prototype ─────────────────────────────────────────────────────
     # D03 + D04: DONE — ThinkPad built adapters (43/43 PASS); MacBook wrote contracts 2026-04-26
-    # D05: LIVE — page_id=176 at mim2000.cz/projects/mi-m-t/ (slug CONFIRMED: mi-m-t — verified 2026-05-01)
+    # D05: LIVE — page_id=176 at mim2000.cz/projects/mi-m-t/ (slug fix PENDING: mi-m-t-3 → mi-m-t)
     # D06: DONE — MI-M-T-ARCH-ANALYSIS-v0.1.md (717 lines, Opus session input)
     # D07: DONE — Opus inception session: 6 artifacts, 8324 lines, ThinkPad handover ready
-    - id: THINKPAD-DELTA-D08
-      note: "READY — _config/thinkpad-delta-D08-2026-04-30.tar.gz verified 2026-05-01 (109K, full mi_m_t package). Transfer to ThinkPad for D-09 portability pass. See _config/SYNC-BYPASS-MACBOOK-TO-THINKPAD.md."
+    - id: DESIGN-BT-01
+      note: "ZIP READY: bodyterapie-theme-v1.7.1.zip. v1.7.1: dual-layer SVG (sandstone-tri + brushstone-tri), azure symbols #1a7a9a, fp-corner-nav top-left list overlay (zemla minimal style), fp-container flex-column (triangle centred). fp-tri-nav hidden. Geometric centroid top:50%/left:50%. Upload via bodyterapie.com WP Admin → Themes → Upload."
 
-    - id: MI-M-T-DELTA-REBUILD
-      note: "DONE 2026-05-01 — _config/macbook-delta-2026-04-27.tar.gz rebuilt (87K, 7 Opus backlog files). Transfer to ThinkPad."
+    - id: DESIGN-MIM-01
+      note: "ZIP READY: mim2000-theme-v1.9.1.zip. v1.9.1: dual-layer SVG (sandstone-sq + brushstone-sq), azure symbols #1a7a9a, Ω↔0 swapped (Ω=history/SW, 0=contacts/SE) consistently across corners + LWFS + RWFS + mobile nav. Upload via mim2000.cz WP Admin → Themes → Upload."
+
+    - id: BUG-024-FIX
+      note: "BUG-024 (B/B): mim2000.cz broken link to New Perspective. Correct URL: http://www.newperspective.cz/cs/ — locate in functions.php / page template / WP content and fix in next release or via WP Admin (Tier 2)."
+
+    - id: ZEMLA-V175-APPLY
+      note: "ZIP READY: zemla-theme-v1.7.5.zip. Changes: seed page template only (page-seed.php + CSS + meta box). Upload via zemla.org WP Admin → Themes → Upload."
+
+    - id: CREDENTIALS-MIM2000-WPADMIN
+      note: "mim2000 WP Admin password still FILL_IN in credentials.yaml. Username confirmed: mim.admin. Password unknown — may differ from improwave.admin account."
+
+    # ── MI-M-T TDD expansion (Opus session — severity A) ─────────────────────
+    - id: MI-M-T-D08
+      note: "Opus session required. TDD expansion: Requirements + TestTargets + TestCases v2 data structures. Define requirements.yaml + test-targets.yaml schemas. Update testcases.yaml to v2 (adds test_target_ref + requirement_ref). TDD loop methodology: Requirements first → TestTargets scoped → TestCases written → code authored → testrun closes loop. Seed from ADRs + MI-M-T-D07 ARCH-SPEC endpoints. Update triage.py + evidence-report.py. Spec: 3-fold-path/backlog/MI-M-T-D08-TDD-SPEC.md. Severity A / P1-critical."
 
     # ── Podcast pipeline (requires audio stems on disk) ──────────────────────
     - id: PIL-07
       note: "Run pilot harness on ep00 real stems. Requires stems in podcast/suche-kosti/ep00/raw/"
 
-    # ── GitHub uploads — 2026-05-01 state ────────────────────────────────────
-    # GH-UPL-09 DONE: zemla-theme-v1.7.4.zip uploaded 2026-05-01. v1.7.4 = live dev baseline.
-    # GH-UPL-05 DONE: bodyterapie-theme-v1.3.0.zip uploaded 2026-05-01.
-    # GH-UPL-08 DONE: zemla-theme-v1.7.2.zip uploaded 2026-05-01.
-    # GH-UPL-10 DONE: zemla-theme-v1.7.3.zip uploaded 2026-05-01.
-    # GH-UPL-04/06/07: DEFERRED — zips not in local archive (v1.6.9/v1.7.0/v1.7.1 superseded).
-    #   All available zips now on GitHub Releases. v1.7.4 is live dev baseline.
+    # ── GitHub uploads — DONE 2026-05-02 ─────────────────────────────────────
+    # GH-UPL-04..11 all completed via gh CLI 2026-05-02
 
     # ── Credentials — WP Admin passwords still needed ─────────────────────────
     - id: CREDENTIALS-WPADMIN
@@ -72,8 +80,6 @@ session:
     - PHYS-01
     - PHYS-AMP-01
     - PHYS-AMP-02
-    # Session 2026-04-30 (CoWork)
-    - MI-M-T-D08
     - PHYS-AMP-03
     - PHYS-MIM-01
     # Session 2026-04-24
@@ -128,23 +134,30 @@ session:
     # Session 2026-04-27
     - MI-M-T-D06          # ARCH-ANALYSIS-v0.1.md — 717 lines, CAST decomposition, Opus session input
     - MI-M-T-D07          # Opus inception session — 6 artifacts, 8324 lines (ARCH-SPEC + ARCH-MODELS + ARCH-TAGS + MOCK-FIXTURES + DEV-SONNET-INSTRUCTIONS + HANDOVER-PROMPT + OPEN-QUESTIONS-LOG)
-    # Session 2026-05-01
-    - SMK9-2026-05-01     # Daily smoke: MI-M-T SMK9 20/20 PASS (SQLite, pydantic-settings installed)
-    - MI-M-T-SLUG-FIX     # Verified: page_id=176 slug already mi-m-t, link mim2000.cz/projects/mi-m-t/
-    - GH-UPL-09           # zemla-theme-v1.7.4.zip uploaded to GitHub Releases (2026-05-01)
-    - GH-UPL-05           # bodyterapie-theme-v1.3.0.zip uploaded to GitHub Releases (2026-05-01)
-    - GH-UPL-08           # zemla-theme-v1.7.2.zip uploaded to GitHub Releases (2026-05-01)
-    - GH-UPL-10           # zemla-theme-v1.7.3.zip uploaded to GitHub Releases (2026-05-01)
-    - MI-M-T-DELTA-REBUILD  # macbook-delta-2026-04-27.tar.gz rebuilt (87K, 7 Opus files)
+    - MI-M-T-DELTA-REBUILD  # macbook-delta-2026-04-27.tar.gz — 1.5MB, 37 files, transferred to ThinkPad 2026-04-27
+    - CREDENTIALS-WPADMIN   # zemla + bodyterapie WP Admin filled (improwave.admin / Deusexmachina%2718)
+    - MI-M-T-SLUG-FIX       # page_id=176 slug=mi-m-t LIVE — mim2000.cz/projects/mi-m-t/ confirmed 2026-04-28
+    - MIM2000-NAV-FIX       # BUG-023 closed — cooperations=179, advisory-services=180, raw-dev-case-studies=181 LIVE 2026-04-28
+    # Session 2026-04-30 (CoWork)
+    - MI-M-T-D08            # Python FastAPI layer SMK9 20/20 PASS (40 routes, SQLAlchemy 2.x async)
     - THINKPAD-DELTA-D08-VERIFY  # thinkpad-delta-D08-2026-04-30.tar.gz verified (109K, mi_m_t package)
+    # Session 2026-05-01
+    - SMK9-2026-05-01       # Daily smoke: MI-M-T SMK9 20/20 PASS (SQLite, pydantic-settings installed)
+    - GH-UPL-09             # zemla-theme-v1.7.4.zip → GitHub Releases LIVE (2026-05-01)
+    - GH-UPL-05             # bodyterapie-theme-v1.3.0.zip → GitHub Releases LIVE (2026-05-01)
+    - GH-UPL-08             # zemla-theme-v1.7.2.zip → GitHub Releases LIVE (2026-05-01)
+    - GH-UPL-10-ZEMLA-V173  # zemla-theme-v1.7.3.zip → GitHub Releases LIVE (2026-05-01)
+    # Session 2026-05-02
+    - GH-UPL-04             # zemla-v1.6.9 → GitHub Releases LIVE
+    - GH-UPL-06             # zemla-v1.7.0 → GitHub Releases LIVE
+    - GH-UPL-07             # zemla-v1.7.1 → GitHub Releases LIVE
+    - GH-UPL-10             # mim2000-v1.9.1 → GitHub Releases LIVE
+    - GH-UPL-11             # bodyterapie-v1.7.1 → GitHub Releases LIVE
+    - CI-FIX-HEARTBEAT      # ci-heartbeat.yml: scala sbt/setup-sbt@v1 + pascal fpc flag + react App.css + @playwright/test dep
+    - CI-FIX-KHSIM          # kh-sim-ci.yml: hashFiles guards on 5 backend jobs + integration-e2e (skip not fail when backends absent)
 
   blocked:
-    - id: GH-UPL-04
-      reason: "DEFERRED — zemla-theme-v1.6.9.zip not in local archive. Superseded intermediate release. v1.7.4 is live dev baseline."
-    - id: GH-UPL-06
-      reason: "DEFERRED — zemla-theme-v1.7.0.zip not in local archive. Superseded intermediate release."
-    - id: GH-UPL-07
-      reason: "DEFERRED — zemla-theme-v1.7.1.zip not in local archive. Superseded intermediate release."
+    # GH-UPL-04..11 completed 2026-05-02
     - id: MI-M-T-P06
       reason: "Unblocked — sync done. ThinkPad must run first testrun mim2000 CEO blog."
     - id: ARCH-E01
