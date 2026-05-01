@@ -1,0 +1,292 @@
+# requirements.yaml — MI-M-T TDD evidence layer: requirements registry
+# Schema: v1.0.0  |  Author: MacBook (D08 seed)  |  Date: 2026-05-02
+# Cross-ref: test-targets.yaml (TT-*), testcases.yaml v2 (TC-*)
+# Migration: testcases.yaml v2 adds requirement_ref pointing here
+
+schema_version: "1.0.0"
+generated: "2026-05-02"
+seed_source: "ADRs (CLAUDE.md) + bugs.yaml defect history + CC scan results"
+total: 17
+
+requirements:
+
+  # ── ADR-derived — authoritative design decisions ────────────────────────────
+
+  - id: REQ-001
+    title: "Shared identity data must live exclusively in inc/zemla-config.php"
+    description: |
+      No template, function, or include file may hard-code linkedin.com URLs,
+      nav slugs (ZEMLA_SLUG_*), author name, or site URLs.
+      All such values must be defined in inc/zemla-config.php and referenced
+      via the defined constants.
+    source: ADR-01
+    priority: P1-critical
+    site: cross-site
+    component: identity
+    status: active
+    test_target_refs: [TT-001]
+    acceptance_criteria:
+      - "Given any PHP file in the theme, when grepped for 'linkedin.com' excluding zemla-config.php, then zero matches returned"
+      - "Given any PHP template, when grepped for hard-coded nav slug strings, then zero matches returned"
+
+  - id: REQ-002
+    title: "Gallery layout must use exactly two direct children: aside.gallery-sidebar + .album-grid"
+    description: |
+      The .gallery-layout container must have exactly two direct children:
+      <aside class="gallery-sidebar"> and .album-grid.
+      CSS grid-template-columns: 220px 1fr breaks with 3+ auto-placed children.
+    source: ADR-02
+    priority: P1-critical
+    site: cross-site
+    component: gallery
+    status: active
+    test_target_refs: [TT-002]
+    acceptance_criteria:
+      - "Given a rendered gallery page, when the DOM is inspected, then .gallery-layout has exactly 2 direct children"
+      - "Given the first child, when checked, then it has class 'gallery-sidebar'"
+      - "Given the second child, when checked, then it has class 'album-grid'"
+
+  - id: REQ-003
+    title: "Album cards must use vertical layout with 3:2 aspect ratio, image top"
+    description: |
+      Album card components must render image at top with 3:2 aspect ratio (hard-cropped),
+      title and description text below. Horizontal layout (image left, text right) is
+      explicitly disallowed per ADR-03 UX decision.
+    source: ADR-03
+    priority: P2-high
+    site: cross-site
+    component: gallery
+    status: active
+    test_target_refs: [TT-003]
+    acceptance_criteria:
+      - "Given an album card, when rendered, then image appears above title"
+      - "Given an album card image, when measured, then aspect ratio is 3:2 (±2px tolerance)"
+
+  - id: REQ-004
+    title: "All _e() translation calls must be registered in inc/translations.php"
+    description: |
+      Every translatable string emitted via _e() or __() in theme PHP files
+      must have a corresponding entry in inc/translations.php for all 5 locales
+      (CS, EN, JA, DE, IT). Zero missing strings is the pass condition.
+    source: ADR-04
+    priority: P1-critical
+    site: zemla
+    component: translation
+    status: active
+    test_target_refs: [TT-004]
+    acceptance_criteria:
+      - "Given page-physics-dof.php, when all _e() calls are extracted and cross-checked against translations.php, then zero missing strings found"
+      - "Given inc/translations.php, when parsed for all 5 locale keys per string, then each string has all 5 locales defined"
+
+  # ── Defect-regression requirements — prevent recurrence of closed bugs ──────
+
+  - id: REQ-005
+    title: "Podcast player must initialise exactly once per episode page load"
+    description: |
+      The podcast player engine (zp-engine.js) must be registered and initialised
+      exactly once per page load on single-zemla_episode post type pages.
+      Double-init produces duplicate audio elements, broken controls, and console errors.
+      Root cause was duplicate inline script in single-zemla_episode.php (HOTFIX-ZP-004).
+    source: BUG-003
+    priority: P1-critical
+    site: zemla
+    component: podcast
+    status: active
+    test_target_refs: [TT-005]
+    acceptance_criteria:
+      - "Given an episode page, when loaded, then exactly one .zp-player element exists in the DOM"
+      - "Given an episode page, when loaded, then exactly one <audio> element exists in the DOM"
+      - "Given browser console, when episode page is loaded, then zero 'already initialised' errors"
+
+  - id: REQ-006
+    title: "Podcast player speed control must hold selected rate across track seek"
+    description: |
+      When the listener changes playback speed and then seeks forward or backward,
+      the selected speed must be preserved. Regression introduced in v1.6.8, fixed v1.7.3.
+    source: BUG-018
+    priority: P2-high
+    site: zemla
+    component: podcast
+    status: active
+    test_target_refs: [TT-005]
+    acceptance_criteria:
+      - "Given playback speed set to 1.5x, when skip-forward is pressed, then speed remains 1.5x after seek completes"
+      - "Given playback speed set to 2.0x, when progress bar is scrubbed, then speed remains 2.0x"
+
+  - id: REQ-007
+    title: "Podcast player skip must not restart track from beginning"
+    description: |
+      Skip forward / skip backward controls must seek relative to current position.
+      They must not restart the track from t=0. Regression in v1.6.8.
+    source: BUG-018
+    priority: P2-high
+    site: zemla
+    component: podcast
+    status: active
+    test_target_refs: [TT-005]
+    acceptance_criteria:
+      - "Given playback at t=60s, when skip-forward (+15s) is pressed, then position is t=75s (±1s)"
+      - "Given playback at t=60s, when skip-backward (-15s) is pressed, then position is t=45s (±1s)"
+      - "Given either skip action, then track does not restart from t=0"
+
+  - id: REQ-008
+    title: "Podcast episode cover art must render at zemla-wide size on episode pages"
+    description: |
+      Featured image on single-zemla_episode pages must be served at the zemla-wide
+      image size (512×512 hard-cropped). The image container must have no additional
+      wrapper class that collapses its dimensions.
+    source: BUG-018
+    priority: P2-high
+    site: zemla
+    component: podcast
+    status: active
+    test_target_refs: [TT-006]
+    acceptance_criteria:
+      - "Given a single episode page, when the featured image is inspected, then its rendered size is 512×512px (±2px)"
+      - "Given the image container DOM node, when inspected, then it has no class that applies height:0 or display:none"
+
+  - id: REQ-009
+    title: "mim2000 CEO blog YouTube embeds must render in all 4 locales"
+    description: |
+      The CEO blog posts (post IDs 39/46/48/35 for CS/DE/IT/EN) must each render
+      their YouTube embed iframe correctly. Locale-switching must not break the embed.
+    source: BUG-009
+    priority: P2-high
+    site: mim2000
+    component: content
+    status: active
+    test_target_refs: [TT-007]
+    acceptance_criteria:
+      - "Given CEO blog post 39 (CS), when rendered, then YouTube iframe is visible with non-zero dimensions"
+      - "Given CEO blog post 46 (DE), when rendered, then YouTube iframe is visible with non-zero dimensions"
+      - "Given CEO blog post 48 (IT), when rendered, then YouTube iframe is visible with non-zero dimensions"
+      - "Given CEO blog post 35 (EN), when rendered, then YouTube iframe is visible with non-zero dimensions"
+
+  - id: REQ-010
+    title: "mim2000 primary navigation must resolve to correct page IDs"
+    description: |
+      Nav items must resolve: cooperations → page_id 179, advisory-services → 180,
+      raw-dev-case-studies → 181. BUG-023 was a wrong-slug regression fixed 2026-04-28.
+    source: BUG-023
+    priority: P1-critical
+    site: mim2000
+    component: navigation
+    status: active
+    test_target_refs: [TT-008]
+    acceptance_criteria:
+      - "Given the mim2000 primary nav, when 'Cooperations' link is clicked, then page_id=179 loads"
+      - "Given the mim2000 primary nav, when 'Advisory Services' link is clicked, then page_id=180 loads"
+      - "Given the mim2000 primary nav, when 'Case Studies' link is clicked, then page_id=181 loads"
+
+  - id: REQ-011
+    title: "mim2000 New Perspective external link must resolve correctly"
+    description: |
+      The link to New Perspective partner site must point to http://www.newperspective.cz/cs/
+      and must not 404. BUG-024 — currently open, fix pending in next release.
+    source: BUG-024
+    priority: P2-high
+    site: mim2000
+    component: content
+    status: active
+    test_target_refs: [TT-009]
+    acceptance_criteria:
+      - "Given the New Perspective link on mim2000.cz, when followed, then HTTP 200 is returned"
+      - "Given the link href, when inspected, then it equals 'http://www.newperspective.cz/cs/'"
+
+  # ── mi_m_t API requirements (from D07 ARCH-SPEC — expand ThinkPad-side) ─────
+
+  - id: REQ-012
+    title: "mi_m_t POST /projects must return 201 with project_id"
+    description: |
+      Creating a new project via POST /projects must return HTTP 201 Created
+      with a JSON body containing a non-null project_id (UUID or integer).
+    source: ARCH-SPEC-D07
+    priority: P1-critical
+    site: cross-site
+    component: api
+    status: active
+    test_target_refs: [TT-011]
+    acceptance_criteria:
+      - "Given a valid POST /projects payload, when submitted, then HTTP 201 is returned"
+      - "Given the response body, when parsed, then project_id is present and non-null"
+
+  - id: REQ-013
+    title: "mi_m_t GET /projects/{id}/testruns must return paginated list"
+    description: |
+      Fetching test runs for a project must return a paginated JSON list.
+      Default page size ≥ 10. Response must include total_count field.
+    source: ARCH-SPEC-D07
+    priority: P2-high
+    site: cross-site
+    component: api
+    status: active
+    test_target_refs: [TT-012]
+    acceptance_criteria:
+      - "Given a project with ≥1 testrun, when GET /projects/{id}/testruns is called, then HTTP 200 with list is returned"
+      - "Given the response body, when parsed, then total_count field is present"
+
+  - id: REQ-014
+    title: "mi_m_t health endpoint must return 200 with status=ok"
+    description: |
+      GET /health must return HTTP 200 with JSON body {"status": "ok"} within 500ms.
+      Used by CI health wait loop and monitoring.
+    source: ARCH-SPEC-D07
+    priority: P1-critical
+    site: cross-site
+    component: api
+    status: active
+    test_target_refs: [TT-013]
+    acceptance_criteria:
+      - "Given the running mi_m_t service, when GET /health is called, then HTTP 200 is returned"
+      - "Given the response body, when parsed, then status equals 'ok'"
+      - "Given the response time, when measured, then it is < 500ms"
+
+  - id: REQ-015
+    title: "mi_m_t database writes must be idempotent on re-run with same item_code + run_tag"
+    description: |
+      Re-running the SMK9 smoke suite or any testrun against a persistent DB must
+      not raise UNIQUE constraint errors. All writes must use upsert or unique-per-run
+      identifiers (run_tag = timestamp suffix).
+    source: KB-032
+    priority: P1-critical
+    site: cross-site
+    component: api
+    status: active
+    test_target_refs: [TT-014]
+    acceptance_criteria:
+      - "Given SMK9 has been run once, when SMK9 is run again without DB reset, then zero UNIQUE constraint errors occur"
+      - "Given two runs with different run_tags, when both complete, then both records persist independently"
+
+  # ── Content/translation requirements ────────────────────────────────────────
+
+  - id: REQ-016
+    title: "zemla translations.php must contain all strings identified in CC-005 scan"
+    description: |
+      The CC-005 content corrections scan identified missing/incorrect translation
+      strings in inc/translations.php. All strings from the CC-005 artifact must
+      be present and correctly mapped for all 5 locales.
+    source: CC-005
+    priority: P2-high
+    site: zemla
+    component: translation
+    status: active
+    test_target_refs: [TT-015]
+    acceptance_criteria:
+      - "Given inc/translations.php post-CC-005 patch, when all CC-005 scan strings are checked, then zero missing"
+      - "Given each CC-005 string, when locale keys CS/EN/JA/DE/IT are checked, then all 5 locales are present"
+
+  - id: REQ-017
+    title: "zemla must define ZEMLA_SLUG_* constants for all required nav slugs"
+    description: |
+      CC-006 identified 5 navigation slugs that are referenced in page templates
+      but not defined as ZEMLA_SLUG_* constants in zemla-config.php.
+      All 5 must be defined before the next release.
+    source: CC-006
+    priority: P2-high
+    site: zemla
+    component: identity
+    status: active
+    test_target_refs: [TT-001]
+    acceptance_criteria:
+      - "Given inc/zemla-config.php, when all ZEMLA_SLUG_* constants are counted, then count >= previously defined + 5"
+      - "Given page-dao.php and page-psychology.php, when grepped for hard-coded slug strings, then zero found"

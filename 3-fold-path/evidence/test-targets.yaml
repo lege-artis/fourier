@@ -1,0 +1,230 @@
+# test-targets.yaml — MI-M-T TDD evidence layer: test surface registry
+# Schema: v1.0.0  |  Author: MacBook (D08 seed)  |  Date: 2026-05-02
+# Cross-ref: requirements.yaml (REQ-*), testcases.yaml v2 (TC-*)
+# Each test target = a specific testable surface (component, endpoint, page, etc.)
+# testcases.yaml v2 adds test_target_ref pointing here
+
+schema_version: "1.0.0"
+generated: "2026-05-02"
+seed_source: "Derived from known testable surfaces: 3FP sites + mi_m_t FastAPI"
+total: 15
+
+test_targets:
+
+  # ── Identity / configuration ────────────────────────────────────────────────
+
+  - id: TT-001
+    title: "inc/zemla-config.php — master identity data file"
+    description: |
+      The shared configuration PHP file containing all identity constants:
+      ZEMLA_LINKEDIN_URL, ZEMLA_SLUG_* nav constants, ZEMLA_AUTHOR_NAME, site URLs.
+      All three themes (zemla, mim2000, bodyterapie) include this file.
+      Test surface: file contents, defined constants, no hard-coding elsewhere.
+    type: component
+    site: cross-site
+    component: identity
+    requirement_refs: [REQ-001, REQ-017]
+    implementation_ref: "inc/zemla-config.php"
+    status: active
+
+  # ── Gallery ─────────────────────────────────────────────────────────────────
+
+  - id: TT-002
+    title: ".gallery-layout DOM structure — sidebar wrapper two-child pattern"
+    description: |
+      The gallery page container must have exactly two direct children:
+      <aside class="gallery-sidebar"> and an element with class .album-grid.
+      CSS grid-template-columns: 220px 1fr is the enforced layout.
+      Test surface: rendered DOM structure on any gallery page.
+    type: component
+    site: cross-site
+    component: gallery
+    requirement_refs: [REQ-002]
+    implementation_ref: "page-templates/page-gallery.php"
+    status: active
+
+  - id: TT-003
+    title: "Album card — vertical layout, 3:2 aspect ratio, image-top"
+    description: |
+      Individual album cards must render with image at top (3:2 hard-cropped),
+      title and description text below. Flex-direction: column enforced.
+      Test surface: album card CSS rendering on gallery and archive pages.
+    type: component
+    site: cross-site
+    component: gallery
+    requirement_refs: [REQ-003]
+    implementation_ref: "assets/css/gallery.css"
+    status: active
+
+  # ── Translation ──────────────────────────────────────────────────────────────
+
+  - id: TT-004
+    title: "inc/translations.php — completeness gate for all _e() calls"
+    description: |
+      The translation lookup table must contain entries for every string
+      used via _e() or __() in theme PHP files, covering all 5 locales
+      (CS, EN, JA, DE, IT). The release test §4 grep command is the
+      authoritative check.
+    type: component
+    site: zemla
+    component: translation
+    requirement_refs: [REQ-004, REQ-016]
+    implementation_ref: "inc/translations.php"
+    status: active
+
+  # ── Podcast player ───────────────────────────────────────────────────────────
+
+  - id: TT-005
+    title: "zp-engine.js — podcast player: init, speed control, seek behaviour"
+    description: |
+      The JavaScript podcast player engine. Test surfaces:
+      - Single-init guard (no double-init on episode pages)
+      - Speed control: selected rate persists across seek/skip
+      - Skip forward/back: relative seek, no track restart
+      Player DOM: .zp-player[data-src] → .zp-play, .zp-progress-wrap,
+      .zp-time, .zp-speed, .zp-download.
+    type: component
+    site: zemla
+    component: podcast
+    requirement_refs: [REQ-005, REQ-006, REQ-007]
+    implementation_ref: "assets/js/zp-engine.js"
+    status: active
+
+  - id: TT-006
+    title: "Single episode page — cover art render at zemla-wide (512×512)"
+    description: |
+      The featured image on single-zemla_episode post type pages.
+      Must be served at zemla-wide size (512×512 hard-cropped) and
+      render at full dimensions (no collapsed container).
+      CPT slug: zemla_episode. Post ID 530 used as reference.
+    type: page
+    site: zemla
+    component: podcast
+    requirement_refs: [REQ-008]
+    implementation_ref: "single-zemla_episode.php"
+    status: active
+
+  # ── mim2000 content ──────────────────────────────────────────────────────────
+
+  - id: TT-007
+    title: "mim2000 CEO blog — YouTube embeds, all 4 locales"
+    description: |
+      The CEO blog posts (classic editor, core/freeform blocks) must render
+      YouTube embed iframes for all 4 locales:
+        CS → post_id=39, DE → post_id=46, IT → post_id=48, EN → post_id=35.
+      Test: iframe visibility + non-zero computed dimensions.
+    type: page
+    site: mim2000
+    component: content
+    requirement_refs: [REQ-009]
+    implementation_ref: "post_id: 39/46/48/35"
+    status: active
+
+  - id: TT-008
+    title: "mim2000 primary navigation — page_id resolution accuracy"
+    description: |
+      Primary nav items must resolve to correct page IDs:
+        cooperations → 179, advisory-services → 180, raw-dev-case-studies → 181.
+      Slug assignments were fixed in BUG-023 / MIM2000-NAV-FIX (2026-04-28).
+    type: page
+    site: mim2000
+    component: navigation
+    requirement_refs: [REQ-010]
+    implementation_ref: "functions.php (nav registration)"
+    status: active
+
+  - id: TT-009
+    title: "mim2000 New Perspective external link — URL + HTTP status"
+    description: |
+      The external link to New Perspective partner must resolve to
+      http://www.newperspective.cz/cs/ and return HTTP 200.
+      BUG-024 is currently open — fix pending next release.
+    type: page
+    site: mim2000
+    component: content
+    requirement_refs: [REQ-011]
+    implementation_ref: "functions.php or page template (location TBD)"
+    status: active
+
+  - id: TT-010
+    title: "mim2000 MI-M-T prototype page — /projects/mi-m-t/ live"
+    description: |
+      The MI-M-T tool prototype page at mim2000.cz/projects/mi-m-t/.
+      page_id=176, slug=mi-m-t. Verified live 2026-04-28.
+      Test: page loads 200, correct slug, MI-M-T content present.
+    type: page
+    site: mim2000
+    component: content
+    requirement_refs: []
+    implementation_ref: "WP page_id=176"
+    status: active
+
+  # ── mi_m_t FastAPI endpoints ─────────────────────────────────────────────────
+
+  - id: TT-011
+    title: "mi_m_t POST /projects — project creation endpoint"
+    description: |
+      FastAPI endpoint for creating a new MI-M-T project.
+      Must return HTTP 201 with JSON body containing project_id.
+      Part of the 40-route mi_m_t FastAPI package (D08 — SQLAlchemy 2.x async).
+    type: endpoint
+    site: cross-site
+    component: api
+    requirement_refs: [REQ-012]
+    implementation_ref: "mi_m_t/routers/projects.py"
+    status: active
+
+  - id: TT-012
+    title: "mi_m_t GET /projects/{id}/testruns — paginated testrun list"
+    description: |
+      FastAPI endpoint returning paginated list of test runs for a project.
+      Must include total_count in response. Default page size ≥ 10.
+    type: endpoint
+    site: cross-site
+    component: api
+    requirement_refs: [REQ-013]
+    implementation_ref: "mi_m_t/routers/testruns.py"
+    status: active
+
+  - id: TT-013
+    title: "mi_m_t GET /health — service health probe"
+    description: |
+      Standard health check endpoint. Must return HTTP 200 with {"status": "ok"}
+      within 500ms. Used by CI wait loop (kh-sim-ci.yml integration-e2e job)
+      and monitoring probes.
+    type: endpoint
+    site: cross-site
+    component: api
+    requirement_refs: [REQ-014]
+    implementation_ref: "mi_m_t/main.py"
+    status: active
+
+  - id: TT-014
+    title: "mi_m_t SMK9 smoke suite — 20-item idempotency gate"
+    description: |
+      The 20-item SMK9 smoke test suite covering all major mi_m_t routes.
+      Must pass on SQLite (dev) and PostgreSQL (prod).
+      Key invariant: idempotency on re-run — no UNIQUE constraint errors
+      when run twice against persistent DB (run_tag = timestamp suffix).
+      Last run: 20/20 PASS 2026-05-01 (SQLite).
+    type: smoke
+    site: cross-site
+    component: api
+    requirement_refs: [REQ-015]
+    implementation_ref: "mi_m_t/tests/smoke/smk9.py"
+    status: active
+
+  # ── Translation completeness ──────────────────────────────────────────────────
+
+  - id: TT-015
+    title: "CC-005 translation strings — presence check in translations.php"
+    description: |
+      The set of translation strings identified in CC-005 content corrections scan.
+      All must be present in inc/translations.php after CC-005 patch is applied.
+      Test: grep all CC-005 string keys against translations.php, zero missing.
+    type: regression
+    site: zemla
+    component: translation
+    requirement_refs: [REQ-016]
+    implementation_ref: "inc/translations.php"
+    status: active
