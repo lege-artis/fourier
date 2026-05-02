@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 
 import mi_m_t.models  # noqa: F401 — registers all ORM models in mapper registry
 from mi_m_t.db import engine
+from mi_m_t.config import settings
 from mi_m_t.domain.statuses import TransitionError, RoleError
 
 # ── Routers ──────────────────────────────────────────────────────────────────
@@ -69,10 +70,31 @@ def create_app() -> FastAPI:
     app.include_router(sync_router,          prefix=prefix)
     app.include_router(trace_router,         prefix=prefix)
 
-    # ── Health check ─────────────────────────────────────────────────────
+    # ── Health check (ARCH-SPEC §7.1 — DB connectivity probe) ────────────
     @app.get("/health", tags=["meta"])
     async def health():
-        return {"status": "ok", "version": app.version}
+        from sqlalchemy import text as _text
+        from fastapi.responses import JSONResponse as _JSONResponse
+        db_status = "ok"
+        db_error: str | None = None
+        try:
+            async with engine.connect() as conn:
+                await conn.execute(_text("SELECT 1"))
+        except Exception as exc:
+            db_status = "error"
+            db_error = str(exc)
+        payload: dict = {
+            "status": "ok" if db_status == "ok" else "degraded",
+            "version": app.version,
+            "db_driver": settings.db_driver,
+            "db_status": db_status,
+        }
+        if db_error:
+            payload["db_error"] = db_error
+        return _JSONResponse(
+            content=payload,
+            status_code=200 if db_status == "ok" else 503,
+        )
 
     return app
 

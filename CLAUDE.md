@@ -86,6 +86,9 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 |------------|---------|--------|
 | mi_m_t/ FastAPI package | D-08 | **DONE** — SMK9 20/20 PASS (2026-04-30). 40 routes, SQLAlchemy 2.x async. |
 | D-09 portability pass | — | **DONE** — MySQL 8: 29/29 + 20/20 PASS. PostgreSQL 14: 29/29 + 20/20 PASS (2026-05-02). |
+| T5 /health DB probe | — | **DONE** — `main.py` async SELECT 1 probe; HTTP 503 on failure (2026-05-02). |
+| T6 PHP route audit | — | **DONE** — `MI-M-T-PHP-ROUTE-AUDIT.md`; 5 gaps vs Python identified (2026-05-02). |
+| T7 pytest suite | — | **DONE** — `tests/conftest.py` + `tests/test_smk9.py` (20 functions); verify before commit (2026-05-02). |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -273,17 +276,17 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ---
 
-## § HANDOFF BLOCK — 2026-05-02
-**Last session:** 2026-05-02  
-**Closed because:** D-09 portability pass complete — MySQL 8 + PG 14 both 20/20 PASS  
+## § HANDOFF BLOCK — 2026-05-02 (T5-T7)
+**Last session:** 2026-05-02 (continuation — T5/T6/T7 delivery)  
+**Closed because:** T5 + T6 + T7 all complete. Commit pending.  
 **Restart reads:** CLAUDE.md → SESSION-LIFECYCLE-SOP.md → MANIFEST.yaml → queue-macbook.yaml  
-**D-09:** DONE — MySQL 8: 29/29 migrations + SMK9 20/20 PASS. PG 14: 29/29 + 20/20 PASS.  
-**OQ-029..034:** All resolved. See SESSION-NOTES.md §D-09 for full changelog.  
-**KB:** LL-ENV-005..009 added (PowerShell env vars, PG port 5433, asyncpg lastrowid, boolean=1, IDENTITY sequences)  
-**TASKS-shared:** MI-M-T-D09 → done (completed: 2026-05-02)  
-**Commit pending:** `thinkpad` branch — D-09 changes (6 files + seed repair). Push when ready.  
-**Next session first task:** git commit + push `thinkpad` branch with D-09 changes, then assess D-10+ or project close.  
-**Do NOT start:** any new feature work before commit is pushed
+**T5:** `/health` DB probe — `main.py` enhanced; HTTP 503 on DB failure; `db_driver`/`db_status` in payload.  
+**T6:** PHP route audit complete — `MI-M-T-PHP-ROUTE-AUDIT.md` at `3-fold-path/code/`. 23 impl / 8 stubs / 5 gaps. Feed for Opus MacBook session.  
+**T7:** pytest suite at `mi_m_t/tests/` — `conftest.py` + `test_smk9.py` (20 async test functions S01-S20). `smoke_test.py` trailing corruption repaired.  
+**Commit pending:** `thinkpad` branch — T5-T7 changes (6 files). Combine with D-09 commit or push separately.  
+**Verify before commit:** `python smoke_test.py` (SQLite) → 20/20 PASS; `pytest tests/ -v` → 20 passed.  
+**Next session first task:** Verify + commit T5-T7 → push `thinkpad`. Then await Opus MacBook session output before D-10.  
+**Do NOT start:** D-10 feature work before Opus MacBook strategic session output is reviewed.
 
 ---
 

@@ -868,8 +868,105 @@ Refs: OQ-029..034, ARCH-SPEC §7 (portability matrix)
 
 ---
 
+---
+
+## T5-T7 — Infrastructure hygiene + PHP audit + pytest suite
+
+**Captured:** 2026-05-02 (continuation of D-09 session)  
+**Device:** ThinkPad (CoWork / Claude Sonnet 4.6)
+
+### T5 — /health DB connectivity probe
+
+Enhanced `mi_m_t/main.py` health endpoint — was static `{status: ok}`, now performs
+async `SELECT 1` against the engine pool and returns DB diagnostics:
+
+```json
+{"status": "ok"|"degraded", "version": "0.1.0", "db_driver": "sqlite", "db_status": "ok"|"error"}
+```
+
+HTTP 503 returned when `db_status = "error"`. `settings` imported at module level to avoid
+redundant per-request import. Monitoring can now distinguish application-up vs application-up-but-db-down.
+
+**File:** `mi_m_t/mi_m_t/main.py`  
+**Note:** T5 edit was reverted by `git checkout HEAD` run to fix D-09 truncation issue; re-applied cleanly in this session.
+
+### T6 — PHP layer route audit
+
+Full route audit produced at `3-fold-path/code/MI-M-T-PHP-ROUTE-AUDIT.md`.
+
+**Summary:**
+- 23 routes fully implemented (MVP subset — test-targets, test-cases, test-runs, requests, state-machine, value-lists, health)
+- 8 routes correctly stubbed 501 (sync, trace — non-MVP per §6.4)
+- 5 routes absent from PHP but present in Python: projects CRUD (PHP-GAP-01)
+- 3 routes partially absent: `PATCH /test-cases/{id}`, `GET /test-runs/{id}`, `GET /requests[/{id}]` (PHP-GAP-02..04)
+- 3 PG portability issues: `is_active = 1` in `valueLists()`, `stateMachine()`, `stateMachineFrom()` (same root cause as OQ-034; PHP MVP = MySQL/SQLite only, acceptable)
+- `/health` response shape diverges between PHP (`{status,service,ts}`) and Python (`{status,version,db_driver,db_status}`)
+- `authedUserId()` reads X-User-Id header — spoofable, must be replaced before non-local deployment
+
+**Delivery signals for Opus MacBook session:**
+- Quick-win closures: `GET /test-runs/{id}`, `GET /requests[/{id}]`, `PATCH /test-cases/{id}` (each ~5 LoC)
+- Projects API requires architectural decision on which layer owns project creation
+- Auth gate is hard blocker for any external integration test
+
+### T7 — pytest conftest + SMK9 split into 20 test functions
+
+Created:
+- `tests/__init__.py` (package marker)
+- `tests/conftest.py` — session-scoped `client` (httpx ASGI), `hdrs`, `run_tag` fixtures; env defaults before `mi_m_t` import
+- `tests/test_smk9.py` — 20 async test functions `test_s01_health` .. `test_s20_trace`
+
+Design: module-level `_state` dict carries entity IDs across sequential smoke tests.
+`asyncio_mode = "auto"` (already in pyproject.toml) — no `@pytest.mark.asyncio` needed.
+
+**Run:** `pytest tests/ -v` (SQLite default) or inject DB env vars for MySQL/PG.
+
+Also repaired `smoke_test.py` trailing corruption (lines 213-223 were duplicated/corrupt
+remnants of prior truncation repair — trimmed to clean `if __name__ == "__main__":` block).
+
+### File changelog
+
+| File | Change |
+|------|--------|
+| `mi_m_t/mi_m_t/main.py` | T5: async DB probe in `/health`; `settings` import at module level |
+| `3-fold-path/code/MI-M-T-PHP-ROUTE-AUDIT.md` | T6: PHP route audit (NEW) |
+| `mi_m_t/smoke_test.py` | T7 prep: trimmed corrupt trailing lines 213-223 |
+| `mi_m_t/tests/__init__.py` | T7: new package marker |
+| `mi_m_t/tests/conftest.py` | T7: session fixtures (client, hdrs, run_tag) |
+| `mi_m_t/tests/test_smk9.py` | T7: 20 pytest async test functions (S01-S20) |
+
+### Commit message
+
+```
+feat(python): T5-T7 — health DB probe, PHP audit, pytest SMK9 suite
+
+T5: /health endpoint now probes DB with SELECT 1; returns db_driver +
+    db_status; HTTP 503 on DB failure (was static 200 with no probe).
+
+T6: PHP layer route audit — MI-M-T-PHP-ROUTE-AUDIT.md
+    23 impl / 8 stubs (501) / 5 gaps vs Python (projects + partial reads)
+    Portability issues: is_active=1 in 3 PHP SQL statements (MySQL/SQLite
+    MVP scope; PG fix deferred per ARCH-SPEC §6.4).
+
+T7: pytest suite (tests/conftest.py + tests/test_smk9.py)
+    20 async test functions matching SMK9 S01-S20.
+    Session-scoped ASGI client fixture; run_tag prevents code collisions.
+    smoke_test.py trailing corruption repaired.
+
+Run: pytest tests/ -v
+Refs: ARCH-SPEC §7.1 (/health), §5.1 (route catalogue), §6.4 (PHP split)
+```
+
+---
+
 ## Next session opens here
 
-**D-10+ or project close — TBD.**  
-All three engine targets satisfied. MI-M-T Python layer fully portable.  
-ThinkPad branch `thinkpad` ready to push (save tokens for this push).
+**Verify T5 + T7:** Run from ThinkPad PowerShell:
+```powershell
+cd C:\Users\vitez\Documents\VibeCodeProjects\3-fold-path\code\mi_m_t
+# Verify smoke_test still passes (S01 now tests enhanced health)
+$env:DB_DRIVER="sqlite"; $env:SQLITE_PATH=".test/d06.sqlite"; python smoke_test.py
+# Run pytest suite
+pytest tests/ -v
+```
+
+**Then:** Commit T5-T7 changes + push `thinkpad` branch. Assess D-10+ vs project close per Opus MacBook session output.
