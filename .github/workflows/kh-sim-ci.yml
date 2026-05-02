@@ -22,6 +22,8 @@ jobs:
   rust-build-validate:
     name: Rust — Build, Lint & Validate
     runs-on: ubuntu-latest
+    # Skip gracefully if backend source not present on this branch (ThinkPad-primary artifact)
+    if: hashFiles('kh-sim/backends/rust/Cargo.toml') != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -57,6 +59,8 @@ jobs:
   scala-build-validate:
     name: Scala — Build, Lint & Validate
     runs-on: ubuntu-latest
+    # Skip gracefully if backend source not present on this branch (ThinkPad-primary artifact)
+    if: hashFiles('kh-sim/backends/scala/build.sbt') != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -88,6 +92,8 @@ jobs:
   cpp-build-validate:
     name: C++ — Build & Validate
     runs-on: ubuntu-latest
+    # Skip gracefully if backend source not present on this branch (ThinkPad-primary artifact)
+    if: hashFiles('kh-sim/backends/cpp/CMakeLists.txt') != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -126,6 +132,8 @@ jobs:
   fortran-build-validate:
     name: Fortran — Build & Validate
     runs-on: ubuntu-latest
+    # Skip gracefully if backend source not present on this branch (ThinkPad-primary artifact)
+    if: hashFiles('kh-sim/backends/fortran/CMakeLists.txt') != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -164,6 +172,8 @@ jobs:
   pascal-build-validate:
     name: Pascal — Build & Validate
     runs-on: ubuntu-latest
+    # Skip gracefully if backend source not present on this branch (ThinkPad-primary artifact)
+    if: hashFiles('kh-sim/backends/pascal/tests/kh_validate.pas') != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -234,14 +244,15 @@ jobs:
           exit 1
 
       - name: All backends green
+        # success = built + validated; skipped = source not on this branch (not a failure)
         if: |
-          needs.rust-build-validate.result    == 'success' &&
-          needs.scala-build-validate.result   == 'success' &&
-          needs.cpp-build-validate.result     == 'success' &&
-          needs.fortran-build-validate.result == 'success' &&
-          needs.pascal-build-validate.result  == 'success'
+          (needs.rust-build-validate.result    == 'success' || needs.rust-build-validate.result    == 'skipped') &&
+          (needs.scala-build-validate.result   == 'success' || needs.scala-build-validate.result   == 'skipped') &&
+          (needs.cpp-build-validate.result     == 'success' || needs.cpp-build-validate.result     == 'skipped') &&
+          (needs.fortran-build-validate.result == 'success' || needs.fortran-build-validate.result == 'skipped') &&
+          (needs.pascal-build-validate.result  == 'success' || needs.pascal-build-validate.result  == 'skipped')
         run: |
-          echo "All 5 KH-SIM backends: build + physics validation PASSED."
+          echo "All present KH-SIM backends: build + physics validation PASSED (absent backends skipped — not on this branch)."
 
   # ── Integration E2E (KH-018) ────────────────────────────────────────────── ──────────────────────────────────────────────
   integration-e2e:
@@ -253,6 +264,10 @@ jobs:
       - fortran-build-validate
       - pascal-build-validate
     runs-on: ubuntu-latest
+    # Skip gracefully if docker-compose and integration tests not present on this branch
+    if: |
+      hashFiles('infra/docker/docker-compose.r0-lde.yml') != '' &&
+      hashFiles('kh-sim/tests/integration/requirements.txt') != ''
 
     # MongoDB service container (for kh-log-service)
     services:

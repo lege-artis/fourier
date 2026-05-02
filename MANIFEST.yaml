@@ -1,49 +1,190 @@
-# MANIFEST.yaml â€” Canonical version ledger + sync anchor
+# MANIFEST.yaml — Canonical version ledger + sync anchor
 # Authority: updated ONLY by sync-main.sh at integration gate
 # Neither device writes this mid-session
-# Merge: .gitattributes â†’ merge=ours (sync-main.sh owns this file)
+# Merge: .gitattributes → merge=ours (sync-main.sh owns this file)
 
 schema_version: "2.0.0"
-last_sync: "2026-03-28T00:00:00Z"
-last_sync_commit: "pending-push"
-synced_by: "CoWork session ThinkPad 2026-03-28 (GEN-012 done, infra versions corrected)"
+last_sync: "2026-05-02T00:00:00+02:00"
+last_sync_commit: "bb49dc9"   # macbook branch — session 2026-05-02 close
+synced_by: "MacBook / CoWork session 2026-05-02 (all 3 themes deployed; BUG-024 fixed via TFE; MI-M-T-D08 MacBook schemas done)"
 
-# â”€â”€ Live deployed versions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Live deployed versions ───────────────────────────────────────────────────
 live_versions:
-  zemla:       "v1.6.2"
-  mim2000:     "v1.5.5"
-  bodyterapie: "v1.1.5"
+  zemla:       "v1.7.5"   # deployed 2026-05-02 by user via WP Admin Upload — seed page template (page-seed.php + CSS + meta box)
+  mim2000:     "v1.9.1"   # deployed 2026-05-02 by user via WP Admin Upload — dual-layer SVG, azure symbols, Ω↔0 swap
+                           #   BUG-024 fixed 2026-05-02 via TFE: page-contacts.php New Perspective URL corrected
+  bodyterapie: "v1.7.1"   # deployed 2026-05-02 by user via WP Admin Upload — dual-layer SVG (sandstone-tri + brushstone-tri), azure symbols, fp-corner-nav
 
-# â”€â”€ Hotfix track â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Active pending releases (status: pending/artifact-ready) ─────────────────
 pending_releases:
+
+  - tag: "v1.7.4"
+    site: zemla
+    type: hotfix
+    tracks: [BUG-019, BUG-020, BUG-021, HOTFIX-ZP-003, HOTFIX-ZP-004]
+    status: live
+    zip: "3-fold-path/theme-archives/zemla-theme-v1.7.4.zip"
+    note: "ZIP built 2026-04-26. HOTFIX-ZP-004: removed inline <script> initPlayer block from single-zemla_episode.php (was creating Audio #2 before engine fired, bypassing double-init guard). Added .zp-skip/.zp-speed CSS. Root cause of all persistent player symptoms — two audio elements on same wrapper. Apply via WP Admin → Themes → Upload."
+    upload_task: GH-UPL-09
+
+# ── Release history (live deployed + superseded — kept for audit trail) ───────
+release_history:
+  - tag: "v1.7.2"
+    site: zemla
+    type: patch
+    tracks: [ZEMLA-V172-APPLY, COMP-ZP-01]
+    status: live
+    note: "Deployed 2026-04-26 by user via WP Admin Upload. COMP-ZP-01 partial: removed zemla_inline_podcast_engine() v1 function + add_action + remove_action de-register + HOTFIX-ZP-001 scaffolding. Only zemla_inline_podcast_engine_v2() registered. File-hygiene only — no functional change. 10666 → 10401 lines."
+    upload_task: GH-UPL-08   # blocked until 2026-05-01
+
+  - tag: "v1.7.1"
+    site: zemla
+    type: hotfix
+    tracks: [HOTFIX-ZP-002]
+    status: superseded
+    superseded_by: "v1.7.2"
+    note: "Deployed 2026-04-25 by user via WP Admin Upload. Fixes: (b) speed drift at 1x — intendedRate var + ratechange guard + loadedmetadata assertion. (c) skip restart — isFinite guard on currentTime. Design: single-row horizontal player layout, currentTime/duration display."
+    upload_task: GH-UPL-07   # blocked until 2026-05-01
+
+  - tag: "v1.7.0"
+    site: zemla
+    type: patch
+    tracks: [CC-005, CC-006]
+    status: live
+    note: "Deployed 2026-04-25 by user via WP Admin Upload. CC-005: 19 _e() translation keys (ADR-04 PASS). CC-006: 5 ZEMLA_SLUG_* constants + 5 hard-coded slug refs removed."
+    upload_task: GH-UPL-06   # blocked until 2026-05-01
+
+  - tag: "v1.3.0"
+    site: bodyterapie
+    type: feature-release
+    tracks: [THEMEPORT-03, ARCH-05]
+    status: live
+    note: "Deployed 2026-04-25 by user via WP Admin Upload. ARCH-05 constants live (LinkedIn, 4 nav slugs, bth_lang cookie). GAL-D01 CSS preemptive patch applied."
+    upload_task: GH-UPL-05   # blocked until 2026-05-01
+
+  - tag: "v1.6.9"
+    site: zemla
+    type: release
+    tracks: [Z-15, Z-16, CONT-02, CONT-03, HOTFIX-ZP-001, BUG-003, BUG-004, BUG-018]
+    status: live
+    note: "Built + deployed 2026-04-24. Closes BUG-003/BUG-004 (podcast CPT/player), BUG-018 (player regression HOTFIX-ZP-001). CC-001..004 translations corrected."
+    upload_task: GH-UPL-04   # blocked until 2026-05-01
+
+  - tag: "v1.6.0"
+    site: mim2000
+    type: release
+    tracks: [THEMEPORT-02, ARCH-05, A-01]
+    status: live
+    note: "Deployed 2026-04-24 via Monsta FTP JS. LinkedIn URL patched live."
+    upload_task: GH-UPL-05   # blocked until 2026-05-01
+
+  - tag: "v1.6.6"
+    site: zemla
+    type: feature-release
+    tracks: [Z-11, Z-12, Z-13, Z-14, A-01, A-02, A-03, ARCH, REL]
+    status: superseded
+    superseded_by: "v1.6.9"
+    note: "Base for v1.6.9 build. Was live 2026-04-01 → 2026-04-24."
+    upload_task: GH-UPL-01   # blocked until 2026-05-01
+
   - tag: "v1.6.3"
     site: zemla
     type: hotfix
     tracks: GAL-D01
-    status: prepared
+    status: superseded
+    superseded_by: "v1.6.6"
+    note: "GAL-D01 fix absorbed into v1.6.6."
     release_note: "3-fold-path/releases/RELEASE-zemla-v1.6.3-HOTFIX-GAL-D01.md"
 
   - tag: "v1.5.6"
     site: mim2000
     type: hotfix
     tracks: GAL-D01
-    status: prepared
+    status: superseded
+    superseded_by: "v1.6.0"
+    note: "Deferred fixes delivered in v1.6.0 via THEMEPORT-02."
     release_note: "3-fold-path/releases/RELEASE-mim2000-v1.5.6-HOTFIX-GAL-D01.md"
+
+  - tag: "v1.2.0"
+    site: bodyterapie
+    type: release
+    tracks: []
+    status: live
+    note: "Base for v1.3.0 build. Live until v1.3.0 applied."
 
   - tag: "v1.1.6"
     site: bodyterapie
     type: hotfix
     tracks: GAL-D01
-    status: prepared
+    status: superseded
+    superseded_by: "v1.3.0"
+    note: "Absorbed into v1.3.0 via THEMEPORT-03."
     release_note: "3-fold-path/releases/RELEASE-bodyterapie-v1.1.6-HOTFIX-GAL-D01.md"
 
-# â”€â”€ Device fingerprints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── MI-M-T strategic context ─────────────────────────────────────────────────
+mi_m_t:
+  full_name: "MI-M-T — Methodology for Integrated Manual Testing"
+  status: "prototype — interface contracts defined (2026-04-26)"
+  spec: "3-fold-path/backlog/MI-M-T-POC-PROPOSAL.md"
+
+  positioning: |
+    MI-M-T is a standalone testing methodology solution built on its own
+    infrastructure (databases + connectors). It is designed to coexist with
+    JIRA / Atlassian stack and Postman — not replace them. The value proposition
+    is stronger, richer handling of testing artefacts: structured test object
+    model (bugs.yaml + testcases.yaml + testruns/), traceability chains,
+    severity×priority matrices, component-scoped evidence, and reproducible
+    testrun reports. These capabilities motivate using MI-M-T in parallel with
+    an existing JIRA instance rather than abandoning either tool.
+
+  coexistence_model:
+    principle: "JIRA owns issue tracking and project structure; MI-M-T owns test design and execution evidence."
+    sync_direction: "full bidirectional"
+    sync_cost_goal: "cheap — sync should be a single CLI call or automated webhook trigger, not a manual data-entry task"
+    entity_authority:
+      issues_bugs:      "bidirectional — JIRA owns metadata (assignee, fix-version, labels); MI-M-T owns test steps, expected/actual, evidence paths"
+      epics_sprints:    "import from JIRA — JIRA is authoritative for project structure; MI-M-T maps to components and testrun batches"
+      test_cases:       "MI-M-T primary — test design lives in testcases.yaml; JIRA/Zephyr gets a read-only pushed copy"
+      attachments:      "bidirectional — evidence produced in MI-M-T (screenshots, logs) can be pushed to JIRA attachments"
+    conflict_resolution: "last-write-wins per field; MI-M-T fields (test steps, expected results, evidence) always authoritative on MI-M-T side; JIRA fields (status, assignee, fix-version) always authoritative on JIRA side"
+
+  ecosystem_interfaces:
+    jira:
+      contract: "3-fold-path/backlog/MI-M-T-D03-JIRA-CONTRACT.md"
+      api: "JIRA Cloud REST API v3"
+      auth: "Basic (email + API token) or OAuth 2.0 three-legged"
+      entities: [issues, subtasks, epics, sprints, test_cases_zephyr, attachments, comments]
+      migration_sources: [jira_cloud, azure_devops]
+      task: MI-M-T-D03
+    postman:
+      contract: "3-fold-path/backlog/MI-M-T-D04-POSTMAN-CONTRACT.md"
+      api: "Postman API v10 + Newman CLI"
+      entities: [collections, environments, test_results]
+      task: MI-M-T-D04
+
+  migration_path: |
+    When a team wants to move from JIRA Cloud or Azure DevOps to MI-M-T as primary:
+    1. Run mi-m-t sync --import --source jira|ado  (pulls all issues, epics, test artefacts)
+    2. MI-M-T maps incoming entities to bugs.yaml + testcases.yaml schema
+    3. Historical runs imported as closed testruns with source: jira|ado tag
+    4. JIRA instance can remain active in read-only / archive mode
+    5. Ongoing sync cost: webhook-triggered delta sync on issue change events
+
+  motivation_for_parallel_use:
+    - "Structured test steps with explicit expected/actual fields — JIRA issues rarely enforce this"
+    - "Severity × priority matrix with triage CLI — faster daily QA prioritisation"
+    - "Component-scoped testrun reports exportable to MkDocs — living test documentation"
+    - "Traceability chains: bug → testcase → testrun → evidence file — end-to-end audit trail"
+    - "Cheap sync means no duplication penalty — work in MI-M-T, JIRA stays current automatically"
+    - "Migration safety net — full data portability means no vendor lock-in"
+
+# ── Device fingerprints ──────────────────────────────────────────────────────
 devices:
   MacBook:
     ssh_key: "SHA256:J7xkMdGfpsTbw7tCNrnAMc0yfOnm/O4QRrT+4l+1MPQ"
     branch: macbook
-    last_commit: "1d29cf2"
-    last_active: "2026-03-22"
+    last_commit: "pending-commit"   # sessions 2026-04-17 + 2026-04-24/25 + 2026-04-25 delta apply — commit pending GH-UPL
+    last_active: "2026-04-25"
 
   ThinkPad:
     ssh_key: "SHA256:QNK7SjXgk6NVg4+v83bpMIoMmNge7GFjD6bhd1BVO24"
@@ -51,22 +192,22 @@ devices:
     last_commit: "8ceff7f"
     last_active: "2026-03-22"
 
-# â”€â”€ Task registry integrity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Task registry integrity ──────────────────────────────────────────────────
 task_registry:
   source: "TASKS-shared.yaml"
   schema_version: "2.0.0"
-  task_count: 72
+  task_count: 162   # +73 ThinkPad tasks (KH-*, PINN-*, DASH-*, DIAG-*, GR-*, HK-*, LDE-*, SOLV-*, SYMB-*, WEB-*, MI-M-T-D03/04/05, GEN-013-015) + CC-005, CC-006 (2026-04-25 ThinkPad delta merge)
   integrity_check: "pytest _tests/test_task_integrity.py"
-  last_integrity_run: "2026-03-22"
-  last_integrity_result: "pending-first-run"
+  last_integrity_run: "2026-04-24"
+  last_integrity_result: "24/24 passed"   # re-run required after merge
 
-# â”€â”€ Infrastructure stack versions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Infrastructure stack versions ────────────────────────────────────────────
 infra_stack:
   elasticsearch: "8.13.0"
   kibana: "8.13.0"
   fluent_bit: "3.0"
   tensorflow_serving: "latest"
-  postgresql: "17"        # PG17 installed 2026-03-26, PG16 service also retained
-  mongodb: "8"            # MongoDB 8.2.6 upgraded 2026-03-26
+  postgresql: "16"
+  mongodb: "7"
   node: "lts"
   python: "3.11"
