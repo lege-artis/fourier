@@ -85,7 +85,7 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | Deliverable | Version | Status |
 |------------|---------|--------|
 | mi_m_t/ FastAPI package | D-08 | **DONE** — SMK9 20/20 PASS (2026-04-30). 40 routes, SQLAlchemy 2.x async. |
-| D-09 portability pass | — | PENDING (ThinkPad) — delta: `_config/thinkpad-delta-D08-2026-04-30.tar.gz` |
+| D-09 portability pass | — | **DONE** — MySQL 8: 29/29 + 20/20 PASS. PostgreSQL 14: 29/29 + 20/20 PASS (2026-05-02). |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -273,19 +273,17 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ---
 
-## § HANDOFF BLOCK — 2026-05-01
-**Last session:** 2026-05-01  
-**Closed because:** GH-UPL batch complete; all available zips on GitHub Releases; session fully closed  
+## § HANDOFF BLOCK — 2026-05-02
+**Last session:** 2026-05-02  
+**Closed because:** D-09 portability pass complete — MySQL 8 + PG 14 both 20/20 PASS  
 **Restart reads:** CLAUDE.md → SESSION-LIFECYCLE-SOP.md → MANIFEST.yaml → queue-macbook.yaml  
-**SMK9:** 20/20 PASS (2026-05-01, SQLite) — pydantic-settings now installed in sandbox  
-**MI-M-T-SLUG-FIX:** VERIFIED DONE — page_id=176 slug=mi-m-t, link=mim2000.cz/projects/mi-m-t/  
-**GH-UPL-09:** DONE — zemla-theme-v1.7.4.zip uploaded 2026-05-01. **v1.7.4 = live dev baseline.**  
-**GH-UPL-04/06/07:** DEFERRED — intermediate zips not in local archive; v1.7.4 supersedes  
-**GH-UPL-05/08/10:** DONE — bodyterapie-v1.3.0, zemla-v1.7.2, zemla-v1.7.3 uploaded 2026-05-01. All available zips now on GitHub Releases.  
-**Deltas ready:** `_config/thinkpad-delta-D08-2026-04-30.tar.gz` (109K) + `_config/macbook-delta-2026-04-27.tar.gz` (87K, rebuilt) — both awaiting ThinkPad transfer  
-**KB:** LL-ENV-001..004 added (PowerShell curl, gh PATH, index.lock, pydantic-settings)  
-**Next session first task:** Phase 2 smoke gate, then ThinkPad delta transfer → D-09  
-**Do NOT start:** D-09 (ThinkPad only), any GH push (save tokens for D-09 push)
+**D-09:** DONE — MySQL 8: 29/29 migrations + SMK9 20/20 PASS. PG 14: 29/29 + 20/20 PASS.  
+**OQ-029..034:** All resolved. See SESSION-NOTES.md §D-09 for full changelog.  
+**KB:** LL-ENV-005..009 added (PowerShell env vars, PG port 5433, asyncpg lastrowid, boolean=1, IDENTITY sequences)  
+**TASKS-shared:** MI-M-T-D09 → done (completed: 2026-05-02)  
+**Commit pending:** `thinkpad` branch — D-09 changes (6 files + seed repair). Push when ready.  
+**Next session first task:** git commit + push `thinkpad` branch with D-09 changes, then assess D-10+ or project close.  
+**Do NOT start:** any new feature work before commit is pushed
 
 ---
 
