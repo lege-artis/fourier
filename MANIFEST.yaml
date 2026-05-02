@@ -4,18 +4,16 @@
 # Merge: .gitattributes → merge=ours (sync-main.sh owns this file)
 
 schema_version: "2.0.0"
-last_sync: "2026-05-01T21:00:00+02:00"
-last_sync_commit: "1364eb8"   # macbook branch force-pushed 2026-05-01 — GH-UPL batch complete
-synced_by: "MacBook / CoWork session 2026-05-01 (GH-UPL-05/08/09/10 done; all available zips on GitHub Releases; v1.7.4 live dev baseline)"
+last_sync: "2026-05-02T00:00:00+02:00"
+last_sync_commit: "bb49dc9"   # macbook branch — session 2026-05-02 close
+synced_by: "MacBook / CoWork session 2026-05-02 (all 3 themes deployed; BUG-024 fixed via TFE; MI-M-T-D08 MacBook schemas done)"
 
 # ── Live deployed versions ───────────────────────────────────────────────────
 live_versions:
-  zemla:       "v1.7.4"   # deployed 2026-04-26 — HOTFIX-ZP-004: dual-init root cause fixed (template inline script removed)
-  mim2000:     "v1.6.0"   # deployed 2026-04-24 via Monsta FTP JS (style.css + functions.php)
-                           #   LinkedIn URL: petr-zemla-75ab675 applied live
-                           #   CEO blog BUG-009/010/011 fixed via WP Admin 2026-04-17
-  bodyterapie: "v1.3.0"   # deployed 2026-04-25 by user via WP Admin Upload
-                           #   Includes: v1.2.0 base + ARCH-05 config constants + GAL-D01 CSS preemptive patch
+  zemla:       "v1.7.5"   # deployed 2026-05-02 by user via WP Admin Upload — seed page template (page-seed.php + CSS + meta box)
+  mim2000:     "v1.9.1"   # deployed 2026-05-02 by user via WP Admin Upload — dual-layer SVG, azure symbols, Ω↔0 swap
+                           #   BUG-024 fixed 2026-05-02 via TFE: page-contacts.php New Perspective URL corrected
+  bodyterapie: "v1.7.1"   # deployed 2026-05-02 by user via WP Admin Upload — dual-layer SVG (sandstone-tri + brushstone-tri), azure symbols, fp-corner-nav
 
 # ── Active pending releases (status: pending/artifact-ready) ─────────────────
 pending_releases:
