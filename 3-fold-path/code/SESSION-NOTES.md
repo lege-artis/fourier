@@ -770,3 +770,106 @@ chore: session 2026-05-01 close — GH-UPL-05/08/10 done, all available zips on 
 Pre-flight: transfer `_config/thinkpad-delta-D08-2026-04-30.tar.gz` + `_config/macbook-delta-2026-04-27.tar.gz` to ThinkPad.
 Then: `bash _config/THINKPAD-APPLY-D08.md` → run SMK9 against MySQL + PostgreSQL engines.
 MacBook: no pending feature work. GH token budget conserved for D-09 push.
+
+---
+
+## D-09 — Portability pass: MySQL 8 + PostgreSQL 14
+
+**Captured:** 2026-05-02  
+**Device:** ThinkPad (CoWork / Claude Sonnet 4.6)  
+**Engines verified:** SQLite (D-08 baseline) · MySQL 8 · PostgreSQL 14
+
+### Result
+
+| Engine | Migrations | SMK9 |
+|--------|-----------|------|
+| SQLite | 20/20 (D-08) | 20/20 PASS (D-08) |
+| MySQL 8 | 29/29 APPLIED | 20/20 PASS |
+| PostgreSQL 14 | 29/29 APPLIED | 20/20 PASS |
+
+**D-09 complete. All three engines green.**
+
+### Infrastructure
+
+- Docker Compose: `docker-compose.mimt-d09.yml` — `mimt-mysql8` (3306) + `mimt-postgres14` (5433, remapped from 5432 to avoid native Windows PG 17 conflict)
+- Migration runner: `migrations/runner.py` (custom token substitution, SHA-256 drift detection, idempotent)
+- Smoke suite: `mi_m_t/smoke_test.py` (httpx ASGITransport, 20 tests, `--db-driver` + env vars)
+
+### Open Questions resolved (OQ series)
+
+| OQ | Title | Fix |
+|----|-------|-----|
+| OQ-029 | `applied_at` must be naive datetime (not ISO string with Z) | `record_migration()` uses `datetime.now(timezone.utc).replace(tzinfo=None)` |
+| OQ-030 | `{{BOOL_TRUE}}` portability | Token table: `1` for sqlite/mysql, `TRUE` for postgres |
+| OQ-031 | PostgreSQL IDENTITY sequences don't advance on explicit-ID seed inserts | `reset_pg_identity_sequences()` in `runner.py` — queries `information_schema`, calls `setval(pg_get_serial_sequence(table, 'id'), COALESCE(MAX(id), 1))` after seed migrations complete. COALESCE floor = 1 (PG sequences minimum). |
+| OQ-032 | ORM type mismatch: `last_run_date` was `String(30)`, DDL is `TIMESTAMP` | `models/test_case.py`: `Mapped[Optional[datetime]] = mapped_column(DateTime)` |
+| OQ-033 | `asyncpg` cursor has no `lastrowid` attribute | `services/test_cases.py`: follow-up `SELECT id FROM test_case_phases WHERE test_case_id=:tc_id AND phase_type=:pt ORDER BY id DESC LIMIT 1` within same transaction |
+| OQ-034 | PostgreSQL rejects `is_active = 1` for BOOLEAN column | `services/transitions.py:72`, `routers/state_machine.py:31,55`: `= 1` → `= true` |
+
+### File changelog
+
+| File | Change | OQ |
+|------|--------|----|
+| `migrations/runner.py` | Added `reset_pg_identity_sequences()`; `COALESCE(...,0)→1`; call after pg migration block | OQ-031 |
+| `migrations/runner.py` | `record_migration()` naive UTC datetime | OQ-029 |
+| `migrations/runner.py` | `{{BOOL_TRUE}}` token: `1`/`1`/`TRUE` | OQ-030 |
+| `migrations/100_seed_reference_data.sql` | Reconstructed truncated tail (external_system codes 110–112) | — |
+| `mi_m_t/models/test_case.py` | `last_run_date`: `String(30)` → `Mapped[Optional[datetime]] / DateTime` | OQ-032 |
+| `mi_m_t/services/test_cases.py` | `_insert_phase()`: removed `result.lastrowid`; follow-up SELECT id | OQ-033 |
+| `mi_m_t/services/transitions.py` | `is_active = 1` → `is_active = true` | OQ-034 |
+| `mi_m_t/routers/state_machine.py` | `is_active = 1` → `is_active = true` (×2) | OQ-034 |
+
+### PowerShell invocation note (OQ-ENV-001)
+
+`KEY=value cmd` syntax is bash-only. PowerShell requires `$env:KEY="value"` assignments chained with `;` before the command. The `--db-url` monkeypatch in `smoke_test.py` fires after module import, so DB params must be injected via env vars which pydantic-settings reads at `Settings()` instantiation:
+
+```powershell
+$env:DB_DRIVER="postgres"; $env:DB_HOST="127.0.0.1"; $env:DB_PORT="5433"; $env:DB_NAME="mimt_dev"; $env:DB_USER="postgres"; $env:DB_PASS="postgres"; python smoke_test.py --db-driver postgres
+```
+
+### Root causes resolved in sequence (PostgreSQL)
+
+1. **`applied_at` MySQL DATETIME rejects ISO-8601 Z suffix** — naive UTC datetime fix in `record_migration()`.
+2. **`value_list_items.is_active = 1` fails on PG BOOLEAN** — `{{BOOL_TRUE}}` token = `TRUE` for postgres.
+3. **Seed file truncated** — `100_seed_reference_data.sql` truncated at `(106, 10, 'TE', 'Test` by prior regex pass; tail reconstructed from `102_seed_integration_demo.sql`.
+4. **`setval(0)` out of bounds** — PG identity sequences have minimum 1; `COALESCE(MAX(id), 0)` → `COALESCE(MAX(id), 1)`.
+5. **`column "last_run_date" is of type timestamp but expression is of type character varying`** — ORM `String(30)` vs DDL `TIMESTAMP`. Fix: `DateTime` mapped column.
+6. **`asyncpg cursor has no attribute lastrowid`** — asyncpg does not implement DBAPI `lastrowid`. Fix: follow-up SELECT within same transaction.
+7. **`operator does not exist: boolean = integer`** — `is_active = 1` in raw SQL rejected by PG strict type system. Fix: `= true` literal. Affected: `transitions.py` + `state_machine.py` (×2).
+
+### D-09 commit message
+
+```
+feat(python): D-09 — portability pass complete, MySQL8 + PG14 SMK9 20/20 PASS
+
+All three engines verified:
+  SQLite:      SMK9 20/20 PASS (D-08 baseline)
+  MySQL 8:     migrations 29/29 APPLIED, SMK9 20/20 PASS
+  PostgreSQL 14: migrations 29/29 APPLIED, SMK9 20/20 PASS
+
+Portability fixes:
+  OQ-029: applied_at naive UTC datetime (MySQL rejects 'Z' suffix)
+  OQ-030: {{BOOL_TRUE}} token — 1 for sqlite/mysql, TRUE for postgres
+  OQ-031: reset_pg_identity_sequences() after seed — COALESCE floor = 1
+  OQ-032: TestCase.last_run_date String(30) → DateTime (PG type mismatch)
+  OQ-033: asyncpg has no lastrowid — SELECT id follow-up in same txn
+  OQ-034: is_active = 1 → is_active = true (PG rejects int for BOOLEAN)
+
+Files changed:
+  migrations/runner.py
+  migrations/100_seed_reference_data.sql (truncation repair)
+  mi_m_t/models/test_case.py
+  mi_m_t/services/test_cases.py
+  mi_m_t/services/transitions.py
+  mi_m_t/routers/state_machine.py
+
+Refs: OQ-029..034, ARCH-SPEC §7 (portability matrix)
+```
+
+---
+
+## Next session opens here
+
+**D-10+ or project close — TBD.**  
+All three engine targets satisfied. MI-M-T Python layer fully portable.  
+ThinkPad branch `thinkpad` ready to push (save tokens for this push).
