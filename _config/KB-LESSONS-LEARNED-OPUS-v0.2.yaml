@@ -1,0 +1,763 @@
+# KB-LESSONS-LEARNED.yaml
+# VibeCodeProjects — Cross-Project Knowledge Base
+# Schema version: 1.0.0
+# Mandatory Claude read at session start (add to CLAUDE.md load order)
+# Incrementally built: each project closing phase appends entries.
+# Machine-readable primary format; human-readable secondary.
+# Presentation can be generated on demand from this file.
+#
+# Load order instruction for CLAUDE.md:
+#   12. _config/KB-LESSONS-LEARNED.yaml   — cross-project KB (mandatory)
+
+schema_version: "1.0.0"
+created: "2026-04-25"
+last_updated: "2026-05-02"
+owner: "petr.yamyang@gmail.com"
+description: >
+  Incremental cross-project knowledge base for VibeCodeProjects.
+  Read by Claude as mandatory context at every session start.
+  Each lesson entry captures a confirmed problem/solution pair,
+  tagged by domain and project. How-to references point to
+  reusable procedure files in _config/.
+  New lessons are appended at project closing via PROJECT-CLOSING-HOWTO.md.
+
+# ── HOWTO INDEX ─────────────────────────────────────────────────────────────
+howtos:
+  - id: HOWTO-CLOSING-001
+    path: _config/PROJECT-CLOSING-HOWTO.md
+    title: Project Closing Procedure
+    scope: all_projects
+    summary: >
+      Artifact triage (keep/archive/delete), KB update, final package
+      assembly, compression rules, cleanup execution checklist.
+
+  - id: HOWTO-SYNC-001
+    path: _config/SYNC-BYPASS-MACBOOK-TO-THINKPAD.md
+    title: Cross-device sync without GitHub tokens
+    scope: MacBook_ThinkPad
+    summary: >
+      Three methods: git bundle, tar archive, LAN SSH.
+      Use during GitHub token freeze periods.
+
+  - id: HOWTO-SESSION-001
+    path: _config/SESSION-HANDOFF.md
+    title: Session handoff state management
+    scope: all_projects
+    summary: >
+      Task state, R0 gate status, next priorities.
+      Read first at every session start.
+
+# ── LESSONS ─────────────────────────────────────────────────────────────────
+lessons:
+
+  # ── PPTX GENERATION (pptxgenjs) ──────────────────────────────────────────
+
+  - id: LL-PPTX-001
+    project: pavel-50
+    domain: pptx_generation
+    tags: [pptx, pptxgenjs, fonts, linux, libreoffice]
+    title: "Font Impact unavailable in LibreOffice Linux — use Liberation Sans"
+    problem: >
+      pptxgenjs script uses fontFace:"Impact". LibreOffice headless on Linux
+      does not have Impact installed. Falls back to a symbol/dingbat font,
+      rendering all text as garbage glyphs.
+    solution: >
+      Substitute fontFace:"Liberation Sans" (available on all tested Linux/Ubuntu
+      environments). If Impact is required on Windows/Mac render targets only,
+      document the font dependency explicitly. Always run visual QA via
+      LibreOffice headless on the build machine before declaring output valid.
+    applies_to: [pptx_generation, visual_qa]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  - id: LL-PPTX-002
+    project: pavel-50
+    domain: pptx_generation
+    tags: [pptx, pptxgenjs, text_overflow, layout]
+    title: "Text overflow from font size: iterate down with position adjustment"
+    problem: >
+      Long Czech title "ZKOUŠKA PROJEKCE A ZVUKU" (25 chars) at 54pt wraps to
+      two lines, overlapping the subtitle below. Reducing to 44pt still wrapped.
+      Final fix required 36pt.
+    solution: >
+      For titles with uncertain length: start at 36pt bold for Liberation Sans.
+      Adjust y-position and h together after each font-size change.
+      General rule: for 20+ char uppercase titles in a 9" wide box,
+      use 36pt max with h:0.9 and y:0.5.
+      Always verify with LibreOffice render before signing off.
+    applies_to: [pptx_generation, layout]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  - id: LL-PPTX-003
+    project: pavel-50
+    domain: pptx_generation
+    tags: [pptx, pptxgenjs, pitfalls, colors, shadows]
+    title: "pptxgenjs critical pitfalls: colors, shadows, object reuse"
+    problem: >
+      Three silent failure modes corrupt output files:
+      (1) Hex colors with "#" prefix corrupt the file silently.
+      (2) Shadow opacity encoded in 8-char hex (e.g. "00000020") corrupts file.
+      (3) Reusing the same options object across multiple addShape/addText
+          calls — pptxgenjs mutates objects in-place (converts to EMU units),
+          second call receives already-converted values.
+    solution: >
+      (1) NEVER use "#" in hex colors: color:"FF0000" not color:"#FF0000".
+      (2) NEVER encode opacity in color string: use opacity:0.12 property.
+      (3) ALWAYS create fresh option objects: use factory functions
+          e.g. const makeShadow = () => ({ type:"outer", blur:6, ... }).
+      See pptxgenjs.md §Common Pitfalls for full list.
+    applies_to: [pptx_generation]
+    confidence: confirmed
+    date: "2026-04-25"
+    ref: _config/skills/pptx/pptxgenjs.md
+
+  - id: LL-PPTX-004
+    project: pavel-50
+    domain: pptx_generation
+    tags: [pptx, ooxml, audio, injection, python]
+    title: "OOXML audio injection: ZIP manipulation pattern for background audio"
+    problem: >
+      pptxgenjs has no API for embedded background audio (play-across-slides).
+      Required direct OOXML ZIP manipulation.
+    solution: >
+      Python pattern using zipfile + lxml:
+      (1) Add audio file as ppt/media/audio_bg.mp3 to the ZIP.
+      (2) Add relationship to slide1.xml.rels:
+          Type=".../relationships/audio", Target="../media/audio_bg.mp3"
+      (3) Inject <p:pic> with <a:audioFile r:link="{rId}"/> in slide1 spTree.
+      (4) Inject <p:timing> with <p:audio numSld="0"> for play-across-slides,
+          delay="0" for auto-start on open.
+      (5) Add Override ContentType="audio/mpeg" to [Content_Types].xml.
+      (6) Use tmp=/tmp/work.pptx for intermediate file — output dir may
+          not allow in-place writes (PermissionError if same dir used).
+      Reference script: pavel-50/_config/inject_audio_test.py
+    applies_to: [pptx_generation, ooxml]
+    confidence: confirmed
+    date: "2026-04-25"
+    ref: pavel-50/_config/inject_audio_test.py
+
+  - id: LL-PPTX-005
+    project: pavel-50
+    domain: pptx_generation
+    tags: [pptx, video, ffmpeg, loop]
+    title: "PPTX-to-video loop: ffmpeg concat + audio overlay pattern"
+    problem: >
+      Need a seamlessly looping MP4 from a set of slide JPEGs with background
+      music. Standard slideshow export loses control over timing and audio.
+    solution: >
+      ffmpeg concat pattern:
+      (1) Generate concat list: "file 'slide-NN.jpg'\nduration 4.7" per slide.
+      (2) ffmpeg -f concat -i concat_list.txt -vf "scale=1920:1080,fps=25"
+          -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p loop_silent.mp4
+      (3) Overlay audio: ffmpeg -i loop_silent.mp4 -i music.mp3
+          -c:v copy -c:a aac -b:a 192k -shortest -map 0:v:0 -map 1:a:0
+          loop_sound.mp4
+      Total duration = slide_count × per_slide_duration.
+      Reference: pavel-50/scripts/build_loop.sh
+    applies_to: [pptx_generation, video_production]
+    confidence: confirmed
+    date: "2026-04-25"
+    ref: pavel-50/scripts/build_loop.sh
+
+  # ── BEAMER / LaTeX ────────────────────────────────────────────────────────
+
+  - id: LL-BEAMER-001
+    project: pavel-50
+    domain: beamer_latex
+    tags: [beamer, latex, pdf, slides, cross_platform]
+    title: "Beamer PDF from JPEG slides: relative paths for cross-platform rebuild"
+    problem: >
+      Beamer .tex source compiled on Linux (absolute paths) fails on Windows
+      (TeXstudio). PDF rebuild required without changing source.
+    solution: >
+      Use relative paths in .tex: \includegraphics{slides-v5/slide-NN.jpg}
+      Compile from the presentation/ directory: cd output/presentation && pdflatex file.tex
+      The slides-v5/ folder must be a sibling of the .tex file.
+      Keep slides-v5/ JPEG set compressed in archive as source dependency.
+      LibreOffice soffice.py converts PPTX→PDF headless for fallback.
+    applies_to: [beamer_latex, cross_platform]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  # ── VISUAL QA ─────────────────────────────────────────────────────────────
+
+  - id: LL-QA-001
+    project: pavel-50
+    domain: visual_qa
+    tags: [qa, libreoffice, pptx, pdf, render]
+    title: "LibreOffice headless QA pipeline: PPTX → PDF → JPEG"
+    problem: >
+      pptxgenjs output cannot be visually verified without rendering.
+      Need headless pipeline on Linux build machine.
+    solution: >
+      Standard 4-command pipeline:
+      (1) python scripts/office/soffice.py --headless --convert-to pdf output.pptx
+      (2) rm -f slide-*.jpg
+      (3) pdftoppm -jpeg -r 120 output.pdf slide
+      (4) ls -1 "$PWD"/slide-*.jpg
+      Pass absolute paths to image viewer. r=120 for QA (r=150 for production review).
+      pdftoppm zero-pads based on page count: slide-1.jpg (<10 pages),
+      slide-01.jpg (10-99), slide-001.jpg (100+).
+      Re-run all 4 commands after any fix — PDF must be regenerated.
+    applies_to: [visual_qa, pptx_generation, beamer_latex]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  # ── PROJECT MANAGEMENT ────────────────────────────────────────────────────
+
+  - id: LL-PM-001
+    project: pavel-50
+    domain: project_management
+    tags: [tasks, yaml, schema, cross_device, merge]
+    title: "TASKS-shared.yaml cross-device schema drift: valid_statuses"
+    problem: >
+      After semantic merge of MacBook + ThinkPad TASKS-shared.yaml, integrity
+      gate failed: ThinkPad used status "deferred" not present in MacBook
+      valid_statuses list. merge-tasks.py unions task IDs but does NOT union
+      valid_statuses from both schemas.
+    solution: >
+      After every cross-device merge run:
+      (1) Run test_task_integrity.py immediately.
+      (2) If failures: diff valid_statuses between source files.
+      (3) Patch valid_statuses to be the union of both sets.
+      (4) Re-run integrity check (must be 24/24 PASS before proceeding).
+      Add "deferred" to the canonical valid_statuses list going forward.
+    applies_to: [project_management, tasks]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  - id: LL-PM-002
+    project: pavel-50
+    domain: project_management
+    tags: [github, tokens, sync, dual_device]
+    title: "GitHub token freeze: tar bundle + Google Drive dual-device sync"
+    problem: >
+      GitHub token budget frozen (phase 1: zero tokens until 2026-05-01).
+      Cross-device sync needed for ThinkPad↔MacBook without git push.
+    solution: >
+      Three-method hierarchy:
+      (1) tar -czf delta-DEVICE-DATE.tar.gz <file_list> → Google Drive upload
+      (2) Git bundle: git bundle create device.bundle --branches → transfer
+      (3) LAN SSH: rsync -avz --progress source/ user@device:/path/
+      Code-only delta (no media): separate -CODE.tar.gz archive (~253KB vs 193MB).
+      Document: _config/SYNC-BYPASS-MACBOOK-TO-THINKPAD.md
+    applies_to: [project_management, devops]
+    confidence: confirmed
+    date: "2026-04-25"
+    ref: _config/SYNC-BYPASS-MACBOOK-TO-THINKPAD.md
+
+  - id: LL-PM-003
+    project: pavel-50
+    domain: project_management
+    tags: [event, staging, delivery, phases]
+    title: "Event-day staging folder convention: PHASE + FALLBACK + REF"
+    problem: >
+      Multiple presentation formats (PPTX manual, PPTX auto, MP4, PDF)
+      needed at event. No clear naming made venue setup error-prone.
+    solution: >
+      Canonical event-day/ folder structure:
+        PHASE1-{description}-manual.pptx    — click-advance, primary performer use
+        PHASE2-{description}-loop-silent.pptx — auto-advance, party loop, no audio
+        PHASE3-{description}-loop-SOUND.mp4 — video with embedded audio, VLC/any player
+        FALLBACK-beamer-NN slides.pdf        — software-independent fallback
+        REF-{description}-with-sound.pptx   — reference copy with embedded audio
+      Keep all PHASE files under 35MB. REF files may be larger.
+      Include test-package/ alongside: AV check PPTX + audio file.
+    applies_to: [project_management, event_delivery]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  - id: LL-PM-004
+    project: pavel-50
+    domain: project_management
+    tags: [cleanup, storage, experimental_versions]
+    title: "Delete experimental PPTX versions immediately after final approval"
+    problem: >
+      Project accumulated 14+ experimental PPTX variants (A/B/C, Exp1-3, kiosk)
+      totalling ~900MB. All superseded by v5byDVA final. Disk bloat.
+    solution: >
+      Closing rule: once a final version is client-approved and tagged,
+      delete ALL experimental/iteration versions in the same session.
+      Keep only: final approved variants + original inputs + build scripts.
+      For PPTX: experimental versions offer no recovery value once approved
+      master exists — they are derivable from inputs + scripts.
+      Apply threshold: any PPTX > 30MB that is NOT a final delivery = DELETE.
+    applies_to: [project_management, cleanup]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  - id: LL-PM-005
+    project: pavel-50
+    domain: project_management
+    tags: [av_test, presentation, soundcheck, venue]
+    title: "AV test presentation: 5-slide structure for venue soundcheck"
+    problem: >
+      No standard AV test slide deck existed. Each event required ad-hoc
+      improvised test materials.
+    solution: >
+      Canonical 5-slide AV test PPTX structure (generic, no client branding):
+        Slide 1: Title + tech spec (resolution, aspect ratio, audio spec)
+                 Optional: corner registration marks (L-marks in corners)
+        Slide 2: Color calibration bars (R/G/B/W/Gray/Black) + grayscale ramp
+        Slide 3: Content reference (text left, white-on-white + black-on-black right)
+        Slide 4: Audio status (♪ symbol + "AUDIO IS PLAYING" + spec box)
+        Slide 5: Checklist (5 items: projection, audio, colors, aspect, corners)
+      Variants: with-T (corner marks) for edge verification,
+                noT (clean) for general use.
+      Template files: Zkouska-platno-a-zvuk.pptx, Zkouska-platno-a-zvuk-noT.pptx
+      Audio inject script: _config/inject_audio_test.py
+    applies_to: [event_delivery, pptx_generation, av_test]
+    confidence: confirmed
+    date: "2026-04-25"
+    ref: _config/build_test_pptx.js
+
+  # ── DEVOPS / TOOLCHAIN ────────────────────────────────────────────────────
+
+  - id: LL-DEV-001
+    project: pavel-50
+    domain: devops
+    tags: [python, pip, tmp, permissions]
+    title: "Python tmp file: use /tmp/ not output dir for intermediate files"
+    problem: >
+      inject_audio.py used tmp = out_pptx + ".work" — output directory
+      returned PermissionError on write for intermediate ZIP copy.
+    solution: >
+      Always use /tmp/ for intermediate/scratch files in Python scripts:
+        tmp = "/tmp/{script_name}_work.{ext}"
+      Output directories may have restricted permissions in sandboxed
+      or mounted environments. /tmp/ is always writable.
+    applies_to: [devops, python_scripting]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  - id: LL-DEV-002
+    project: pavel-50
+    domain: devops
+    tags: [ffmpeg, local_build, binary_management]
+    title: "Local ffmpeg build: document binary location, do not store in repo"
+    problem: >
+      ffmpeg-8.1/ local build (150MB+) stored in project directory. Rebuilt
+      locally for libx264 support not available in system packages.
+    solution: >
+      Local binary builds go in project directory during build phase only.
+      At project close: delete the build directory (reinstallable from source).
+      Document the build command in scripts or README for reproducibility.
+      For standard installs: apt/brew install ffmpeg suffices for most tasks.
+      Local build only required for: custom codec support, static linking,
+      non-standard platform targets.
+    applies_to: [devops, build_management]
+    confidence: confirmed
+    date: "2026-04-25"
+
+  - id: LL-ENV-001
+    project: 3-fold-path
+    domain: devops
+    tags: [powershell, windows, curl, rest_api]
+    title: "PowerShell: curl aliases to Invoke-WebRequest — use curl.exe for POSIX-style REST calls"
+    problem: >
+      bash-style curl commands (curl -s -u -X DELETE etc.) fail in PowerShell with
+      'Parameter cannot be processed because the parameter name u is ambiguous'.
+      PowerShell has a built-in alias curl → Invoke-WebRequest with different syntax.
+    solution: >
+      Use curl.exe (the actual Windows binary, shipped with Win10/11) instead of curl.
+      Use double-quoted strings instead of single-quoted. Escape inner JSON quotes with \".
+      Single-line commands only — PowerShell line continuation is backtick, not backslash.
+    applies_to: [powershell, windows, rest_api, wordpress_api]
+    confidence: confirmed
+    date: "2026-05-01"
+
+  - id: LL-ENV-002
+    project: 3-fold-path
+    domain: devops
+    tags: [powershell, windows, git_bash, gh_cli, PATH]
+    title: "gh CLI visible in PowerShell but not in Git Bash — run gh directly from PowerShell"
+    problem: >
+      gh CLI is on the Windows PATH and works in PowerShell. bash scripts that call gh
+      fail with 'command not found' when run via Git Bash / bash -c, because Git Bash
+      uses its own PATH that does not include the Windows gh install location.
+    solution: >
+      Run gh release create / gh release upload commands directly in PowerShell, not
+      wrapped in bash scripts. Alternatively, inject the gh path into bash:
+        $ghPath = Split-Path (Get-Command gh).Source
+      and pass it via $env:PATH before calling bash. PowerShell direct approach is simpler.
+    applies_to: [powershell, windows, gh_cli, github_releases]
+    confidence: confirmed
+    date: "2026-05-01"
+
+  - id: LL-ENV-003
+    project: vibeCodeProjects
+    domain: devops
+    tags: [git, windows, lock_file, index_lock]
+    title: "Stale .git/index.lock blocks all git ops — remove manually"
+    problem: >
+      git add / git commit fails with 'Unable to create .git/index.lock: File exists'
+      after a crashed git process (editor, CoWork session interrupt, etc.).
+    solution: >
+      Remove-Item "C:\path\to\repo\.git\index.lock"
+      Safe to delete when no git process is actively running. Always verify with
+      Get-Process | Where-Object { $_.Name -like "*git*" } before removing.
+    applies_to: [git, windows, devops]
+    confidence: confirmed
+    date: "2026-05-01"
+
+  - id: LL-ENV-004
+    project: 3-fold-path
+    domain: python
+    tags: [python, pydantic, sandbox, pip, mi_m_t]
+    title: "pydantic-settings not installed by default in CoWork sandbox — install explicitly"
+    problem: >
+      mi_m_t/config.py imports pydantic_settings.BaseSettings. CoWork sandbox has
+      pydantic core but not pydantic-settings as a separate package. SMK9 fails at
+      import with ModuleNotFoundError: No module named 'pydantic_settings'.
+    solution: >
+      pip install pydantic-settings --break-system-packages
+      Add to sandbox bootstrap or requirements-sandbox.txt. Also needed:
+      sqlalchemy, aiosqlite, httpx, fastapi, uvicorn.
+    applies_to: [python, mi_m_t, sandbox_setup]
+    confidence: confirmed
+    date: "2026-05-01"
+
+  - id: LL-ENV-005
+    project: 3-fold-path
+    domain: devops
+    tags: [powershell, windows, env_vars, python, pydantic_settings]
+    title: "PowerShell: inline env var syntax KEY=value is bash-only — use $env:KEY='value'; chain"
+    problem: >
+      bash-style `KEY=value python script.py` fails in PowerShell with
+      'The term KEY=value is not recognized as the name of a cmdlet'.
+      Additionally, --db-url monkeypatching in smoke_test.py fires after module import,
+      so db.py already created the engine using the default URL before the patch runs.
+    solution: >
+      Use $env:KEY="value" assignments chained with semicolons before the python call:
+        $env:DB_DRIVER="postgres"; $env:DB_HOST="127.0.0.1"; $env:DB_PORT="5433";
+        $env:DB_NAME="mimt_dev"; $env:DB_USER="postgres"; $env:DB_PASS="postgres";
+        python smoke_test.py --db-driver postgres
+      pydantic-settings reads env vars at Settings() instantiation (module import),
+      so env vars set before import take effect. The --db-url approach only works
+      if the engine is created lazily (not at module level).
+    applies_to: [powershell, windows, mi_m_t, python]
+    confidence: confirmed
+    date: "2026-05-02"
+
+  - id: LL-ENV-006
+    project: 3-fold-path
+    domain: devops
+    tags: [docker, postgres, windows, port_conflict, pg17]
+    title: "Windows native PostgreSQL 17 owns port 5432 — remap Docker PG14 to 5433"
+    problem: >
+      Windows ThinkPad has native PostgreSQL 17 installed on port 5432.
+      Docker container mimt-postgres14 cannot bind 5432 (already in use).
+    solution: >
+      In docker-compose.mimt-d09.yml, map host port 5433 → container port 5432:
+        ports: ["5433:5432"]
+      Always use 5433 for ThinkPad PostgreSQL 14 Docker connections.
+      runner.py DEFAULT_URLS["postgres"] must use port 5433.
+      smoke_test.py: inject DB_PORT=5433 via PowerShell env var (see LL-ENV-005).
+    applies_to: [docker, postgres, windows, mi_m_t]
+    confidence: confirmed
+    date: "2026-05-02"
+
+  - id: LL-ENV-007
+    project: 3-fold-path
+    domain: python
+    tags: [asyncpg, sqlalchemy, postgres, lastrowid, mi_m_t]
+    title: "asyncpg cursor has no lastrowid — use follow-up SELECT id within same transaction"
+    problem: >
+      After INSERT INTO test_case_phases, code used result.lastrowid to get the new PK.
+      asyncpg raises: AttributeError: 'AsyncAdapt_asyncpg_cursor' object has no attribute 'lastrowid'.
+      This is a DBAPI 2.0 attribute not implemented by asyncpg.
+    solution: >
+      Within the same open transaction, execute a follow-up SELECT:
+        SELECT id FROM test_case_phases
+        WHERE test_case_id = :tc_id AND phase_type = :pt
+        ORDER BY id DESC LIMIT 1
+      (test_case_id, phase_type) is unique per test case, so the result is exact.
+      This pattern is portable across MySQL / PostgreSQL / SQLite.
+      OQ-033. See mi_m_t/services/test_cases.py _insert_phase().
+    applies_to: [asyncpg, sqlalchemy, postgres, mi_m_t]
+    confidence: confirmed
+    date: "2026-05-02"
+
+  - id: LL-ENV-008
+    project: 3-fold-path
+    domain: python
+    tags: [postgres, sqlalchemy, boolean, raw_sql, mi_m_t]
+    title: "PostgreSQL rejects integer literal for BOOLEAN column in raw SQL — use 'true' literal"
+    problem: >
+      Raw SQL `AND is_active = 1` raises in PostgreSQL:
+      asyncpg.exceptions.UndefinedFunctionError: operator does not exist: boolean = integer
+      HINT: No operator matches the given name and argument types.
+      MySQL and SQLite silently coerce 1 → TRUE. PostgreSQL has a strict type system.
+    solution: >
+      Replace `= 1` with `= true` (lowercase accepted by PG, MySQL, SQLite).
+      Affected files in mi_m_t: services/transitions.py, routers/state_machine.py (×2).
+      Audit pattern: grep -rn 'is_\w\+ *= *[01]' mi_m_t/ --include='*.py'
+      OQ-034.
+    applies_to: [postgres, sqlalchemy, raw_sql, mi_m_t]
+    confidence: confirmed
+    date: "2026-05-02"
+
+  - id: LL-ENV-009
+    project: 3-fold-path
+    domain: python
+    tags: [postgres, sqlalchemy, identity_sequence, seed_data, mi_m_t]
+    title: "PostgreSQL IDENTITY sequences don't advance on explicit-ID seed inserts — call setval() after seeding"
+    problem: >
+      GENERATED BY DEFAULT AS IDENTITY sequences are NOT advanced when rows are
+      inserted with explicit PK values (as seed migrations do with id=1,2,...).
+      The next API INSERT without an explicit id collides with seed row id=1,
+      raising: duplicate key value violates unique constraint "projects_pkey".
+      MySQL AUTO_INCREMENT self-heals. SQLite has no sequences. PG does not.
+      COALESCE floor must be 1, not 0: PG sequences have minimum value 1;
+      setval(seq, 0) raises 'value 0 is out of bounds for sequence'.
+    solution: >
+      After all migrations apply, run reset_pg_identity_sequences() in runner.py:
+        SELECT table_name FROM information_schema.columns
+        WHERE column_name = 'id' AND table_schema = 'public'
+          AND identity_generation IS NOT NULL
+        → for each table: setval(pg_get_serial_sequence(table, 'id'),
+                                  COALESCE((SELECT MAX(id) FROM table), 1))
+      Call in a separate engine.begin() block after run_migrations() completes.
+      OQ-031. See migrations/runner.py reset_pg_identity_sequences().
+    applies_to: [postgres, sqlalchemy, migrations, seed_data, mi_m_t]
+    confidence: confirmed
+    date: "2026-05-02"
+
+# ── TEMPLATES ───────────────────────────────────────────────────────────────
+# Reusable structures derived from confirmed lessons. Reference for generation.
+templates:
+
+  - id: TMPL-PPTX-AVTEST-001
+    title: "AV Test Presentation — 5-slide punk/dark theme"
+    derived_from: [LL-PM-005, LL-PPTX-001, LL-PPTX-002]
+    palette:
+      background: "0A0A0A"
+      accent: "CC1100"
+      primary_text: "F5F5F5"
+      secondary_text: "888888"
+      highlight: "F5C800"
+    font:
+      title: "Liberation Sans"
+      body: "Arial"
+      title_size_pt: 36
+      subtitle_size_pt: 20
+      body_size_pt: 13
+    slide_count: 5
+    source_scripts:
+      - _config/build_test_pptx.js       # with corner marks
+      - _config/build_test_pptx_noT.js   # clean variant
+      - _config/inject_audio_test.py     # audio injection
+    files:
+      - Zkouska-platno-a-zvuk.pptx
+      - Zkouska-platno-a-zvuk-noT.pptx
+      - Zkouska-platno-a-zvuk-sound.pptx
+
+  - id: TMPL-EVENTDAY-001
+    title: "Event-day staging folder convention"
+    derived_from: [LL-PM-003]
+    structure:
+      - "event-day/PHASE1-{desc}-manual.pptx"
+      - "event-day/PHASE2-{desc}-loop-silent.pptx"
+      - "event-day/PHASE3-{desc}-loop-SOUND.mp4"
+      - "event-day/FALLBACK-beamer-{N}slides.pdf"
+      - "event-day/REF-{desc}-with-sound.pptx"
+      - "test-package/Zkouska-platno-a-zvuk.pptx"
+      - "test-package/Zkouska-platno-a-zvuk-noT.pptx"
+      - "test-package/Zkouska-platno-a-zvuk-sound.pptx"
+      - "test-package/{audio_file}.mp3"
+
+# ── ARTIFACT TRIAGE RULES ───────────────────────────────────────────────────
+# Derived from project experience. Used by PROJECT-CLOSING-HOWTO.md
+triage_rules:
+
+  - id: TRIAGE-001
+    rule: "Delete experimental PPTX > 30MB once final approved"
+    rationale: "Derivable from inputs + scripts. No recovery value post-approval."
+    exception: "Keep if explicitly tagged as approved variant."
+
+  - id: TRIAGE-002
+    rule: "Delete LaTeX auxiliary files (.aux .log .nav .out .snm .toc)"
+    rationale: "Generated on every pdflatex run. No content value."
+
+  - id: TRIAGE-003
+    rule: "Delete .tmp_* and .concat_list.txt ffmpeg scratch files"
+    rationale: "Build intermediates. Regenerated by build_loop.sh."
+
+  - id: TRIAGE-004
+    rule: "Compress JPEG source sets (slides-v5/) into .tar.gz archive"
+    rationale: "Needed for Beamer rebuild. Individual files not needed day-to-day."
+
+  - id: TRIAGE-005
+    rule: "Delete local binary builds (ffmpeg/, node_modules/ from project dirs)"
+    rationale: "Reinstallable. Document build command instead."
+
+  - id: TRIAGE-006
+    rule: "Keep all original input files (ZIP, DOCX, MP3, video) indefinitely"
+    rationale: "Irreplaceable source material. Cannot be regenerated."
+
+  - id: TRIAGE-007
+    rule: "Keep build scripts (*.sh, *.py, *.js) as project knowledge"
+    rationale: "Scripts encode workflow logic. Move to _config/ at close."
+
+  - id: TRIAGE-008
+    rule: "Compress mid-importance preview/render outputs into single archive"
+    rationale: "Not needed daily but useful for portfolio/reference."
+
+# ── Python / dev tooling ──────────────────────────────────────────────────────
+python_dev:
+
+  - id: PYDEV-001
+    rule: "After editing a .py file via Windows path (Edit tool), touch it from Linux shell before running"
+    rationale: |
+      The CoWork sandbox mounts the Windows filesystem via FUSE. When a file is edited through
+      the Windows path (Edit tool), the Linux-side mtime may not update. Python uses mtime embedded
+      in .pyc to decide whether to recompile; if .pyc mtime > .py mtime, the stale cache is used
+      silently. Fix: run 'touch /sessions/.../mnt/path/to/file.py' immediately after editing.
+    symptoms:
+      - Edit tool reports success but code change has no effect at runtime
+      - .pyc mtime is newer than .py mtime (check with 'ls -la __pycache__/*.pyc' vs the .py)
+      - inspect.getsource() raises OSError (getsource resolves .pyc, not .py)
+    fix: "touch <linux_mount_path>/<file>.py  # forces mtime update → Python recompiles"
+    discovered: "2026-04-26 — MI-M-T-D03 FilterSpec filter bug; single failing assertion masked by stale JiraAdapter pyc"
+
+  - id: PYDEV-002
+    rule: "Cannot delete .pyc files from __pycache__ in the Linux sandbox (EPERM)"
+    rationale: |
+      __pycache__/*.pyc files created under the Windows NTFS mount are not deletable from the
+      Linux sandbox (Operation not permitted). Use 'touch' on the .py source instead of trying
+      to clear the cache.
+    fix: "touch <file>.py  — do not attempt rm on .pyc files"
+    discovered: "2026-04-26 — attempted 'find ... -name *.pyc -delete' returned EPERM on all cache files"
+
+- id: KB-030
+  date: 2026-04-30
+  project: mi-m-t
+  component: python-fastapi
+  category: sqlalchemy
+  title: "SQLAlchemy 2.x autobegin: session.begin() must be first op on session"
+  symptom: "InvalidRequestError raised at async with session.begin() when a prior SELECT or execute() on the same session already triggered autobegin."
+  root_cause: |
+    SQLAlchemy 2.x AsyncSession uses autobegin=True by default. Any database
+    operation (SELECT, execute) on the session starts an implicit autobegin
+    transaction. Calling session.begin() after autobegin is active raises
+    InvalidRequestError: "A transaction is already begun on this Session."
+    Typical pattern: router does svc.get(id) for 404 check, then calls a
+    write service method that wraps DML in async with db.begin() — FAIL.
+  fix: |
+    Two patterns, never mix within the same session instance:
+    (A) FIRST-OP pattern: async with db.begin() is only valid as the FIRST
+        operation on a fresh session (create() methods where no SELECT precedes).
+    (B) AUTOBEGIN pattern: after any SELECT on the session, execute all DML
+        directly (no begin() wrapper). get_db dependency commits the autobegin
+        transaction at request boundary via await session.commit().
+    For write methods that need a prior existence check, either:
+      - Do the SELECT inside the begin() block before any DML, OR
+      - Remove the pre-check from the router and rely on FK constraints, OR
+      - Use self.db.execute(text(...)) without a begin() wrapper.
+  prevention: |
+    Document the rule in all service docstrings.
+    Code review gate: any async with db.begin() call must have no prior
+    db.execute() or ORM query on the same session instance in the same request.
+  references:
+    - 3-fold-path/code/mi_m_t/mi_m_t/services/test_runs.py
+    - 3-fold-path/code/SESSION-NOTES.md (D-08 section)
+  tags: [sqlalchemy, async, transaction, autobegin, fastapi, python]
+
+- id: KB-031
+  date: 2026-04-30
+  project: mi-m-t
+  component: python-fastapi
+  category: httpx
+  title: "httpx >= 0.23: use ASGITransport instead of app= keyword arg"
+  symptom: "TypeError: AsyncClient.__init__() got an unexpected keyword argument 'app'"
+  root_cause: "httpx 0.23+ removed the app= shortcut for ASGI apps; the API changed to transport=httpx.ASGITransport(app=app)."
+  fix: "async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url=...) as c:"
+  prevention: "Use transport= pattern in all in-process FastAPI test harnesses."
+  tags: [httpx, asgi, testing, fastapi]
+
+- id: KB-032
+  date: 2026-04-30
+  project: mi-m-t
+  component: python-fastapi
+  category: smoke-test
+  title: "Smoke test idempotency: use timestamped item codes to avoid UNIQUE constraint replay"
+  symptom: "IntegrityError: UNIQUE constraint failed on re-run of smoke test against persistent DB."
+  root_cause: "Smoke test used static item codes (SMK9, TT-S9-001, etc.). Second run hits UNIQUE(project_id, item_code)."
+  fix: "Suffix all item codes with a timestamp tag: RUN_TAG = datetime.utcnow().strftime('%H%M%S')."
+  prevention: "Any smoke/integration test that writes to a persistent DB must use unique-per-run identifiers."
+  tags: [testing, smoke-test, sqlite, unique-constraint]
+
+- id: KB-033
+  date: 2026-04-30
+  project: meta
+  component: session-lifecycle
+  category: workflow
+  title: "Session lifecycle SOP — 5-phase mandatory gate between Claude sessions"
+  description: |
+    Established SESSION-LIFECYCLE-SOP.md as the canonical workflow:
+    Phase 1: GitHub session restart (critical revision gate — read HANDOFF BLOCK, audit commits, check MANIFEST)
+    Phase 2: Daily automated smoke test + email notification (MI-M-T + WP ping) — FAIL blocks feature work
+    Phase 3: MacBook sync + GitHub artifact push (TASKS-shared, MANIFEST, queue-macbook, CLAUDE.md, commit+push)
+    Phase 4: Session artifact review, SESSION-NOTES close section, KB update, cleanup
+    Phase 5: Prepare Claude version update restart — HANDOFF BLOCK in CLAUDE.md, freeze state, commit
+  rationale: |
+    Sessions were accumulating undocumented state and stale registry files.
+    Without a mandatory gate, new sessions started from incorrect state (wrong versions,
+    stale CURRENT STATE block, uncommitted artifacts). The 5-phase SOP enforces clean
+    handoff between sessions and Claude version updates.
+  artifacts:
+    - _config/SESSION-LIFECYCLE-SOP.md
+    - _config/SESSION-RESTART-CHECKLIST.md
+    - _config/daily-smoke-runner.sh
+  tags: [session, lifecycle, sop, workflow, restart, smoke-test]
+
+- id: KB-034
+  date: 2026-05-02
+  project: meta
+  component: git-workflow
+  category: workflow
+  title: "ThinkPad force-pushed macbook branch — authority violation pattern"
+  description: |
+    During 2026-05-02 session, ThinkPad force-pushed origin/macbook
+    (+ 2eb73f3...1364eb8 forced update). This reverted queue-macbook.yaml
+    to a prior state, erasing the Session 2026-05-02 done entries and the
+    DESIGN-BT-01/DESIGN-MIM-01/MI-M-T-D08 pending block.
+    The macbook branch is MacBook authority per .gitattributes (merge=ours on
+    queue-macbook.yaml). Force-push from ThinkPad bypasses this entirely.
+    Subsequent git pull --rebase surfaced conflicts in ci-heartbeat.yml and
+    App.css (both devices independently fixed the same bugs). Resolved by
+    taking ThinkPad's superior fixes (sbt/setup-sbt@v1, fpc without -o flag).
+  root_cause: "ThinkPad has push rights to macbook branch — no branch protection rule enforced."
+  fix: |
+    1. Restored queue-macbook.yaml to correct state manually post-rebase.
+    2. Added note to meta.current_session documenting the violation.
+    3. Recommendation: add branch protection rule on GitHub — require PR or
+       restrict direct push to macbook branch to MacBook identity only.
+  prevention: |
+    - Enable GitHub branch protection: Settings → Branches → Add rule → macbook
+      → "Restrict pushes that create matching branches" (or require PR review)
+    - ThinkPad should push to thinkpad branch only; cross-branch merges via PR.
+    - .gitattributes merge=ours is a merge strategy hint, not a push guard.
+  tags: [git, branch-protection, authority, force-push, macbook, thinkpad, workflow]
+
+- id: KB-035
+  date: 2026-05-02
+  project: meta
+  component: ci
+  category: toolchain
+  title: "CI concurrent conflict pattern — two devices independently fix same CI failures"
+  description: |
+    MacBook and ThinkPad both diagnosed and fixed the same ci-heartbeat.yml failures
+    in the same session (2026-05-02), producing conflicting commits:
+    - Scala SBT: MacBook added apt GPG repo manually; ThinkPad used sbt/setup-sbt@v1 action.
+    - Pascal fpc: MacBook added -o hello_test flag; ThinkPad omitted -o entirely.
+    - App.css: both created the file independently.
+    ThinkPad's fixes were architecturally superior in both cases.
+  resolution: "Took ThinkPad's version for all three conflicts during git rebase."
+  lesson: |
+    When two devices are active simultaneously on the same CI workflow file,
+    coordinate via TASKS-shared.yaml before both starting diagnosis. The first
+    device to commit should note the fix in the task registry so the second
+    device skips duplicate work.
+  tags: [ci, conflict, concurrent-edit, scala, pascal, react, workflow]

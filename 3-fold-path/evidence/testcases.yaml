@@ -1,0 +1,448 @@
+schema_version: "2.0.0"
+# testcases.yaml — MI-M-T PoC manual test suite
+# Seeded:  2026-04-16 (MI-M-T-P03)
+# Updated: 2026-04-17 — TC-001/TC-002 verified; CPT slug corrected; TC-006 expected updated
+#          2026-04-24 — TC-009/010/011 added (BUG-018 podcast player regression)
+#          2026-05-03 — v2 migration (PoC-01): test_target_ref + requirement_ref added per
+#                       MI-M-T-D08-TDD-SPEC.md §8 mapping table (extended for actual IDs)
+# Coverage: all severity-A bugs + key severity-B bugs
+# Convention: TC-0xx = zemla, TC-1xx = mim2000, TC-2xx = bodyterapie, TC-9xx = cross-site
+#
+# v2 schema delta (per D08-TDD-SPEC §3.3):
+#   test_target_ref: TT-NNN   — links case to scoped test surface (test-targets.yaml)
+#   requirement_ref: REQ-NNN  — links case to acceptance criterion (requirements.yaml)
+#   Both fields REQUIRED in v2; triage.py --orphan-cases must return 0 results.
+#
+# TT-016..TT-019 and REQ-018..REQ-024 extend the D08-TDD-SPEC §7/§6 seed to cover
+# the 18 actual TCs (vs the 15 assumed in the spec's mapping table).
+
+testcases:
+
+  # ──────────────────────────────────────────
+  # zemla.org — Podcast (BUG-003, BUG-004)
+  # ──────────────────────────────────────────
+
+  - id: TC-001
+    title: "Podcast episode single: featured image renders at correct size"
+    type: manual
+    component: podcast
+    site: [zemla]
+    test_target_ref: TT-006
+    requirement_ref: REQ-008
+    precondition: "At least one zemla_episode post exists with featured image (CPT slug: zemla_episode — NOT podcast_episode)"
+    status: verified
+    last_verified: "2026-04-17"
+    verified_in: "v1.6.7"
+    steps:
+      - action: "Navigate to a podcast episode single page (e.g. /podcast/suche-kosti-ep00/)"
+        expected: "Page loads without errors"
+      - action: "Inspect the featured image element"
+        expected: "Image renders at max 200×200 px, floated right alongside episode title; title text wraps left"
+      - action: "Check image is not full-width or oversized"
+        expected: "Image does not exceed 200px width; no layout overflow"
+      - action: "Inspect .zp-player position"
+        expected: "Player starts below the float (clearfix working) — not alongside cover art"
+      - action: "Resize to 375px mobile"
+        expected: "Cover stacks full-width above content (float cancelled by media query)"
+    severity_if_fail: A
+    verifies_bugs: [BUG-003]
+    traces_to: [Z-15]
+    automated_script: ~
+
+  - id: TC-002
+    title: "Podcast episode single: custom audio player present with controls"
+    type: manual
+    component: podcast
+    site: [zemla]
+    test_target_ref: TT-005
+    requirement_ref: REQ-005
+    precondition: "zemla_episode post has audio file attached (data-src on .zp-player)"
+    status: verified
+    last_verified: "2026-04-17"
+    verified_in: "v1.6.8"
+    steps:
+      - action: "Navigate to a podcast episode single page"
+        expected: "Custom .zp-player visible (NOT native HTML5 <audio controls>)"
+      - action: "Check duration displayed at rest before play"
+        expected: "Duration shows correct total time (e.g. '48:28'), not '0:00'"
+      - action: "Click play button"
+        expected: "Icon changes to pause; audio plays"
+      - action: "Check player has speed control"
+        expected: "Speed button cycles 1× → 1.5× → 2× → 1×; audio rate changes accordingly"
+      - action: "Check skip buttons"
+        expected: "−30s and +30s skip buttons present and seek audio correctly"
+      - action: "Click on progress bar"
+        expected: "Audio seeks to clicked position; fill updates; time display updates"
+      - action: "Open DevTools Console"
+        expected: "Zero JS errors"
+      - action: "Resize to 375px mobile"
+        expected: "Player renders within viewport bounds; no horizontal overflow"
+    severity_if_fail: A
+    verifies_bugs: [BUG-004]
+    traces_to: [Z-16]
+    automated_script: ~
+
+  # ──────────────────────────────────────────
+  # zemla.org — Blog (BUG-005, BUG-006, BUG-007)
+  # ──────────────────────────────────────────
+
+  - id: TC-003
+    title: "Blog posts display correct categories (not 'Uncategorized')"
+    type: manual
+    component: blog
+    site: [zemla]
+    test_target_ref: TT-016
+    requirement_ref: REQ-018
+    precondition: "Blog posts assigned to specific WP categories exist"
+    steps:
+      - action: "Navigate to blog archive or individual blog post"
+        expected: "Category labels display the assigned category name"
+      - action: "Verify no post shows 'Uncategorized' as its category"
+        expected: "All posts show meaningful category names; 'Uncategorized' absent"
+      - action: "Check WP admin → Posts → Categories"
+        expected: "Posts are assigned to correct categories in the database"
+    severity_if_fail: A
+    verifies_bugs: [BUG-005]
+    traces_to: []
+    automated_script: ~
+
+  - id: TC-004
+    title: "Blog: 'New Post' navigates to structured editor (not generic Gutenberg)"
+    type: manual
+    component: blog
+    site: [zemla]
+    test_target_ref: TT-016
+    requirement_ref: REQ-019
+    precondition: "Logged in as admin/editor"
+    steps:
+      - action: "Navigate to blog section, click 'New Post' or WP admin → Posts → Add New"
+        expected: "Editor opens with blog-specific template or structured fields"
+      - action: "Check that post type template pre-populates expected sections"
+        expected: "Editor shows structured layout (title, excerpt, category selector, featured image) not a blank Gutenberg canvas"
+    severity_if_fail: A
+    verifies_bugs: [BUG-006]
+    traces_to: []
+    automated_script: ~
+
+  - id: TC-005
+    title: "Blog post content structure survives edit-save round trip"
+    type: manual
+    component: blog
+    site: [zemla]
+    test_target_ref: TT-016
+    requirement_ref: REQ-020
+    precondition: "Blog post with structured content (headings, lists, embeds) exists"
+    steps:
+      - action: "Open existing structured blog post in WP editor"
+        expected: "All block structure intact — headings, lists, embeds render correctly"
+      - action: "Make a minor edit (add a word), save"
+        expected: "Post saves without error"
+      - action: "View post on frontend"
+        expected: "Content structure matches pre-edit state — no blocks collapsed, reordered, or lost"
+      - action: "Re-open in editor"
+        expected: "Block structure still intact after round trip"
+    severity_if_fail: A
+    verifies_bugs: [BUG-007]
+    traces_to: []
+    automated_script: ~
+
+  # ──────────────────────────────────────────
+  # zemla.org — Podcast archive (BUG-001, BUG-002)
+  # ──────────────────────────────────────────
+
+  - id: TC-006
+    title: "Podcast archive heading displays correct CS label"
+    type: manual
+    component: podcast
+    site: [zemla]
+    test_target_ref: TT-017
+    requirement_ref: REQ-021
+    precondition: "Podcast CPT registered, at least one episode published"
+    steps:
+      - action: "Navigate to /podcast/ archive page with CS locale"
+        expected: "Archive title reads 'Epizody podcastu' — not 'Archivy: Podcast Episodes' (mixed CS+EN)"
+      - action: "Switch to EN locale"
+        expected: "Archive title reads 'Podcast' or 'Podcast Episodes' (fully English)"
+      - action: "Check JA, DE, IT locales"
+        expected: "Each locale shows correctly localised archive heading"
+    severity_if_fail: B
+    verifies_bugs: [BUG-001]
+    traces_to: [CONT-01]
+    automated_script: ~
+
+  - id: TC-007
+    title: "Podcast archive CTA button reads 'K poslechu' in CS locale"
+    type: manual
+    component: podcast
+    site: [zemla]
+    test_target_ref: TT-017
+    requirement_ref: REQ-021
+    precondition: "Podcast archive shows episode cards with CTA link"
+    steps:
+      - action: "Navigate to /podcast/ archive in CS locale"
+        expected: "Each episode card CTA reads 'K poslechu →' (not 'Read →')"
+      - action: "Switch to EN locale"
+        expected: "CTA reads 'Listen →' or 'Read more →'"
+      - action: "Verify JA/DE/IT locale CTAs"
+        expected: "Localised CTA text on all locales"
+    severity_if_fail: B
+    verifies_bugs: [BUG-002]
+    traces_to: [CONT-02]
+    automated_script: ~
+
+  # ──────────────────────────────────────────
+  # zemla.org — Translation accuracy (BUG-008)
+  # ──────────────────────────────────────────
+
+  - id: TC-008
+    title: "zemla.org: 'Hračkové modely' corrected to 'Toy modely' or proper CS term"
+    type: manual
+    component: content
+    site: [zemla]
+    test_target_ref: TT-004
+    requirement_ref: REQ-016
+    precondition: "Physics/models page accessible"
+    steps:
+      - action: "Navigate to zemla.org physics or models page in CS locale"
+        expected: "Page loads"
+      - action: "Search for string 'Hračkové modely'"
+        expected: "String absent — replaced with correct terminology"
+      - action: "Verify replacement term is semantically accurate"
+        expected: "CS term accurately represents 'toy models' in physics context (e.g. 'Toy modely' or 'Zjednodušené modely')"
+    severity_if_fail: B
+    verifies_bugs: [BUG-008]
+    traces_to: [CONT-03]
+    automated_script: ~
+
+  # ──────────────────────────────────────────
+  # zemla.org — Podcast player regression (BUG-018)
+  # ──────────────────────────────────────────
+
+  - id: TC-009
+    title: "Podcast episode: cover art absent from episode page body (not rendered, not stacked)"
+    type: manual
+    component: podcast/template
+    site: [zemla]
+    test_target_ref: TT-006
+    requirement_ref: REQ-008
+    precondition: "zemla_episode post exists with featured image. HOTFIX-ZP-001 applied."
+    steps:
+      - action: "Navigate to a podcast episode single page (e.g. /podcast/suche-kosti-ep00/)"
+        expected: "Page loads without PHP errors"
+      - action: "Inspect the episode page body above the .zp-player"
+        expected: "No featured image visible in body. No grey placeholder, no stacked image art. Image suppressed via CSS display:none on .single-zemla_episode .wp-post-image."
+      - action: "Verify no layout gap or blank space where image used to appear"
+        expected: "Layout flows directly from episode title to player with no empty block"
+      - action: "Inspect via DevTools: .single-zemla_episode .wp-post-image"
+        expected: "Element exists in DOM but has computed display: none"
+    severity_if_fail: B
+    verifies_bugs: [BUG-018]
+    notes: "Tests sub-symptom (a) of BUG-018. Image suppressed by design decision, not floated."
+    automated_script: ~
+
+  - id: TC-010
+    title: "Podcast player: 1× speed plays at real-time rate (no acceleration)"
+    type: manual
+    component: podcast/player
+    site: [zemla]
+    test_target_ref: TT-005
+    requirement_ref: REQ-006
+    precondition: "Episode page loaded. HOTFIX-ZP-001 applied. Audio can be played."
+    steps:
+      - action: "Navigate to a podcast episode page. Start playback."
+        expected: "Audio plays, .zp-time counter begins incrementing"
+      - action: "Note wall-clock time (phone/stopwatch). Play for exactly 30 seconds wall-clock."
+        expected: "Player time counter shows 30 s elapsed (±1 s tolerance)"
+      - action: "Verify speed badge shows '1×'"
+        expected: "Speed badge displays '1×'"
+      - action: "Open DevTools console. Run: document.querySelector('audio').playbackRate"
+        expected: "Returns 1 (not 1.5, 2, or any other value)"
+      - action: "Toggle speed to 1.5× then back to 1×. Repeat timing check for 10 s wall-clock."
+        expected: "After return to 1×, 10 s wall-clock = 10 s player time (±0.5 s)"
+    severity_if_fail: A
+    verifies_bugs: [BUG-018]
+    notes: "Tests sub-symptom (b) of BUG-018. Regression: 1× was playing faster than real-time post v1.6.8."
+    automated_script: ~
+
+  - id: TC-011
+    title: "Podcast player: skip and speed controls do not restart track"
+    type: manual
+    component: podcast/player
+    site: [zemla]
+    test_target_ref: TT-005
+    requirement_ref: REQ-007
+    precondition: "Episode page loaded. HOTFIX-ZP-001 applied. Track has duration > 2 min."
+    steps:
+      - action: "Start playback. Let track play to at least 1:00 (one minute elapsed)."
+        expected: "Player time shows ~1:00"
+      - action: "Click skip-back (−30 s) button."
+        expected: "Player time jumps back 30 s (to ~0:30). Track does NOT restart from 0:00. Playback continues from new position without interruption."
+      - action: "Let track reach 1:30. Click skip-forward (+30 s) button."
+        expected: "Player time jumps forward 30 s (to ~2:00). Track does NOT restart from 0:00. Playback continues from new position."
+      - action: "Let track reach 2:00. Click speed toggle (1× → 1.5×)."
+        expected: "Speed badge changes to '1.5×'. Audio continues from current position at higher rate. Track does NOT restart."
+      - action: "Click speed toggle again (1.5× → 2×), then again (2× → 1×)."
+        expected: "Each toggle changes speed only. No track restart. currentTime preserved across all transitions."
+      - action: "Verify via DevTools: document.querySelector('audio').currentTime after each action"
+        expected: "currentTime reflects expected position (skip ±2 s tolerance, speed toggle 0 s delta)"
+    severity_if_fail: A
+    verifies_bugs: [BUG-018]
+    notes: |
+      Tests sub-symptoms (c) and (d) of BUG-018.
+      Regression: both skip and speed toggle caused track restart from 0:00 post v1.6.8.
+      Root cause suspected: audio.load() or audio.src reset in event handlers.
+    automated_script: ~
+
+  # ──────────────────────────────────────────
+  # mim2000.cz — CEO Blog (BUG-009..012)
+  # ──────────────────────────────────────────
+
+  - id: TC-101
+    title: "YouTube video embedding renders on all mim2000 CEO blog locales"
+    type: manual
+    component: blog
+    site: [mim2000]
+    test_target_ref: TT-007
+    requirement_ref: REQ-009
+    precondition: "CEO blog post with YouTube URL exists"
+    steps:
+      - action: "Navigate to mim2000.cz/ceo-blog/?mim_lang=cs"
+        expected: "YouTube iframe visible and playable"
+      - action: "Navigate to mim2000.cz/ceo-blog/?mim_lang=de"
+        expected: "YouTube iframe visible and playable"
+      - action: "Navigate to mim2000.cz/ceo-blog/?mim_lang=it"
+        expected: "YouTube iframe visible and playable"
+      - action: "Navigate to mim2000.cz/ceo-blog/?mim_lang=en"
+        expected: "YouTube iframe visible and playable"
+    severity_if_fail: B
+    verifies_bugs: [BUG-009, BUG-010, BUG-011]
+    traces_to: []
+    automated_script: ~
+
+  - id: TC-102
+    title: "CEO blog EN: no duplicate References section"
+    type: manual
+    component: blog
+    site: [mim2000]
+    test_target_ref: TT-007
+    requirement_ref: REQ-009
+    precondition: "CEO blog post with References section exists"
+    steps:
+      - action: "Navigate to mim2000.cz/ceo-blog/?mim_lang=en"
+        expected: "Page loads correctly"
+      - action: "Scroll through page, count occurrences of 'References' heading"
+        expected: "Exactly one References section visible — no duplication"
+      - action: "Inspect page source for duplicate heading IDs"
+        expected: "Single #references anchor in DOM"
+    severity_if_fail: B
+    verifies_bugs: [BUG-012]
+    traces_to: []
+    automated_script: ~
+
+  - id: TC-103
+    title: "CEO blog header layout consistent across all locales"
+    type: manual
+    component: blog
+    site: [mim2000]
+    test_target_ref: TT-007
+    requirement_ref: REQ-009
+    precondition: "CEO blog page accessible"
+    steps:
+      - action: "Navigate to CEO blog on each locale (CS, EN, DE, IT, JA)"
+        expected: "Header layout consistent — no overflow, no misaligned elements"
+      - action: "Compare header structure visually across locales"
+        expected: "Same visual hierarchy, same spacing, logo/nav aligned"
+    severity_if_fail: B
+    verifies_bugs: [BUG-013]
+    traces_to: []
+    automated_script: ~
+
+  - id: TC-104
+    title: "CEO blog JA translation quality — no mechanical artifacts"
+    type: manual
+    component: blog
+    site: [mim2000]
+    test_target_ref: TT-007
+    requirement_ref: REQ-009
+    precondition: "CEO blog JA locale accessible, reviewer with JA reading ability"
+    steps:
+      - action: "Navigate to mim2000.cz/ceo-blog/?mim_lang=ja"
+        expected: "Page loads in Japanese"
+      - action: "Read through main content paragraphs"
+        expected: "Natural Japanese phrasing — no obvious machine translation artifacts (word-by-word literal translations, wrong particles, unnatural sentence endings)"
+      - action: "Check section headings"
+        expected: "Headings are concise, natural Japanese (not transliterated English)"
+    severity_if_fail: B
+    verifies_bugs: [BUG-014]
+    traces_to: [CONT-04]
+    automated_script: ~
+
+  # ──────────────────────────────────────────
+  # bodyterapie.com (BUG-015, BUG-016)
+  # ──────────────────────────────────────────
+
+  - id: TC-201
+    title: "bodyterapie.com: blog section exists and is navigable"
+    type: manual
+    component: blog
+    site: [bodyterapie]
+    test_target_ref: TT-018
+    requirement_ref: REQ-022
+    precondition: "bodyterapie.com accessible"
+    steps:
+      - action: "Navigate to bodyterapie.com homepage"
+        expected: "Blog link visible in navigation menu"
+      - action: "Click blog navigation link"
+        expected: "Blog archive page loads with post listings"
+      - action: "Check blog archive has at least one published post"
+        expected: "Posts render with title, date, excerpt — not empty archive"
+    severity_if_fail: A
+    verifies_bugs: [BUG-015]
+    traces_to: []
+    automated_script: ~
+
+  - id: TC-202
+    title: "bodyterapie.com: content editing produces no duplicate blocks"
+    type: manual
+    component: content
+    site: [bodyterapie]
+    test_target_ref: TT-018
+    requirement_ref: REQ-023
+    precondition: "Admin access to bodyterapie.com, page with content exists"
+    steps:
+      - action: "Open any existing page in Gutenberg editor"
+        expected: "Blocks render 1:1 — no duplicated paragraphs or sections"
+      - action: "Make minor edit, save"
+        expected: "No new duplicate blocks created on save"
+      - action: "View page on frontend"
+        expected: "Content appears once — no repeated paragraphs"
+    severity_if_fail: B
+    verifies_bugs: [BUG-016]
+    traces_to: []
+    automated_script: ~
+
+  # ──────────────────────────────────────────
+  # Cross-site (BUG-017)
+  # ──────────────────────────────────────────
+
+  - id: TC-901
+    title: "Cross-site blog organisation consistency check"
+    type: manual
+    component: blog
+    site: [zemla, mim2000, bodyterapie]
+    test_target_ref: TT-019
+    requirement_ref: REQ-024
+    precondition: "All three sites accessible"
+    steps:
+      - action: "Check zemla.org blog section: categories assigned, archive navigable"
+        expected: "Blog archive accessible, posts categorised, no 'Uncategorized' defaults"
+      - action: "Check mim2000.cz CEO blog: structured, embedded media works"
+        expected: "CEO blog posts render correctly with embeds on all locales"
+      - action: "Check bodyterapie.com: blog section exists"
+        expected: "Blog section present in navigation, archive page functional"
+      - action: "Compare blog UX patterns across all three sites"
+        expected: "Consistent patterns: category display, archive layout, CTA wording approach"
+    severity_if_fail: A
+    verifies_bugs: [BUG-017]
+    traces_to: [BUG-005, BUG-009, BUG-015]
+    automated_script: ~

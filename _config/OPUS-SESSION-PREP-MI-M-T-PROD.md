@@ -1,6 +1,6 @@
 # OPUS-SESSION-PREP — MI-M-T First Production + Demo Deployment
-**Version:** v1.0.0  
-**Prepared:** 2026-05-02 | MacBook CoWork session  
+**Version:** v1.1.0  
+**Prepared:** 2026-05-02 | MacBook CoWork session — updated post ThinkPad D-09 close  
 **For:** Opus strategic planning session (cold-start — fully self-contained)  
 **Goal:** Devise solution architecture and delivery plan for MI-M-T first production deployment + live demo on mim2000.cz
 
@@ -33,8 +33,8 @@ All themes share `inc/zemla-config.php` master identity file. Common PHP/CSS bas
 ### 1.3 Dual-Device Workflow
 | Device | Role | Branch | Last commit |
 |--------|------|--------|-------------|
-| MacBook | Analytics · coordination · deliverable authoring | `macbook` | `509fe95` |
-| ThinkPad | Development · testing · MI-M-T coding | `thinkpad` | `8ceff7f` |
+| MacBook | Analytics · coordination · deliverable authoring | `macbook` | `6f9c68a` (remote; local pending rebase) |
+| ThinkPad | Development · testing · MI-M-T coding | `thinkpad` | `de0e98a` (D-09 + T5/T6/T7 closed) |
 
 - Each device owns its branch exclusively; cross-device push is prohibited (KB-034)
 - Sync via physical delta packages (`_config/macbook-delta-*.tar.gz`)
@@ -98,8 +98,10 @@ All themes share `inc/zemla-config.php` master identity file. Common PHP/CSS bas
 
 ### 3.1 What MI-M-T Is
 
-**MI-M-T = Methodology for Integrated Manual Testing.**  
-A custom test management tool designed to be:
+**MI-M-T = Meta Informed/Inferred/Integrated Measurement (which do) Testing.**
+*(Reframed 2026-05-03 — supersedes earlier "Methodology for Integrated Manual Testing". MI-M-T is not a manual-test tool; it is a meta-informed measurement layer whose primary use is testing at every level — manual, scripted, recorded, and LLM-driven. See `_config/OPUS-CYCLE-v0.2-MASTER.md` §1 for full positioning and the three deployment modes.)*
+
+A custom measurement-and-evidence platform designed to be:
 - Hosted on Active24 shared hosting alongside the 3-fold-path sites
 - Backed by MySQL (Active24) with SQLite for local dev
 - Exposed as REST API (PHP thin layer on Active24 MVP; Python FastAPI for ThinkPad LDE)
@@ -152,7 +154,10 @@ ThinkPad Dev Sonnet sessions delivered:
 | D-07 | Opus inception session — 6 artifacts, 8324 lines | **DONE** (MacBook) |
 | D-08 | Python FastAPI package: 40 routes, SQLAlchemy 2.x async. SMK9 20/20 PASS (SQLite) | **DONE** (ThinkPad) |
 | D-08 schemas | requirements.yaml (17 REQs) + test-targets.yaml (15 TTs) — TDD three-tier model | **DONE** (MacBook) |
-| D-09 | Portability pass: env vars externalised, Docker healthcheck, MySQL migration dry-run | **PENDING** (ThinkPad) |
+| D-09 | Portability pass: env vars externalised, Docker healthcheck; MySQL8 29/29 migrations + SMK9 20/20 PASS; PG14 29/29 migrations + SMK9 20/20 PASS. OQ-029..034 resolved (UTC datetime, {{BOOL_TRUE}} token, PG identity reset, DateTime/String(30), asyncpg lastrowid, is_active PG literal). | **DONE** (ThinkPad, 2026-05-02) |
+| T5 | Health endpoint DB probe: `/health` now reports live DB engine (SQLite/MySQL/PG) in response body | **DONE** (ThinkPad, 2026-05-02) |
+| T6 | PHP Route Audit: completeness check Python FastAPI vs PHP thin layer — 5 gap categories found | **DONE** (ThinkPad, 2026-05-02) |
+| T7 | pytest SMK9 suite: `tests/conftest.py` + `tests/test_smk9.py` (20 test functions) replacing smoke_test.py script | **DONE** (ThinkPad, 2026-05-02) |
 
 ### 3.4 TDD Evidence Layer — AS-IS State
 
@@ -237,22 +242,54 @@ The "first production + demo" target means:
 | OQ-010 | Production hosting topology | Scale, secret management | Strategic decision deferred |
 | OQ-020 | Migration runner on Active24 (PHP CLI vs HTTP-admin) | Deployment ergonomics | PHP HTTP runner with shared-secret guard for MVP |
 
-### 4.2 D-09 portability gap (blocking production)
+### 4.2 D-09 portability — RESOLVED (2026-05-02)
 
-The FastAPI package (D-08) was validated on SQLite only. Before Active24 MySQL deployment:
-- MySQL-specific INSERT/ON CONFLICT compatibility needed (D-09 note: `INSERT ... ON CONFLICT DO NOTHING` → MySQL equivalent)
-- Docker healthcheck not yet in place
-- Environment variables not yet externalised (hardcoded connection strings)
+All three DB engines are now green end-to-end:
 
-### 4.3 PHP thin layer not yet implemented
+| Engine | Migrations | SMK9 | Notes |
+|--------|-----------|------|-------|
+| SQLite | 29/29 | 20/20 PASS | D-08 baseline |
+| MySQL 8.0 | 29/29 | 20/20 PASS | D-09 fixed OQ-030, OQ-032, OQ-034 |
+| PostgreSQL 14 | 29/29 | 20/20 PASS | D-09 fixed OQ-029, OQ-031, OQ-033 |
 
-ARCH-SPEC §6 defines the PHP thin layer for Active24. Only Python FastAPI exists (D-08).  
-For a production deploy on Active24 shared hosting, the PHP layer is required unless:
-- Option A: FastAPI deployed elsewhere (VPS/Docker), reverse-proxied from Active24
-- Option B: PHP thin layer implemented (significant new work)
-- Option C: Static SPA calling FastAPI on ThinkPad/VPS (dev/demo only)
+**OQ-029..034 resolutions (documented in SESSION-NOTES.md D-09 section):**
+- OQ-029: Naive UTC datetime — added `timezone.utc` to all `datetime.now()` calls
+- OQ-030: `{{BOOL_TRUE}}` token — migration runner substitution for MySQL `TRUE` literal
+- OQ-031: `reset_pg_identity_sequences()` — PG identity column reset after seed data
+- OQ-032: `DateTime` vs `String(30)` — SQLAlchemy type mapping normalised
+- OQ-033: asyncpg `lastrowid` — replaced with `RETURNING id` pattern for PG
+- OQ-034: `is_active = true` — PG boolean literal fix in value-list queries
 
-**This is the key strategic decision for Opus to resolve.**
+**Environment:** Docker Compose (ThinkPad LDE), env vars externalised to `.env` files, DB_ENGINE switch controls which adapter loads.
+
+### 4.3 PHP thin layer — IMPLEMENTED with gaps (D-07, 2026-04-29)
+
+ARCH-SPEC §6 PHP thin layer is **implemented**: 17 files in `public_html/mi-m-t/`, 31 API + 14 HTML routes per ARCH-SPEC §6. This was delivered in D-07 (2026-04-29) prior to the FastAPI D-08 work.
+
+**T6 PHP Route Audit findings (2026-05-02) — gaps vs Python FastAPI:**
+
+| Gap | Category | Routes affected | Severity |
+|-----|----------|----------------|---------|
+| `/api/v1/projects` | All 5 CRUD routes MISSING from PHP | POST /projects, GET /projects, GET /projects/{id}, PUT /projects/{id}, DELETE /projects/{id} | **HIGH — blocks demo** |
+| `/health` shape divergence | PHP returns `{"status":"ok"}`, Python now returns DB engine info (T5) | 1 route | MEDIUM |
+| `is_active = 1` | PHP uses MySQL `1`; PG portability requires `TRUE` literal or adapter switch | Multiple routes | LOW (MySQL-only deploy OK for MVP) |
+| Test targets | 7 routes all implemented ✓ | — | OK |
+| Test cases + runs | Implemented ✓ | — | OK |
+
+**Strategic implication:** The 5 missing `/api/v1/projects` routes are the primary PHP gap blocking demo-ready state. This is the **key implementation task** for Active24 MVP deployment (not a "new layer" — it's a targeted extension to existing PHP code).
+
+**For Opus to resolve:** Active24 deployment via PHP thin layer is the most viable path (Option A). The gap is bounded (5 routes + /health sync), not a greenfield implementation.
+
+### 4.4 Active24 environment unknowns (pre-flight blockers)
+
+| OQ# | Question | Probe method | Status |
+|-----|----------|-------------|--------|
+| OQ-001 | Active24 MySQL exact version | PHPMyAdmin `SELECT VERSION()` | Open |
+| OQ-002 | Active24 PHP version + extensions | Upload phpinfo() probe script | Open |
+| OQ-006 | Active24 SSH access | Check Active24 control panel plan | Open |
+| OQ-026 | PHP syntax ceiling on Active24 | Can now validate on ThinkPad PHP CLI first | Open (probing available) |
+
+These three OQs must be resolved before running migrations on Active24. ThinkPad can probe OQ-026 locally first as a dry run.
 
 ---
 
@@ -262,15 +299,20 @@ For a production deploy on Active24 shared hosting, the PHP layer is required un
 
 | ID | Priority | Device | Status | Description |
 |----|----------|--------|--------|-------------|
-| MI-M-T-D08-TP | P1 | ThinkPad | PENDING | testcases.yaml v1→v2 migration, triage.py + evidence-report.py updates |
-| MI-M-T-D09 | P1 | ThinkPad | PENDING | Portability pass: env vars, Docker, MySQL migration dry-run |
+| MI-M-T-D09 | P1 | ThinkPad | **DONE** 2026-05-02 | Portability pass: env vars externalised, Docker, MySQL8+PG14 SMK9 20/20 |
+| MI-M-T-T5 | P1 | ThinkPad | **DONE** 2026-05-02 | /health DB probe endpoint — reports live engine in response |
+| MI-M-T-T6 | P1 | ThinkPad | **DONE** 2026-05-02 | PHP Route Audit — gap analysis vs Python FastAPI (5 gaps found) |
+| MI-M-T-T7 | P1 | ThinkPad | **DONE** 2026-05-02 | pytest SMK9 suite (tests/conftest.py + tests/test_smk9.py, 20 functions) |
+| MI-M-T-SMK9-POSTGRES | P1 | ThinkPad | **DONE** 2026-05-02 | SMK9 on PostgreSQL 14 — 20/20 PASS (D-09 scope, REQ-015 satisfied) |
+| MI-M-T-D08-TP | P1 | ThinkPad | PENDING | testcases.yaml v1→v2 migration, triage.py + evidence-report.py updates per TDD-SPEC §8 |
 | MI-M-T-PROD-PLAN | P1 | MacBook/Opus | NEW | **This session's output** — delivery plan for first production deploy |
-| MI-M-T-PHP-LAYER | P1 | ThinkPad | PENDING | PHP thin layer implementation per ARCH-SPEC §6 (Active24 deployment) |
-| MI-M-T-MYSQL-DEPLOY | P1 | ThinkPad | PENDING | Deploy 25-table schema to Active24 MySQL (migration runner) |
+| MI-M-T-PHP-PROJECTS | P1 | ThinkPad | PENDING | Add 5 missing /api/v1/projects CRUD routes to PHP thin layer (T6 gap) |
+| MI-M-T-PHP-HEALTH-SYNC | P2 | ThinkPad | PENDING | Sync /health response shape: PHP → match Python T5 DB probe format |
+| MI-M-T-ACTIVE24-PROBE | P1 | ThinkPad | PENDING | Resolve OQ-001/002/006/026: MySQL version, PHP extensions, SSH, syntax ceiling |
+| MI-M-T-MYSQL-DEPLOY | P1 | ThinkPad | PENDING | Deploy 25-table schema to Active24 MySQL (migration runner after OQ probe) |
 | MI-M-T-DEMO-SEED | P2 | ThinkPad | PENDING | Seed demo project data (200_seed_demo_project.sql) |
 | MI-M-T-UI-MVP | P2 | ThinkPad | PENDING | Minimal read-only UI: project list → test targets → test cases |
-| MI-M-T-SMK9-POSTGRES | P1 | ThinkPad | PENDING | SMK9 on PostgreSQL (REQ-015 requires both SQLite + PG green) |
-| MI-M-T-P06 | P2 | ThinkPad | PENDING | First testrun: mim2000 CEO blog (unblocked after sync) |
+| MI-M-T-P06 | P2 | ThinkPad | PENDING | First testrun: mim2000 CEO blog (unblocked after delta transfer) |
 
 ### 5.2 R3 Release Gate — MI-M-T Initial Release
 
@@ -280,8 +322,12 @@ The R3 milestone requires:
 - [x] MI-M-T-D03 — JIRA interface contract + adapter
 - [x] MI-M-T-D04 — Postman interface contract + adapter
 - [x] MI-M-T-D05 — Prototype page live on mim2000.cz
-- [ ] MI-M-T-PHP-LAYER — PHP thin layer for Active24
-- [ ] MI-M-T-MYSQL-DEPLOY — Schema on Active24 MySQL
+- [x] MI-M-T-D07 — PHP thin layer implemented (17 files, 31 API + 14 HTML routes)
+- [x] MI-M-T-D08 — Python FastAPI (40 routes, SQLite 20/20 PASS)
+- [x] MI-M-T-D09 — Portability pass (MySQL8 20/20 + PG14 20/20 PASS)
+- [ ] MI-M-T-PHP-PROJECTS — 5 missing /projects CRUD routes in PHP
+- [ ] MI-M-T-ACTIVE24-PROBE — OQ-001/002/006/026 environment resolution
+- [ ] MI-M-T-MYSQL-DEPLOY — Schema on Active24 MySQL (25 tables)
 - [ ] MI-M-T-UI-MVP — Minimal usable UI
 
 ### 5.3 Three-Fold-Path Site Track (ongoing)
@@ -327,12 +373,14 @@ The R3 milestone requires:
 This means Opus must resolve:
 
 1. **Architecture decision**: How does MI-M-T run on Active24 shared hosting?
-   - Option A: PHP thin layer on Active24 (as per ARCH-SPEC §6) — most integrated, most work
-   - Option B: Python FastAPI on a cheap VPS (Hetzner/DigitalOcean), reverse-proxied or CORS-opened, called from mim2000.cz frontend
+   - **Option A: PHP thin layer on Active24** (as per ARCH-SPEC §6) — layer already exists; only 5 /projects routes missing + OQ-001/002/006 Active24 env must be resolved. **Most viable for MVP.**
+   - Option B: Python FastAPI on a cheap VPS (Hetzner/DigitalOcean), reverse-proxied or CORS-opened, called from mim2000.cz frontend — requires VPS provisioning, HTTPS config, ongoing cost
    - Option C: Hybrid — PHP handles auth + DB on Active24, FastAPI handles complex queries on VPS
    - Option D: Static SPA on mim2000.cz calling FastAPI on ThinkPad (dev/demo only, not production)
+   
+   **Bias going in:** Option A is significantly more attainable than when originally analysed. PHP thin layer is implemented (D-07); 5 missing routes is bounded, estimable work. Remaining blocker is Active24 environment probe (OQ-001/002/006).
 
-2. **Phase plan**: What are the milestones from current state (D-08 Python, D-09 pending) to first production deploy?
+2. **Phase plan**: What are the milestones from current state (D-09 MySQL8+PG14 done, PHP layer implemented with 5-route gap) to first production deploy?
 
 3. **Device allocation**: Which device handles which iteration?
 
@@ -353,7 +401,7 @@ This means Opus must resolve:
 | Branch authority | ThinkPad: `thinkpad` only. MacBook: `macbook` only. No cross-push. |
 | No new credentials | mim2000.cz WP Admin: `mim.admin` / `Proper_314_admin_likes_Tea` (do not share outside session) |
 | Pilot/demo-first | No full JIRA/Postman integration needed for demo; seed data + basic CRUD sufficient |
-| Python FastAPI D-08 | 40 routes, SQLAlchemy 2.x async, SMK9 20/20 PASS on SQLite. PostgreSQL pass pending (D-09). |
+| MI-M-T full stack | Python FastAPI (40 routes) + PHP thin layer (17 files, 31 API + 14 HTML routes) both implemented. All 3 DB engines green: SQLite + MySQL8 + PG14 (SMK9 20/20 PASS each). PHP has 5 /projects routes missing. |
 
 ### 6.3 What success looks like
 
@@ -362,7 +410,8 @@ This means Opus must resolve:
 - At least one project visible with test targets and test cases populated
 - At least one test run logged with pass/fail evidence
 - BUG-024 (New Perspective link): ✓ **already fixed** (2026-05-02)
-- PHP API responding at `mim2000.cz/projects/mi-m-t/api/health` with `{"status":"ok"}`
+- PHP API responding at `mim2000.cz/projects/mi-m-t/api/health` with `{"status":"ok"}` (at minimum; T5-aligned response with DB engine is a nice-to-have)
+- `/api/v1/projects` CRUD routes implemented in PHP (5 missing routes — the critical gap)
 
 **Production-ready additional requirements:**
 - MySQL schema applied on Active24 (all 25 tables)
@@ -391,7 +440,8 @@ The following files are the canonical inputs. All exist in the repository at the
 | test-targets.yaml | `3-fold-path/evidence/test-targets.yaml` | 15 test targets |
 | bugs.yaml | `3-fold-path/evidence/bugs.yaml` | 24 bugs, schema v0.1.0 |
 | testcases.yaml | `3-fold-path/evidence/testcases.yaml` | 15 test cases, schema v1 |
-| SESSION-NOTES.md | `3-fold-path/code/SESSION-NOTES.md` | ThinkPad D-01 through D-08 session notes |
+| SESSION-NOTES.md | `3-fold-path/code/SESSION-NOTES.md` | ThinkPad D-01 through D-09 session notes (includes OQ-029..034 resolution details) |
+| PHP-ROUTE-AUDIT | `3-fold-path/code/MI-M-T-PHP-ROUTE-AUDIT.md` | T6 audit: PHP vs Python route completeness; gap table per section |
 | TASKS-shared.yaml | `TASKS-shared.yaml` | 80+ canonical task registry |
 | CLAUDE.md | `CLAUDE.md` | Full session context; read first |
 | MANIFEST.yaml | `MANIFEST.yaml` | Live versions, pending releases |
@@ -409,9 +459,9 @@ The following files are the canonical inputs. All exist in the repository at the
 3. **Active24 pre-flight checklist** — OQ resolution sequence (what ThinkPad checks first, in what order)
 4. **Demo definition document** — exact feature set, seed data, URL structure, auth model
 5. **Risk register** — top-5 risks with likelihood, impact, mitigation
-6. **Next session instructions** — ThinkPad D-09 brief + MacBook coordination tasks
+6. **Next session instructions** — ThinkPad: PHP /projects routes (5) + Active24 probe + MySQL deploy. MacBook: testcases.yaml v2 migration brief + coordination
 7. **Updated TASKS-shared.yaml entries** — new tasks for production track (MI-M-T-D10..D-NN)
 
 ---
 
-*Prepared: 2026-05-02 | MacBook CoWork session | v1.0.0*
+*Prepared: 2026-05-02 | MacBook CoWork session | v1.0.0 → v1.1.0 updated post ThinkPad D-09 close*
