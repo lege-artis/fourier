@@ -1197,3 +1197,30 @@ Once TC-001/002/003/005 PASS on ThinkPad, proceed to:
 - `kh_io.f90` (read params, write JSON snapshot / reference output)
 - TC-NUM-KH-007 (energy conservation in inviscid limit)
 - TC-NUM-KH-008 (reference output sha256 match)
+
+---
+
+## NUM-KH-FOR-01..04 — ThinkPad validation results
+
+**Captured:** 2026-05-03 (ThinkPad gfortran 13, Windows 11)
+
+### Validation matrix — FINAL
+
+| TC | Test | Measured | Tolerance | Margin | Result |
+|----|------|----------|-----------|--------|--------|
+| TC-NUM-KH-001 | FFT2 round-trip ‖IFFT2(FFT2(f))-f‖_∞ | 2.00e-15 | 1e-12 | ×500 | **PASS** |
+| TC-NUM-KH-002 | Poisson rel_err | 1.85e-15 | 1e-12 | ×540 | **PASS** |
+| TC-NUM-KH-003 | ETDRK4 linear scalar rel_err | 5.67e-15 | 1e-6 | ×1.8e8 | **PASS** |
+| TC-NUM-KH-005 | De-aliasing zeroed amplitude | 0.0 (exact) | 1e-15 | exact | **PASS** |
+
+All results within 3–8 orders of magnitude below tolerance — near-machine-epsilon performance on the hand-rolled Cooley-Tukey FFT and Cox-Matthews φ functions. Reference watermark confirmed numerically sound.
+
+### Notes
+
+- ETDRK4 linear scalar error (5.67e-15) is well below 1e-6 tolerance — φ precompute Taylor guard working correctly for moderate |Ldt|.
+- Poisson error (1.85e-15) confirms spectral exactness: for a pure Fourier mode the solve is exact up to floating-point rounding.
+- FFT round-trip (2.00e-15) confirms Cooley-Tukey normalisation (1/n per axis applied in inverse) is correct.
+
+### Next: NUM-KH-FOR-05
+
+Write `kh_diagnostics.f90` (KE, enstrophy, max_vorticity, divergence_rms) + `kh_io.f90` (JSON snapshot write). TC-NUM-KH-007 (energy conservation, inviscid limit, Re=∞, T=0.5, KE drift ≤ 1e-3).

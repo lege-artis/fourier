@@ -97,6 +97,7 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | NUM-KH-FOR-02 | — | **DONE** — kh_poisson.f90 + kh_velocity.f90 + TC-NUM-KH-002. DRY-RUN. Commit 3cfeb8b. (2026-05-03). |
 | NUM-KH-FOR-03 | — | **DONE** — kh_nonlinear.f90 (nonlinear RHS + 2/3 de-aliasing) + TC-NUM-KH-005. DRY-RUN. Commit 2374290. (2026-05-03). |
 | NUM-KH-FOR-04 | — | **DONE** — kh_etdrk4.f90 (Cox-Matthews 2002 ETDRK4) + TC-NUM-KH-003 (linear scalar). DRY-RUN. Commit 83e926e. (2026-05-03). |
+| NUM-KH-VAL | — | **PASS 4/4** — TC-001 2.0e-15, TC-002 1.9e-15, TC-003 5.7e-15, TC-005 0.0 (exact). All near machine epsilon. ThinkPad gfortran validated 2026-05-03. |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -300,6 +301,4 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 - Commits: `3cfeb8b` `2374290` `83e926e`
 **KH-01 delivered (earlier):** community files + kh-sim-public branch at `19d7eaa`
 **PoC-03 delivered (earlier):** D05-REDMINE-CONTRACT.md + OQ-100..103 + OQ-300
-**PoC-04 STOP gate:** OQ-100 + OQ-101 must be answered. Recall Tuesday 2026-05-05.
-**Topology A:** A1-A5 DRY-RUN — validate on ThinkPad with `make build up migrate-pg`.
-**Next session first task
+**PoC-04 STOP gate:** O
