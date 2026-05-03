@@ -91,6 +91,8 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | T7 pytest suite | — | **DONE** — `tests/conftest.py` + `tests/test_smk9.py` (20 functions); 20/20 PASS (2026-05-02). |
 | PoC-01 | — | **DONE** — testcases.yaml v2 (18 TCs, 0 orphans); Topology B run.py + Makefile; Opus v0.2 docs ingested. Pushed `3790ecd` (2026-05-03). |
 | PoC-02 | — | **DONE** — Topology A: mimt-app/Dockerfile (multi-stage) + docker-compose.yml (3-container) + Makefile Docker targets + _config/RUNBOOK-DEVOPS.md (7 sections). A1–A5 matrix: DRY-RUN (Docker absent in sandbox — validate on ThinkPad). (2026-05-03). |
+| PoC-03 | — | **DONE** — MI-M-T-D05-REDMINE-CONTRACT.md (11 sections, v0.1.0); OQ-100..OQ-103 raised. PoC-04 STOP gate: OQ-100 (org status names) + OQ-101 (instance URL/version) must be answered. (2026-05-03). |
+| KH-01 | — | **DONE** — kh-sim community files: README.md, LICENSE (MIT), CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, .gitignore. kh-sim-public branch at 19d7eaa. OQ-300 raised (license confirm). Commits f15bec3 + 47dd769. (2026-05-03). |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -276,25 +278,34 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ---
 
-## § HANDOFF BLOCK — 2026-05-03 (PoC-02)
-**Last session:** 2026-05-03 (PoC-01 delivery then PoC-02 delivery — same session continuation)  
-**Closed because:** PoC-02 artifacts complete. Commit + push required (bundle workflow).  
+## § HANDOFF BLOCK — 2026-05-03 (KH-01)
+**Last session:** 2026-05-03 (PoC-01 → PoC-02 → PoC-03 → KH-01 same session continuation)  
+**Closed because:** KH-01 complete — all 6 community files written, kh-sim-public branch split, bundled.  
 **Restart reads:** CLAUDE.md → `_config/HANDOVER-V0.2-THINKPAD.md` → `_config/SESSION-LIFECYCLE-SOP.md` → `3-fold-path/code/SESSION-NOTES.md`  
-**PoC-01 delivered:**
-- `3-fold-path/evidence/testcases.yaml` v2 (schema 2.0.0, 18 TCs, 0 orphans; TT/REQ refs added)
-- `_config/migrate-testcases-v1-to-v2.py` (idempotent; --check flag)
-- `3-fold-path/code/mimt-app/run.py` + `.env.example` + `Makefile` (Topology B entrypoint)
-- 13 Opus v0.2 docs copied to `_config/`
-**PoC-02 delivered:**
-- `3-fold-path/code/mimt-app/Dockerfile` — multi-stage (deps + runtime), build context `..` (3-fold-path/code/)
-- `3-fold-path/code/mimt-app/docker-compose.yml` — 3-container: mimt-app (8000) + mimt-pg14 (5433) + mimt-mysql8 (3306)
-- `3-fold-path/code/mimt-app/Makefile` — extended with Topology A targets (build/up/docker-down/migrate-pg/migrate-mysql/logs/test-docker)
-- `_config/RUNBOOK-DEVOPS.md` — 7-section operations runbook
-**Topology B validation:** B1-B5 all green — /health 200, pytest 20/20 PASS (PoC-01, commit 3790ecd).
-**Topology A validation:** A1-A5 DRY-RUN (Docker absent in sandbox). Validate on ThinkPad: `make build up migrate-pg` → `curl http://localhost:8000/health`.
-**KB-ENV-010:** SQLite WAL I/O error on Windows-mount (NTFS-over-9P); workaround: `cp .sqlite /tmp/` before write workload (Topology B only — N/A for A).
-**Next session first task:** A1-A5 Topology A validation on ThinkPad, then PoC-03 scope confirmation.  
-**Read before starting PoC-03:** `_config/HANDOVER-V0.2-THINKPAD.md` PoC-03 quick-note + `_config/RUNBOOK-DEVOPS.md` §2.
+**KH-01 delivered:**
+- `kh-sim/README.md` — architecture, physics summary, API table, backend matrix, validation protocol
+- `kh-sim/LICENSE` — MIT (OQ-300: confirm preference)
+- `kh-sim/CONTRIBUTING.md` — validation protocol, per-language dev setup, new-backend checklist
+- `kh-sim/CODE_OF_CONDUCT.md` — Contributor Covenant reference
+- `kh-sim/SECURITY.md` — scope, dev-only limitation note, private disclosure contact
+- `kh-sim/.gitignore` — 7 language stacks + Docker + IDE
+- `kh-sim-public` branch — git subtree split at commit `19d7eaa`
+- Bundle: `_config/thinkpad-kh01-2026-05-03.bundle` (771K, thinkpad + kh-sim-public)
+**PoC-03 delivered (earlier):**
+- `3-fold-path/backlog/MI-M-T-D05-REDMINE-CONTRACT.md` — 11-section Redmine REST API contract (v0.1.0)
+- `3-fold-path/backlog/OPEN-QUESTIONS-LOG.md` — OQ-100..103 + OQ-300 appended
+**PoC-04 STOP gate:** OQ-100 (org Redmine workflow status names) + OQ-101 (instance URL + version) must be answered before PoC-04 RedmineAdapter implementation. Recall Tuesday 2026-05-05.
+**Topology B:** B1-B5 green (PoC-01). **Topology A:** A1-A5 DRY-RUN — validate on ThinkPad with `make build up migrate-pg`.
+**Next session first task:** Check OQ-100/101 resolution → if answered, proceed to PoC-04. If not, proceed to NUM-KH-FOR-01 (Fortran KH constants + grid + FFT modules, Task #28).
+**Bundle push (PowerShell):**
+```
+cd C:\Users\vitez\Documents\VibeCodeProjects
+git fetch _config\thinkpad-kh01-2026-05-03.bundle thinkpad
+git reset --hard 47dd769
+git push origin thinkpad
+git fetch _config\thinkpad-kh01-2026-05-03.bundle kh-sim-public
+git push origin kh-sim-public
+```
 
 ---
 
@@ -303,22 +314,4 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 - Hard-code any social link, nav slug, or author data outside `inc/zemla-config.php`
 - Create a WordPress page with slug `/dao/` — the correct slug is `/philosophy/`
 - Write translations for physics content without checking `RELEASE-TESTS.md §4`
-- Deploy a theme zip without running all CF-* checks in `RELEASE-TESTS.md §0`
-- Package a theme zip from the wrong directory depth (WP requires `theme-name/style.css` at one level)
-
----
-
-## § DEVICES & SYNC
-
-| Device | Branch | Last commit | Notes |
-|--------|--------|-------------|-------|
-| MacBook | macbook | ac8914b | Session 2026-05-02 close: queue-macbook restored + KB-034/035 |
-| ThinkPad | thinkpad | 1d83d14 | PoC-02 complete 2026-05-03 — Topology A Dockerfile + docker-compose + RUNBOOK-DEVOPS.md |
-
-Sync protocol: `_config/FALLBACK_PROTOCOL.md`
-GitHub SSH: `_config/MACBOOK-GITHUB-SETUP.md`
-Token policy: `_config/GITHUB-TOKEN-POLICY.md`
-
-### Branch ownership rules (ENFORCED — KB-034)
-
-| Branch | Owner | Push rights | Ru
+- Deploy a theme zip without running all 
