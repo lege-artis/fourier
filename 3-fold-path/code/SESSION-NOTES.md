@@ -1126,3 +1126,74 @@ gfortran -O2 -o test_num_001 \
 Write kh_poisson.f90 (spectral Poisson: psi_hat = -omega_hat / k2, zero mode = 0) +
 kh_velocity.f90 (u_hat = i*ky*psi_hat; v_hat = -i*kx*psi_hat; IFFT to physical).
 Test: TC-NUM-KH-002 (single Fourier mode cos(2πkx); compare psi against analytical).
+
+---
+
+## NUM-KH-FOR-02..04 — Fortran KH Poisson, velocity, nonlinear, ETDRK4
+
+**Captured:** 2026-05-03 (continuation of NUM-KH-FOR-01 parallel track)
+
+### Deliverables
+
+| File | Module | TC | Notes |
+|------|--------|----|-------|
+| `src/kh_poisson.f90` | `kh_poisson` | — | kh_poisson_solve: ψ̂=ω̂/k², zero mode enforced. |
+| `src/kh_velocity.f90` | `kh_velocity` | — | kh_velocity_from_psi: û=i·ky·ψ̂, v̂=-i·kx·ψ̂; IFFT. |
+| `tests/test_num_002_poisson.f90` | — | TC-NUM-KH-002 | cos(2π·3·x/Lx) vorticity; analytical ψ; rel_err≤1e-12. |
+| `src/kh_nonlinear.f90` | `kh_nonlinear` | — | kh_nonlinear_rhs + kh_dealias. Orszag 2/3-rule. |
+| `tests/test_num_005_dealias.f90` | — | TC-NUM-KH-005 | Mode inside cutoff kept; mode above cutoff zeroed (amp≤1e-15). |
+| `src/kh_etdrk4.f90` | `kh_etdrk4` | — | kh_etdrk4_precompute + kh_etdrk4_step. Cox-Matthews 2002. Taylor guard |Ldt|<1e-8. |
+| `tests/test_num_003_etdrk4_linear.f90` | — | TC-NUM-KH-003 | dy/dt=λy, λ=-1, 100 steps, rel_err≤1e-10 vs exp(-10). |
+
+### Module dependency order (gfortran compile sequence)
+
+```
+kh_constants → kh_grid → kh_fft → kh_poisson → kh_velocity → kh_nonlinear → kh_etdrk4
+```
+
+### Validation matrix (all DRY-RUN)
+
+| TC | Test | Status |
+|----|------|--------|
+| TC-NUM-KH-001 | FFT2 round-trip ‖diff‖_∞ ≤ 1e-12 | DRY-RUN |
+| TC-NUM-KH-002 | Poisson rel_err ≤ 1e-12 | DRY-RUN |
+| TC-NUM-KH-003 | ETDRK4 linear scalar rel_err ≤ 1e-10 | DRY-RUN |
+| TC-NUM-KH-005 | De-aliasing zeroed amp ≤ 1e-15 | DRY-RUN |
+
+### ThinkPad compile+run commands
+
+```bash
+cd kh-sim/backends/fortran
+
+# TC-NUM-KH-001
+gfortran -O2 -o test_num_001 \
+    src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
+    tests/test_num_001_fft_roundtrip.f90 && ./test_num_001
+
+# TC-NUM-KH-002
+gfortran -O2 -o test_num_002 \
+    src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
+    src/kh_poisson.f90 src/kh_velocity.f90 \
+    tests/test_num_002_poisson.f90 && ./test_num_002
+
+# TC-NUM-KH-005
+gfortran -O2 -o test_num_005 \
+    src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
+    src/kh_poisson.f90 src/kh_velocity.f90 src/kh_nonlinear.f90 \
+    tests/test_num_005_dealias.f90 && ./test_num_005
+
+# TC-NUM-KH-003
+gfortran -O2 -o test_num_003 \
+    src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
+    src/kh_poisson.f90 src/kh_velocity.f90 src/kh_nonlinear.f90 \
+    src/kh_etdrk4.f90 \
+    tests/test_num_003_etdrk4_linear.f90 && ./test_num_003
+```
+
+### Next: NUM-KH-FOR-05 (diagnostics + IO) or NUM-KH-FOR-06 (solver + main)
+
+Once TC-001/002/003/005 PASS on ThinkPad, proceed to:
+- `kh_diagnostics.f90` (KE, enstrophy, max_vorticity, divergence_rms)
+- `kh_io.f90` (read params, write JSON snapshot / reference output)
+- TC-NUM-KH-007 (energy conservation in inviscid limit)
+- TC-NUM-KH-008 (reference output sha256 match)
