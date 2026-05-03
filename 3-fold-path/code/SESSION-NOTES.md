@@ -912,4 +912,53 @@ Full route audit produced at `3-fold-path/code/MI-M-T-PHP-ROUTE-AUDIT.md`.
 
 Created:
 - `tests/__init__.py` (package marker)
-- `tests/conftest.py` — session-scoped `client` (httpx ASGI), `hdrs`, `run_tag` fixtures; env defaults be
+- `tests/conftest.py` — session-scoped `client` (httpx ASGI), `hdrs`, `run_tag` fixtures; env defaults be- `tests/conftest.py` — session-scoped `client` (httpx ASGI), `hdrs`, `run_tag` fixtures; env defaults set to SQLite for CI portability
+- `tests/test_smk9.py` — 20 async test functions (one per SMK9 item); `asyncio_mode = auto`
+
+**Result:** 20/20 PASS. Makefile `test` target copies `d06.sqlite` to `/tmp/` before pytest to avoid SQLite WAL disk I/O error on Windows-mount (KB-ENV-010).
+
+---
+
+## PoC-02 — Topology A Docker Compose (2026-05-03)
+
+### Objective
+Finalise Topology A: multi-stage Dockerfile + 3-container docker-compose.yml + Makefile Docker targets + RUNBOOK-DEVOPS.md. Topology A validation matrix documented as dry-run (Docker absent in sandbox).
+
+### Deliverables
+
+| File | Status |
+|------|--------|
+| `3-fold-path/code/mimt-app/Dockerfile` | DONE — multi-stage (deps + runtime), build context `..` (3-fold-path/code/), bundles mi_m_t/ package + migrations/ |
+| `3-fold-path/code/mimt-app/docker-compose.yml` | DONE — 3 services: mimt-app (8000) + mimt-pg14 (5433→5432) + mimt-mysql8 (3306) |
+| `3-fold-path/code/mimt-app/Makefile` | DONE — extended with Topology A targets: build/up/docker-down/docker-wipe/migrate-pg/migrate-mysql/logs/test-docker |
+| `_config/RUNBOOK-DEVOPS.md` | DONE — 7 sections per OPUS-CYCLE-v0.2-MASTER.md §6.1 G-09 |
+
+### Topology A validation matrix — DRY-RUN (Docker absent in sandbox)
+
+Docker Engine not available in CoWork Linux sandbox (no daemon socket). All A-rows are documented dry-runs; actual validation to be executed on ThinkPad with Docker installed.
+
+| ID | Test | Expected | Status |
+|----|------|----------|--------|
+| A1 | `make build` completes without error | Image `mimt-app:poc02` built | **DRY-RUN** |
+| A2 | `make up` → all 3 containers healthy | `docker compose ps` shows 3×healthy | **DRY-RUN** |
+| A3 | `make migrate-pg` → 29 migrations applied | `29 applied, 0 skipped` | **DRY-RUN** |
+| A4 | `curl http://localhost:8000/health` → 200 OK | `{"status":"ok","db_status":"ok"}` | **DRY-RUN** |
+| A5 | `make test-docker` → 20/20 PASS | `20 passed` | **DRY-RUN** |
+
+Topology B (B1–B5) validated in PoC-01 and remains green (20/20 PASS, commit 3790ecd).
+
+### Architecture notes
+
+- **Build context `..`** — docker-compose.yml at `mimt-app/` uses `context: ..` so the Dockerfile can access both `mi_m_t/mi_m_t/` (the Python package) and `migrations/` from `3-fold-path/code/`.
+- **Port 5433** — avoids conflict with Windows-native PostgreSQL 17 on 5432 (KB LL-ENV-006).
+- **DB_DRIVER selection** — mimt-app connects to whichever engine is selected via `.env`; both pg14 and mysql8 run simultaneously allowing portability spot-checks without container restarts.
+- **Non-root user mimt uid 1001** — consistent with Topology B convention; chown applied in Dockerfile runtime stage.
+- **Migration runner** — `migrations/runner.py` is bundled into the image (`COPY migrations/ ./migrations/`) so `make migrate-pg/mysql` runs fully inside the container with no host Python dependency.
+
+### Next Session Opens Here → PoC-03
+
+Per HANDOVER-V0.2-THINKPAD.md:
+- **A1–A5 validation** on physical ThinkPad with Docker installed — run `make build up migrate-pg` then `curl /health`
+- **PoC-03 scope** (to be confirmed): JIRA Cloud integration (D03 contract) OR Postman/Newman contract (D04) OR first production deployment smoke
+
+Before starting: read `_config/HANDOVER-V0.2-THINKPAD.md` → `_config/SESSION-LIFECYCLE-SOP.md` → this file (PoC-02 block).

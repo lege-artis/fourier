@@ -1,0 +1,133 @@
+# =============================================================================
+# mimt-app/docker-compose.yml — Topology A: 3-container on-prem stack
+# tags:    [PoC-02][TOPO-A]
+# date:    2026-05-03
+# citation: OPUS-CYCLE-v0.2-MASTER.md §6.1; HANDOVER-V0.2-THINKPAD.md PoC-02
+#           MI-M-T-V0.2-POC-ONPREM-SCOPE.md §1.2
+#
+# Services
+# ────────
+#   mimt-app      FastAPI (port 8000) — built from ../  using mimt-app/Dockerfile
+#   mimt-pg14     PostgreSQL 14 (host port 5433 → container 5432)
+#   mimt-mysql8   MySQL 8 (port 3306)
+#
+# Quick start (PostgreSQL backend — default)
+# ──────────────────────────────────────────
+#   cp .env.example .env          # fill SECRET_KEY at minimum
+#   docker compose up -d          # starts all 3 containers
+#   docker compose exec mimt-app python migrations/runner.py --engine postgres
+#   curl http://localhost:8000/health
+#
+# Switch to MySQL backend
+# ───────────────────────
+#   Set DB_DRIVER=mysql  DB_HOST=mimt-mysql8  DB_PORT=3306  DB_PASS=""  in .env
+#   docker compose restart mimt-app
+#   docker compose exec mimt-app python migrations/runner.py --engine mysql
+#
+# Wipe all data:
+#   docker compose down -v
+#
+# Port mapping rationale
+#   5433 (host) → 5432 (pg container): avoids conflict with Windows-native PG17
+#   3306 → 3306: standard MySQL; no native conflict on ThinkPad
+#
+# KB refs
+#   LL-ENV-006  pg port 5433 pattern
+#   KB-ENV-010  SQLite WAL on NTFS-over-9P (N/A for Topology A — Postgres/MySQL only)
+# =============================================================================
+
+services:
+
+  # ── FastAPI application ──────────────────────────────────────────────────────
+  mimt-app:
+    build:
+      context: ..                          # 3-fold-path/code/ — contains mi_m_t/ + migrations/
+      dockerfile: mimt-app/Dockerfile      # multi-stage: deps + runtime
+    image: mimt-app:poc02
+    container_name: mimt-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env                               # copy from .env.example; SECRET_KEY required
+    environment:
+      # Override these per backend choice (default: postgres)
+      DB_DRIVER: "${DB_DRIVER:-postgres}"
+      DB_HOST: "${DB_HOST:-mimt-pg14}"
+      DB_PORT: "${DB_PORT:-5432}"
+      DB_NAME: "${DB_NAME:-mimt_dev}"
+      DB_USER: "${DB_USER:-postgres}"
+      DB_PASS: "${DB_PASS:-postgres}"
+      APP_ENV: "${APP_ENV:-production}"
+      DEBUG: "${DEBUG:-false}"
+    depends_on:
+      mimt-pg14:
+        condition: service_healthy
+    networks:
+      - mimt-net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  # ── PostgreSQL 14 ───────────────────────────────────────────────────────────
+  # Host port 5433 avoids collision with Windows-native PostgreSQL 17 on 5432.
+  # See KB LL-ENV-006 in KB-LESSONS-LEARNED.yaml.
+  mimt-pg14:
+    image: postgres:14-alpine
+    container_name: mimt-pg14
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: mimt_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - mimt-pg14-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mimt_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - mimt-net
+
+  # ── MySQL 8 ─────────────────────────────────────────────────────────────────
+  # Empty root password matches D-09 test conventions (no MYSQL_ROOT_PASSWORD).
+  mimt-mysql8:
+    image: mysql:8.0
+    container_name: mimt-mysql8
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: mimt_dev
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: ""
+    volumes:
+      - mimt-mysql8-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - mimt-net
+
+# ── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  mimt-pg14-data:
+    driver: local
+  mimt-mysql8-data:
+    driver: local
+
+# ── Network ───────────────────────────────────────────────────────────────────
+networks:
+  mimt-net:
+    driver: bridge
+    name: mimt-topo-a

@@ -90,6 +90,7 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | T6 PHP route audit | — | **DONE** — `MI-M-T-PHP-ROUTE-AUDIT.md`; 5 gaps vs Python identified (2026-05-02). |
 | T7 pytest suite | — | **DONE** — `tests/conftest.py` + `tests/test_smk9.py` (20 functions); 20/20 PASS (2026-05-02). |
 | PoC-01 | — | **DONE** — testcases.yaml v2 (18 TCs, 0 orphans); Topology B run.py + Makefile; Opus v0.2 docs ingested. Pushed `3790ecd` (2026-05-03). |
+| PoC-02 | — | **DONE** — Topology A: mimt-app/Dockerfile (multi-stage) + docker-compose.yml (3-container) + Makefile Docker targets + _config/RUNBOOK-DEVOPS.md (7 sections). A1–A5 matrix: DRY-RUN (Docker absent in sandbox — validate on ThinkPad). (2026-05-03). |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -275,21 +276,25 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ---
 
-## § HANDOFF BLOCK — 2026-05-02 (T5-T7)
-**Last session:** 2026-05-02 (continuation — T5/T6/T7 delivery)  
-**Last session:** 2026-05-03 (PoC-01 delivery)  
-**Closed because:** PoC-01 complete + pushed (`3790ecd` on `thinkpad`).  
+## § HANDOFF BLOCK — 2026-05-03 (PoC-02)
+**Last session:** 2026-05-03 (PoC-01 delivery then PoC-02 delivery — same session continuation)  
+**Closed because:** PoC-02 artifacts complete. Commit + push required (bundle workflow).  
 **Restart reads:** CLAUDE.md → `_config/HANDOVER-V0.2-THINKPAD.md` → `_config/SESSION-LIFECYCLE-SOP.md` → `3-fold-path/code/SESSION-NOTES.md`  
 **PoC-01 delivered:**
 - `3-fold-path/evidence/testcases.yaml` v2 (schema 2.0.0, 18 TCs, 0 orphans; TT/REQ refs added)
 - `_config/migrate-testcases-v1-to-v2.py` (idempotent; --check flag)
 - `3-fold-path/code/mimt-app/run.py` + `.env.example` + `Makefile` (Topology B entrypoint)
 - 13 Opus v0.2 docs copied to `_config/`
-**Topology B validation:** B1-B5 all green — /health 200, pytest 20/20 PASS.
-**Topology A:** skipped (docker absent in sandbox) — validate on first PoC-02 session.
-**KB-ENV-010:** SQLite WAL I/O error on Windows-mount (NTFS-over-9P); workaround: `cp .sqlite /tmp/` before write workload.
-**Next session first task:** PoC-02 — Topology A Docker compose (`docker-compose.yml` multi-stage + `Dockerfile`) + `_config/RUNBOOK-DEVOPS.md`.  
-**Read before starting PoC-02:** `_config/HANDOVER-V0.2-THINKPAD.md` Step 5 PoC-02 quick-note + `MI-M-T-V0.2-POC-ONPREM-SCOPE.md §1.2 + §1.4`.
+**PoC-02 delivered:**
+- `3-fold-path/code/mimt-app/Dockerfile` — multi-stage (deps + runtime), build context `..` (3-fold-path/code/)
+- `3-fold-path/code/mimt-app/docker-compose.yml` — 3-container: mimt-app (8000) + mimt-pg14 (5433) + mimt-mysql8 (3306)
+- `3-fold-path/code/mimt-app/Makefile` — extended with Topology A targets (build/up/docker-down/migrate-pg/migrate-mysql/logs/test-docker)
+- `_config/RUNBOOK-DEVOPS.md` — 7-section operations runbook
+**Topology B validation:** B1-B5 all green — /health 200, pytest 20/20 PASS (PoC-01, commit 3790ecd).
+**Topology A validation:** A1-A5 DRY-RUN (Docker absent in sandbox). Validate on ThinkPad: `make build up migrate-pg` → `curl http://localhost:8000/health`.
+**KB-ENV-010:** SQLite WAL I/O error on Windows-mount (NTFS-over-9P); workaround: `cp .sqlite /tmp/` before write workload (Topology B only — N/A for A).
+**Next session first task:** A1-A5 Topology A validation on ThinkPad, then PoC-03 scope confirmation.  
+**Read before starting PoC-03:** `_config/HANDOVER-V0.2-THINKPAD.md` PoC-03 quick-note + `_config/RUNBOOK-DEVOPS.md` §2.
 
 ---
 
@@ -316,18 +321,4 @@ Token policy: `_config/GITHUB-TOKEN-POLICY.md`
 
 ### Branch ownership rules (ENFORCED — KB-034)
 
-| Branch | Owner | Push rights | Rule |
-|--------|-------|-------------|------|
-| macbook | MacBook | MacBook only | GitHub branch protection: restrict direct push |
-| thinkpad | ThinkPad | ThinkPad only | GitHub branch protection: restrict direct push |
-| main | Both (via PR) | PR merge only | Protected — no direct push |
-
-**GitHub branch protection setup** (one-time, owner action required):
-Settings → Branches → Add rule → Branch name pattern: `macbook`
-→ Check: "Restrict pushes that create matching branches" OR require PRs.
-Repeat for `thinkpad`.
-
-**Rationale:** ThinkPad force-pushed `macbook` branch twice in session 2026-05-02,
-reverting `queue-macbook.yaml` state and generating CI conflict resolution overhead.
-`.gitattributes merge=ours` is a merge strategy hint only — it does not prevent force-push.
-Branch protection is the correct enforcement layer. See KB-034.
+| Branch | Owner | Push rights | Ru
