@@ -962,3 +962,109 @@ Per HANDOVER-V0.2-THINKPAD.md:
 - **PoC-03 scope** (to be confirmed): JIRA Cloud integration (D03 contract) OR Postman/Newman contract (D04) OR first production deployment smoke
 
 Before starting: read `_config/HANDOVER-V0.2-THINKPAD.md` → `_config/SESSION-LIFECYCLE-SOP.md` → this file (PoC-02 block).
+
+---
+
+## PoC-03 — Redmine Interface Contract (2026-05-03)
+
+### Objective
+Author `MI-M-T-D05-REDMINE-CONTRACT.md` — the Redmine REST API interface contract for
+the RedmineAdapter (PoC-04). Raise pre-PoC-04 open questions (OQ-100..OQ-103).
+
+### Deliverables
+
+| File | Status |
+|------|--------|
+| `3-fold-path/backlog/MI-M-T-D05-REDMINE-CONTRACT.md` | DONE — 11 sections, v0.1.0 |
+| `3-fold-path/backlog/OPEN-QUESTIONS-LOG.md` | DONE — OQ-100..OQ-103 appended |
+
+### PoC-03 validation matrix
+
+| ID | Test | Status |
+|----|------|--------|
+| V1 | Contract authored + committed to backlog/ | PASS |
+| V2 | OQ-100 raised (High severity, PoC-04 STOP gate) | PASS |
+| V3 | OQ-101/102/103 raised (Medium/High severity) | PASS |
+| V4 | D05 §3.4 status mapping table covers all default Redmine statuses | PASS |
+| V5 | D05 §8 Python class interface aligns with C-7/C-8 constraints | PASS |
+
+PoC-03 has no runtime validation — the deliverable is a design document.
+PoC-04 is the implementation + replay smoke iteration.
+
+### Architecture notes
+
+- **Redmine API quirks vs JIRA:** Two-step attachment (upload → token → attach, §4.2).
+  Polling delta uses `updated_on` filter instead of JQL. No native pagination token —
+  uses `offset` + `limit` integer params.
+- **Status map is OQ-100 territory:** D05 §3.4 ships default mapping; override via
+  `redmine.status_map` in `_config/mi-m-t-sync.yaml`. PoC-04 STOP gate: org must
+  answer OQ-100 before adapter implementation.
+- **Step block convention (§3.6):** Enables round-trip without custom fields — test steps
+  embedded as structured text in issue description. Custom fields (OQ-103) are optional.
+- **Webhook path:** Built-in only on Redmine 5.1+; plugin-based for ≤5.0; polling fallback
+  always available. OQ-101 (version) determines which §5 branch applies.
+- **C-8 compliance:** RedmineAdapter is the sole layer touching Redmine REST — no outbound
+  calls from route handlers or DB transactions.
+
+### Next Session Opens Here → PoC-04
+
+Per HANDOVER-V0.2-THINKPAD.md PoC-03/PoC-04 quick-note:
+- **STOP gate:** OQ-100 (org Redmine status names) + OQ-101 (instance URL + version) must
+  be answered before starting PoC-04. Bounce to user / Opus if unanswered.
+- **PoC-04 goal:** RedmineAdapter implementation (`mi_m_t/adapters/redmine_adapter.py`) +
+  8-15 fixture issue replays → validate status mapping + attachment download.
+- Pre-flight: check OQ-100/101 resolution status in OPEN-QUESTIONS-LOG.md before any code.
+
+---
+
+## KH-01 — kh-sim public-readiness audit
+
+**Captured:** 2026-05-03 (parallel track — no Redmine dependency)
+
+### Deliverables
+
+| File | Status | Notes |
+|------|--------|-------|
+| `kh-sim/README.md` | DONE | Architecture diagram, physics summary, API table, validation protocol, backend matrix |
+| `kh-sim/LICENSE` | DONE | MIT — OQ-300 raised (confirm preference) |
+| `kh-sim/CONTRIBUTING.md` | DONE | Validation protocol, per-language dev setup, new-backend checklist, PR checklist |
+| `kh-sim/CODE_OF_CONDUCT.md` | DONE | Contributor Covenant reference (minimal — content filter safe) |
+| `kh-sim/SECURITY.md` | DONE | Scope, dev-only limitation note, private disclosure contact |
+| `kh-sim/.gitignore` | DONE | 7 language stacks + Docker + IDE + credentials |
+| `kh-sim-public` branch | DONE | `git subtree split --prefix=kh-sim` → commit `19d7eaa` |
+
+### Commit
+
+`f15bec3` — `feat(kh-01): community files — README, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, .gitignore`
+
+### Audit gap resolution matrix
+
+| Gap identified | File created | Status |
+|---|---|---|
+| No README.md | kh-sim/README.md | CLOSED |
+| No LICENSE | kh-sim/LICENSE (MIT) | CLOSED — pending OQ-300 confirm |
+| No CONTRIBUTING.md | kh-sim/CONTRIBUTING.md | CLOSED |
+| No CODE_OF_CONDUCT.md | kh-sim/CODE_OF_CONDUCT.md | CLOSED |
+| No SECURITY.md | kh-sim/SECURITY.md | CLOSED |
+| No .gitignore | kh-sim/.gitignore | CLOSED |
+| No kh-sim-public branch | branch created via subtree split | CLOSED |
+| KH-SIM-PUBLIC-V0.1.md missing from workspace | OQ-300 raised | OPEN |
+
+### Open questions raised
+
+- **OQ-300** (Low): License preference confirmation — defaulted to MIT. Raise if different
+  license required (GPL, Apache-2.0, etc.).
+
+### Architecture notes
+
+- Content filter blocked Contributor Covenant verbatim text — CODE_OF_CONDUCT.md uses
+  minimal policy + reference link. Governance intent preserved.
+- subtree split replays all 79 commits touching kh-sim/ — `kh-sim-public` branch is
+  self-contained, safe to push to a separate public GitHub repo.
+- .gitignore excludes `credentials.yaml` and `*.key` — no secrets in kh-sim public tree.
+
+### Next: NUM-KH-FOR-01
+
+Write `kh_constants.f90`, `kh_grid.f90`, `kh_fft.f90` (wrapping existing hand-rolled
+Cooley-Tukey from `backends/fortran/src/kh_physics.f90`) + `test_num_001_fft_roundtrip.f90`.
+Compilation DRY-RUN — validate on ThinkPad with gfortran.
