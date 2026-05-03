@@ -1068,3 +1068,61 @@ Per HANDOVER-V0.2-THINKPAD.md PoC-03/PoC-04 quick-note:
 Write `kh_constants.f90`, `kh_grid.f90`, `kh_fft.f90` (wrapping existing hand-rolled
 Cooley-Tukey from `backends/fortran/src/kh_physics.f90`) + `test_num_001_fft_roundtrip.f90`.
 Compilation DRY-RUN — validate on ThinkPad with gfortran.
+
+---
+
+## NUM-KH-FOR-01 — Fortran KH constants + grid + FFT modules
+
+**Captured:** 2026-05-03 (parallel track — no Redmine dependency)
+
+### Deliverables
+
+| File | Lines | Status | Notes |
+|------|-------|--------|-------|
+| `kh-sim/backends/fortran/src/kh_constants.f90` | ~90 | DONE | Physical constants, domain defaults, ETDRK4 params, de-aliasing factor, tolerances, reference diagnostics. WATERMARK block. |
+| `kh-sim/backends/fortran/src/kh_grid.f90` | ~130 | DONE | Grid coords (kh_grid_make), wavenumber 2D arrays (kh_grid_wavenums, fftfreq convention, k2(0,0)=1), 2/3-rule mask (kh_grid_dealias_mask). |
+| `kh-sim/backends/fortran/src/kh_fft.f90` | ~140 | DONE | kh_fft_forward_2d + kh_fft_inverse_2d wrapping hand-rolled Cooley-Tukey radix-2 DIT. OQ-NUM-01 deferral noted. |
+| `kh-sim/backends/fortran/tests/test_num_001_fft_roundtrip.f90` | ~90 | DONE | TC-NUM-KH-001; deterministic LCG field, 64×32 grid, seed 42; pass: ‖IFFT2(FFT2(f))-f‖_∞ ≤ 1e-12. |
+
+### Commit
+
+`b68d4e7` — `feat(num-kh-for-01): kh_constants + kh_grid + kh_fft + TC-NUM-KH-001`
+
+### Validation matrix
+
+| Check | Result |
+|-------|--------|
+| kh_constants.f90 compiles (gfortran) | DRY-RUN — validate on ThinkPad |
+| kh_grid.f90 compiles (gfortran) | DRY-RUN |
+| kh_fft.f90 compiles (gfortran) | DRY-RUN |
+| TC-NUM-KH-001: ‖diff‖_∞ ≤ 1e-12 | DRY-RUN — run ./test_num_001 on ThinkPad |
+
+### ThinkPad compile+run command
+
+```bash
+cd kh-sim/backends/fortran
+gfortran -O2 -o test_num_001 \
+    src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
+    tests/test_num_001_fft_roundtrip.f90
+./test_num_001
+# Expected: RESULT: PASS  (exit code 0)
+```
+
+### Architecture notes
+
+- **OQ-NUM-01 resolution strategy:** hand-rolled Cooley-Tukey from kh_physics.f90
+  re-used in kh_fft.f90 to avoid FFTW3/fftpack5 licensing decision (OQ-NUM-01
+  deferred). Swap is localised to fft1d_inplace — callers unchanged.
+- **k2(0,0)=1 Poisson convention:** explicitly documented in kh_grid_wavenums.
+  Caller (kh_poisson.f90, NUM-KH-FOR-02) must zero psi_hat(0,0) after solve.
+- **WATERMARK block:** present in all three modules per PHYSICS-NUMERICAL-METHODS §1.3.
+- **Deterministic test field:** LCG (seed 42) avoids system RNG dependency for TC-NUM-KH-001.
+  Not suitable for physics — test use only.
+- **Module dependency order for gfortran:** kh_constants → kh_grid → kh_fft (each USE
+  only what precedes it).
+
+### Next: NUM-KH-FOR-02
+
+Write kh_poisson.f90 (spectral Poisson: psi_hat = -omega_hat / k2, zero mode = 0) +
+kh_velocity.f90 (u_hat = i*ky*psi_hat; v_hat = -i*kx*psi_hat; IFFT to physical).
+Test: TC-NUM-KH-002 (single Fourier mode cos(2πkx); compare psi against analytical).

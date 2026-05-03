@@ -93,6 +93,7 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | PoC-02 | — | **DONE** — Topology A: mimt-app/Dockerfile (multi-stage) + docker-compose.yml (3-container) + Makefile Docker targets + _config/RUNBOOK-DEVOPS.md (7 sections). A1–A5 matrix: DRY-RUN (Docker absent in sandbox — validate on ThinkPad). (2026-05-03). |
 | PoC-03 | — | **DONE** — MI-M-T-D05-REDMINE-CONTRACT.md (11 sections, v0.1.0); OQ-100..OQ-103 raised. PoC-04 STOP gate: OQ-100 (org status names) + OQ-101 (instance URL/version) must be answered. (2026-05-03). |
 | KH-01 | — | **DONE** — kh-sim community files: README.md, LICENSE (MIT), CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, .gitignore. kh-sim-public branch at 19d7eaa. OQ-300 raised (license confirm). Commits f15bec3 + 47dd769. (2026-05-03). |
+| NUM-KH-FOR-01 | — | **DONE** — kh_constants.f90 + kh_grid.f90 + kh_fft.f90 + TC-NUM-KH-001 test. DRY-RUN (gfortran absent in sandbox). Compile+run on ThinkPad. Commit b68d4e7. (2026-05-03). |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -278,32 +279,28 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ---
 
-## § HANDOFF BLOCK — 2026-05-03 (KH-01)
-**Last session:** 2026-05-03 (PoC-01 → PoC-02 → PoC-03 → KH-01 same session continuation)  
-**Closed because:** KH-01 complete — all 6 community files written, kh-sim-public branch split, bundled.  
+## § HANDOFF BLOCK — 2026-05-03 (NUM-KH-FOR-01)
+**Last session:** 2026-05-03 (PoC-01 → PoC-02 → PoC-03 → KH-01 → NUM-KH-FOR-01 same session)  
+**Closed because:** NUM-KH-FOR-01 complete — kh_constants + kh_grid + kh_fft + TC-NUM-KH-001 written. DRY-RUN.  
 **Restart reads:** CLAUDE.md → `_config/HANDOVER-V0.2-THINKPAD.md` → `_config/SESSION-LIFECYCLE-SOP.md` → `3-fold-path/code/SESSION-NOTES.md`  
-**KH-01 delivered:**
-- `kh-sim/README.md` — architecture, physics summary, API table, backend matrix, validation protocol
-- `kh-sim/LICENSE` — MIT (OQ-300: confirm preference)
-- `kh-sim/CONTRIBUTING.md` — validation protocol, per-language dev setup, new-backend checklist
-- `kh-sim/CODE_OF_CONDUCT.md` — Contributor Covenant reference
-- `kh-sim/SECURITY.md` — scope, dev-only limitation note, private disclosure contact
-- `kh-sim/.gitignore` — 7 language stacks + Docker + IDE
-- `kh-sim-public` branch — git subtree split at commit `19d7eaa`
-- Bundle: `_config/thinkpad-kh01-2026-05-03.bundle` (771K, thinkpad + kh-sim-public)
-**PoC-03 delivered (earlier):**
-- `3-fold-path/backlog/MI-M-T-D05-REDMINE-CONTRACT.md` — 11-section Redmine REST API contract (v0.1.0)
-- `3-fold-path/backlog/OPEN-QUESTIONS-LOG.md` — OQ-100..103 + OQ-300 appended
-**PoC-04 STOP gate:** OQ-100 (org Redmine workflow status names) + OQ-101 (instance URL + version) must be answered before PoC-04 RedmineAdapter implementation. Recall Tuesday 2026-05-05.
-**Topology B:** B1-B5 green (PoC-01). **Topology A:** A1-A5 DRY-RUN — validate on ThinkPad with `make build up migrate-pg`.
-**Next session first task:** Check OQ-100/101 resolution → if answered, proceed to PoC-04. If not, proceed to NUM-KH-FOR-01 (Fortran KH constants + grid + FFT modules, Task #28).
+**NUM-KH-FOR-01 delivered:**
+- `kh-sim/backends/fortran/src/kh_constants.f90` — physical + numerical constants, WATERMARK block
+- `kh-sim/backends/fortran/src/kh_grid.f90` — grid coords, kx/ky/k2 wavenumber arrays, 2/3-rule mask
+- `kh-sim/backends/fortran/src/kh_fft.f90` — kh_fft_forward_2d + kh_fft_inverse_2d; OQ-NUM-01 deferred
+- `kh-sim/backends/fortran/tests/test_num_001_fft_roundtrip.f90` — TC-NUM-KH-001, LCG seed 42, 64×32
+- Commit: `b68d4e7`
+**KH-01 delivered (earlier):** community files + kh-sim-public branch at `19d7eaa`
+**PoC-03 delivered (earlier):** D05-REDMINE-CONTRACT.md + OQ-100..103 + OQ-300
+**PoC-04 STOP gate:** OQ-100 + OQ-101 must be answered. Recall Tuesday 2026-05-05.
+**Topology A:** A1-A5 DRY-RUN — validate on ThinkPad with `make build up migrate-pg`.
+**Next session first task:** (1) ThinkPad: compile + run TC-NUM-KH-001: `gfortran -O2 -o test_num_001 src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 tests/test_num_001_fft_roundtrip.f90 && ./test_num_001`; (2) Check OQ-100/101 → if answered proceed to PoC-04; (3) If not, proceed to NUM-KH-FOR-02 (kh_poisson.f90 + kh_velocity.f90 + TC-NUM-KH-002).
 **Bundle push (PowerShell):**
 ```
 cd C:\Users\vitez\Documents\VibeCodeProjects
-git fetch _config\thinkpad-kh01-2026-05-03.bundle thinkpad
-git reset --hard 47dd769
+git fetch _config\thinkpad-num-kh-for01-2026-05-03.bundle thinkpad
+git reset --hard <tip>
 git push origin thinkpad
-git fetch _config\thinkpad-kh01-2026-05-03.bundle kh-sim-public
+git fetch _config\thinkpad-num-kh-for01-2026-05-03.bundle kh-sim-public
 git push origin kh-sim-public
 ```
 
@@ -314,4 +311,4 @@ git push origin kh-sim-public
 - Hard-code any social link, nav slug, or author data outside `inc/zemla-config.php`
 - Create a WordPress page with slug `/dao/` — the correct slug is `/philosophy/`
 - Write translations for physics content without checking `RELEASE-TESTS.md §4`
-- Deploy a theme zip without running all 
+- Deploy a them
