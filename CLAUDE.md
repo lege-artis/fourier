@@ -72,7 +72,7 @@ Contains: `ZEMLA_LINKEDIN_URL`, `ZEMLA_SLUG_*` nav constants, `ZEMLA_AUTHOR_NAME
 **Single-file patches** (e.g. TFE translations insert) → produce insert-ready artifact + `APPLY-*.md` guide → user applies via Theme File Editor.  
 Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW-TO-ACTIVE24-DEPLOY.md`.
 
-## § CURRENT STATE (as of 2026-04-30)
+## § CURRENT STATE (as of 2026-05-03)
 
 ### Versions deployed
 | Deliverable | Version | Status |
@@ -88,7 +88,8 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | D-09 portability pass | — | **DONE** — MySQL 8: 29/29 + 20/20 PASS. PostgreSQL 14: 29/29 + 20/20 PASS (2026-05-02). |
 | T5 /health DB probe | — | **DONE** — `main.py` async SELECT 1 probe; HTTP 503 on failure (2026-05-02). |
 | T6 PHP route audit | — | **DONE** — `MI-M-T-PHP-ROUTE-AUDIT.md`; 5 gaps vs Python identified (2026-05-02). |
-| T7 pytest suite | — | **DONE** — `tests/conftest.py` + `tests/test_smk9.py` (20 functions); verify before commit (2026-05-02). |
+| T7 pytest suite | — | **DONE** — `tests/conftest.py` + `tests/test_smk9.py` (20 functions); 20/20 PASS (2026-05-02). |
+| PoC-01 | — | **DONE** — testcases.yaml v2 (18 TCs, 0 orphans); Topology B run.py + Makefile; Opus v0.2 docs ingested. Pushed `3790ecd` (2026-05-03). |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -97,8 +98,6 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | GH-UPL-08 | GitHub Releases | Upload zemla-theme-v1.7.2.zip — zip present at theme-archives/ |
 | GH-UPL-10 | GitHub Releases | Upload zemla-theme-v1.7.3.zip — zip found in theme-archives/ 2026-05-01 |
 | GH-UPL-04/06/07 | GitHub Releases | **DEFERRED** — v1.6.9/v1.7.0/v1.7.1 zips not in local archive; superseded by v1.7.4 |
-| THINKPAD-DELTA-D08 | ThinkPad | Transfer `_config/thinkpad-delta-D08-2026-04-30.tar.gz` for D-09 (verified 109K) |
-| MI-M-T-DELTA | ThinkPad | Transfer `_config/macbook-delta-2026-04-27.tar.gz` (rebuilt 2026-05-01, 87K, 7 Opus files) |
 
 ### LinkedIn URL (confirmed 2026-04-24)
 `https://www.linkedin.com/in/petr-zemla-75ab675/`
@@ -278,15 +277,19 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ## § HANDOFF BLOCK — 2026-05-02 (T5-T7)
 **Last session:** 2026-05-02 (continuation — T5/T6/T7 delivery)  
-**Closed because:** T5 + T6 + T7 all complete. Commit pending.  
-**Restart reads:** CLAUDE.md → SESSION-LIFECYCLE-SOP.md → MANIFEST.yaml → queue-macbook.yaml  
-**T5:** `/health` DB probe — `main.py` enhanced; HTTP 503 on DB failure; `db_driver`/`db_status` in payload.  
-**T6:** PHP route audit complete — `MI-M-T-PHP-ROUTE-AUDIT.md` at `3-fold-path/code/`. 23 impl / 8 stubs / 5 gaps. Feed for Opus MacBook session.  
-**T7:** pytest suite at `mi_m_t/tests/` — `conftest.py` + `test_smk9.py` (20 async test functions S01-S20). `smoke_test.py` trailing corruption repaired.  
-**Commit pending:** `thinkpad` branch — T5-T7 changes (6 files). Combine with D-09 commit or push separately.  
-**Verify before commit:** `python smoke_test.py` (SQLite) → 20/20 PASS; `pytest tests/ -v` → 20 passed.  
-**Next session first task:** Verify + commit T5-T7 → push `thinkpad`. Then await Opus MacBook session output before D-10.  
-**Do NOT start:** D-10 feature work before Opus MacBook strategic session output is reviewed.
+**Last session:** 2026-05-03 (PoC-01 delivery)  
+**Closed because:** PoC-01 complete + pushed (`3790ecd` on `thinkpad`).  
+**Restart reads:** CLAUDE.md → `_config/HANDOVER-V0.2-THINKPAD.md` → `_config/SESSION-LIFECYCLE-SOP.md` → `3-fold-path/code/SESSION-NOTES.md`  
+**PoC-01 delivered:**
+- `3-fold-path/evidence/testcases.yaml` v2 (schema 2.0.0, 18 TCs, 0 orphans; TT/REQ refs added)
+- `_config/migrate-testcases-v1-to-v2.py` (idempotent; --check flag)
+- `3-fold-path/code/mimt-app/run.py` + `.env.example` + `Makefile` (Topology B entrypoint)
+- 13 Opus v0.2 docs copied to `_config/`
+**Topology B validation:** B1-B5 all green — /health 200, pytest 20/20 PASS.
+**Topology A:** skipped (docker absent in sandbox) — validate on first PoC-02 session.
+**KB-ENV-010:** SQLite WAL I/O error on Windows-mount (NTFS-over-9P); workaround: `cp .sqlite /tmp/` before write workload.
+**Next session first task:** PoC-02 — Topology A Docker compose (`docker-compose.yml` multi-stage + `Dockerfile`) + `_config/RUNBOOK-DEVOPS.md`.  
+**Read before starting PoC-02:** `_config/HANDOVER-V0.2-THINKPAD.md` Step 5 PoC-02 quick-note + `MI-M-T-V0.2-POC-ONPREM-SCOPE.md §1.2 + §1.4`.
 
 ---
 
@@ -305,7 +308,7 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 | Device | Branch | Last commit | Notes |
 |--------|--------|-------------|-------|
 | MacBook | macbook | ac8914b | Session 2026-05-02 close: queue-macbook restored + KB-034/035 |
-| ThinkPad | thinkpad | 8ceff7f | MI-M-T deploy infra primary — kh-sim backends, infra/docker |
+| ThinkPad | thinkpad | 3790ecd | PoC-01 complete 2026-05-03 — testcases.yaml v2, Topology B, Opus v0.2 docs |
 
 Sync protocol: `_config/FALLBACK_PROTOCOL.md`
 GitHub SSH: `_config/MACBOOK-GITHUB-SETUP.md`
