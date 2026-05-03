@@ -313,7 +313,7 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 | Device | Branch | Last commit | Notes |
 |--------|--------|-------------|-------|
 | MacBook | macbook | ac8914b | Session 2026-05-02 close: queue-macbook restored + KB-034/035 |
-| ThinkPad | thinkpad | 3790ecd | PoC-01 complete 2026-05-03 — testcases.yaml v2, Topology B, Opus v0.2 docs |
+| ThinkPad | thinkpad | 1d83d14 | PoC-02 complete 2026-05-03 — Topology A Dockerfile + docker-compose + RUNBOOK-DEVOPS.md |
 
 Sync protocol: `_config/FALLBACK_PROTOCOL.md`
 GitHub SSH: `_config/MACBOOK-GITHUB-SETUP.md`
