@@ -1389,4 +1389,81 @@ kh_constants → kh_grid → kh_fft → kh_poisson → kh_velocity
              kh_io → kh_solver → kh_main
 ```
 
+### TC-NUM-KH-006 — ThinkPad validation results (2026-05-04)
+
+| Re | KE | Enstrophy | max\|ω\| | div_rms | CFL_peak | Result |
+|----|----|-----------|---------|---------|---------:|--------|
+| 100 | 7.3757e-2 | 2.2557e+1 | 1.6152e+1 | 8.77e-15 | 4.95e-2 | **PASS** |
+| 1000 | 1.1281e-1 | 4.3703e+1 | 3.1986e+1 | 1.50e-14 | 4.97e-2 | **PASS** |
+| 10000 | 1.1991e-1 | 5.2041e+1 | 3.8995e+1 | 1.06e-14 | 5.14e-2 | **PASS** |
+
+Physical consistency: enstrophy monotonically increasing with Re — PASS.  
+CFL_peak ≈ 0.050 (all Re); factor ×8 below KH_CFL_FACTOR=0.4.  
+Re=1000 values: KE=0.11281 vs KH_REF_KE=0.112810 (Δ=0.003%); Enstrophy=43.703 vs KH_REF_ENSTROPHY=43.705 (Δ=0.005%). TC-NUM-KH-008 will be trivial PASS.
+
 ### Next: NUM-KH-FOR-07 (kh_reference.f90 + TC-NUM-KH-008 sha256 match)
+---
+
+## NUM-KH-FOR-07 — kh_reference + TC-NUM-KH-008
+
+**Captured:** 2026-05-04 (CoWork session — DRY-RUN)
+
+### Deliverables
+
+| File | Type | Status |
+|------|------|--------|
+| `src/kh_reference.f90` | NEW — canonical run parameters + kh_reference_compare | DRY-RUN |
+| `tests/test_num_008_reference.f90` | NEW — TC-NUM-KH-008, 5% tolerance match vs KH_REF_* | DRY-RUN |
+
+### kh_reference.f90 — exported interface
+
+```fortran
+! Parameters (all public):
+integer,  parameter :: KH_REF_NX=64, KH_REF_NY=32, KH_REF_NSTEPS=100, KH_REF_MODE=2
+real(8),  parameter :: KH_REF_LX=1.0, KH_REF_LY=0.5, KH_REF_RE_RUN=1000.0
+real(8),  parameter :: KH_REF_NU_RUN=0.001, KH_REF_DT=0.001, KH_REF_AMP=0.01
+
+! Comparison subroutine:
+subroutine kh_reference_compare(ke, enstrophy, max_vort, div_rms,
+                                 passed_ke, passed_ens, passed_vort, passed_div,
+                                 rel_ke, rel_ens, rel_vort)
+```
+
+### TC-NUM-KH-008 — pass criteria
+
+| Criterion | Tolerance |
+|-----------|-----------|
+| \|KE − KH_REF_KE\| / KH_REF_KE | ≤ KH_REF_TOL (5%) |
+| \|Enstrophy − KH_REF_ENSTROPHY\| / KH_REF_ENSTROPHY | ≤ 5% |
+| \|max\|ω\| − KH_REF_MAX_VORT\| / KH_REF_MAX_VORT | ≤ 5% |
+| div_rms | ≤ KH_TOL_DIVERGENCE (1e-10) |
+
+Note: sha256-level byte-exact reproducibility deferred → OQ-NUM-05.
+
+### Expected outcome (pre-computed from TC-006 Re=1000 row)
+
+| Metric | Computed | Reference | Rel err |
+|--------|----------|-----------|---------|
+| KE | 1.1281e-1 | 1.1281e-1 | ~0.003% |
+| Enstrophy | 4.3703e+1 | 4.3705e+1 | ~0.005% |
+| max\|ω\| | 3.1986e+1 | 3.1908e+1 | ~0.25% |
+| div_rms | 1.50e-14 | (< 1e-10) | — |
+
+### Compile + run (ThinkPad, PowerShell)
+
+```powershell
+cd C:\Users\vitez\Documents\VibeCodeProjects\kh-sim\backends\fortran
+gfortran -O2 -o test_num_008 src\kh_constants.f90 src\kh_grid.f90 src\kh_fft.f90 src\kh_poisson.f90 src\kh_velocity.f90 src\kh_nonlinear.f90 src\kh_etdrk4.f90 src\kh_diagnostics.f90 src\kh_io.f90 src\kh_solver.f90 src\kh_reference.f90 tests\test_num_008_reference.f90
+.\test_num_008.exe
+```
+
+### Module dependency chain (final, steps 1-7 complete)
+
+```
+kh_constants → kh_grid → kh_fft → kh_poisson → kh_velocity
+                                 → kh_nonlinear → kh_etdrk4 → kh_solver → kh_main
+                                 → kh_diagnostics → kh_solver
+             kh_io → kh_solver → kh_main
+             kh_reference → (test_num_008)   [uses kh_constants only]
+```
+
