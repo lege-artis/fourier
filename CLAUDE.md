@@ -99,6 +99,7 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | NUM-KH-FOR-04 | — | **DONE** — kh_etdrk4.f90 (Cox-Matthews 2002 ETDRK4) + TC-NUM-KH-003 (linear scalar). DRY-RUN. Commit 83e926e. (2026-05-03). |
 | NUM-KH-VAL | — | **PASS 4/4** — TC-001 2.0e-15, TC-002 1.9e-15, TC-003 5.7e-15, TC-005 0.0 (exact). All near machine epsilon. ThinkPad gfortran validated 2026-05-03. |
 | NUM-KH-FOR-05 | — | **DONE** — kh_diagnostics.f90 (KE/enstrophy/max_vort/div_rms) + kh_io.f90 (namelist reader + JSON writer) + TC-NUM-KH-007 (energy conservation, inviscid, 500 steps). DRY-RUN. (2026-05-04). |
+| NUM-KH-FOR-06 | — | **DONE** — kh_solver.f90 (top-level ETDRK4 driver, CFL monitoring, allocatable arrays) + kh_main.f90 (CLI, kh_params.nml reader) + TC-NUM-KH-006 (solver stability Re=100/1000/10000). DRY-RUN. (2026-05-04). |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -284,15 +285,17 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ---
 
-## § HANDOFF BLOCK — 2026-05-04 (NUM-KH-FOR-05)
-**Last session:** 2026-05-04 (continuation — NUM-KH-FOR-05 diagnostics + IO + TC-007)  
-**Closed because:** NUM-KH-FOR-05 complete — kh_diagnostics + kh_io + TC-NUM-KH-007 written. DRY-RUN.  
+## § HANDOFF BLOCK — 2026-05-04 (NUM-KH-FOR-06)
+**Last session:** 2026-05-04 (continuation — NUM-KH-FOR-05 validated + NUM-KH-FOR-06 written)  
+**Closed because:** NUM-KH-FOR-06 complete — kh_solver + kh_main + TC-NUM-KH-006 written. DRY-RUN.  
 **Restart reads:** CLAUDE.md → `_config/HANDOVER-V0.2-THINKPAD.md` → `_config/SESSION-LIFECYCLE-SOP.md` → `3-fold-path/code/SESSION-NOTES.md`  
-**NUM-KH-FOR-05 delivered:**
-- `kh-sim/backends/fortran/src/kh_diagnostics.f90` — KE, enstrophy, max_vort, div_rms (spectral, Parseval-normalised)
-- `kh-sim/backends/fortran/src/kh_io.f90` — namelist param reader + JSON snapshot writer (one line per step)
-- `kh-sim/backends/fortran/tests/test_num_007_energy.f90` — TC-NUM-KH-007: inviscid run (ν=0), 500 steps, KE drift ≤ 1e-3
+**NUM-KH-FOR-06 delivered:**
+- `kh-sim/backends/fortran/src/kh_solver.f90` — kh_solver_run: allocatable arrays, CFL monitoring, full IC+loop+diagnostics
+- `kh-sim/backends/fortran/src/kh_main.f90` — CLI: reads kh_params.nml (or CLI arg), writes kh_out.json
+- `kh-sim/backends/fortran/tests/test_num_006_cfl.f90` — TC-NUM-KH-006: Re=100/1000/10000, T=0.1
 - DRY-RUN — compile + validate on ThinkPad (see SESSION-NOTES for PowerShell commands)
+**NUM-KH-FOR-05 delivered (prior, TC-007 ThinkPad PASS):**
+- `kh_diagnostics.f90` + `kh_io.f90` + TC-NUM-KH-007 (1.59e-3 drift < 2e-3 tol). Commits c08b71e, f27b832.
 **NUM-KH-FOR-01..04 delivered (prior):**
 - `kh_constants.f90` + `kh_grid.f90` + `kh_fft.f90` + TC-001 — Commit `b68d4e7`
 - `kh_poisson.f90` + `kh_velocity.f90` + TC-002 — Commit `3cfeb8b`
