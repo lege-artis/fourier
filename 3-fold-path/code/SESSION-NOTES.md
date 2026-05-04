@@ -1222,5 +1222,77 @@ All results within 3–8 orders of magnitude below tolerance — near-machine-ep
 - FFT round-trip (2.00e-15) confirms Cooley-Tukey normalisation (1/n per axis applied in inverse) is correct.
 
 ### Next: NUM-KH-FOR-05
+---
+
+## NUM-KH-FOR-05 — kh_diagnostics + kh_io + TC-NUM-KH-007
+
+**Captured:** 2026-05-04 (CoWork session, MacBook side — DRY-RUN)
+
+### Deliverables
+
+| File | Type | Status |
+|------|------|--------|
+| `src/kh_diagnostics.f90` | NEW — scalar diagnostics (KE, enstrophy, max_vort, div_rms) | DRY-RUN |
+| `src/kh_io.f90` | NEW — namelist param reader + JSON snapshot writer | DRY-RUN |
+| `tests/test_num_007_energy.f90` | NEW — TC-NUM-KH-007, energy conservation, inviscid | DRY-RUN |
+
+### kh_diagnostics.f90 — interface
+
+```fortran
+subroutine kh_diagnostics_compute(omega, u, v, kx, ky, nx, ny, &
+                                   ke, enstrophy, max_vort, div_rms)
+```
+
+- `ke`         = (1/2) · Σ(u²+v²) / N
+- `enstrophy`  = (1/2) · Σω² / N
+- `max_vort`   = max|ω(i,j)|
+- `div_rms`    = √(Σ|div_hat|²) / N  [spectral, Parseval-normalised; should be ≤ 1e-10]
+- div_hat = i·kx·FFT2(u) + i·ky·FFT2(v); uses kh_fft_forward_2d (unnormalised)
+
+### kh_io.f90 — interface
+
+```fortran
+! Read params (namelist, falls back to kh_constants defaults)
+kh_io_read_params(filename, nx, ny, lx, ly, re, dt, nsteps, amp, mode, out_interval)
+
+! JSON snapshot writer
+kh_io_open_output(filename, unit)
+kh_io_write_snapshot(unit, step, time, ke, enstrophy, max_vort, div_rms)
+kh_io_close_output(unit)
+```
+
+JSON line format: `{"step":N,"time":T,"ke":K,"enstrophy":E,"max_vort":M,"div_rms":D}`
+
+### TC-NUM-KH-007 — energy conservation (inviscid)
+
+- Grid: 64×32, ν=0 (inviscid), dt=0.001, T=0.5 → 500 steps
+- IC: ω₀ = (U₀/δ)·sech²((y-Ly/2)/δ) + AMP·(2π·mode/Lx)·cos(2π·mode·x/Lx)
+  (matches kh_physics.f90 `initial_conditions` convention)
+- L_op = 0 → ETDRK4 φ functions → Taylor-series branch always; E=1, φ₁=1, φ₂=1/2
+- Pass criterion: |KE(T)-KE(0)|/KE(0) ≤ 1e-3  AND  div_rms(T) ≤ 1e-10
+
+### Compile + run (ThinkPad, PowerShell — two commands each)
+
+```powershell
+# TC-NUM-KH-007
+gfortran -O2 -o test_num_007 `
+    src\kh_constants.f90 src\kh_grid.f90 src\kh_fft.f90 `
+    src\kh_poisson.f90 src\kh_velocity.f90 src\kh_nonlinear.f90 `
+    src\kh_etdrk4.f90 src\kh_diagnostics.f90 `
+    tests\test_num_007_energy.f90
+.\test_num_007.exe
+```
+
+### Module dependency order (updated)
+
+```
+kh_constants → kh_grid → kh_fft → kh_poisson → kh_velocity
+                                              → kh_nonlinear → kh_etdrk4
+                                              → kh_diagnostics
+                              kh_io (standalone; uses kh_constants only)
+```
+
+### Next: NUM-KH-FOR-06 (kh_solver.f90 + kh_main.f90 + TC-NUM-KH-006 CFL)
+
 
 Write `kh_diagnostics.f90` (KE, enstrophy, max_vorticity, divergence_rms) + `kh_io.f90` (JSON snapshot write). TC-NUM-KH-007 (energy conservation, inviscid limit, Re=∞, T=0.5, KE drift ≤ 1e-3).

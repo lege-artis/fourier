@@ -98,6 +98,7 @@ Credentials: `_config/credentials.yaml` (gitignored). Deploy guide: `_config/HOW
 | NUM-KH-FOR-03 | — | **DONE** — kh_nonlinear.f90 (nonlinear RHS + 2/3 de-aliasing) + TC-NUM-KH-005. DRY-RUN. Commit 2374290. (2026-05-03). |
 | NUM-KH-FOR-04 | — | **DONE** — kh_etdrk4.f90 (Cox-Matthews 2002 ETDRK4) + TC-NUM-KH-003 (linear scalar). DRY-RUN. Commit 83e926e. (2026-05-03). |
 | NUM-KH-VAL | — | **PASS 4/4** — TC-001 2.0e-15, TC-002 1.9e-15, TC-003 5.7e-15, TC-005 0.0 (exact). All near machine epsilon. ThinkPad gfortran validated 2026-05-03. |
+| NUM-KH-FOR-05 | — | **DONE** — kh_diagnostics.f90 (KE/enstrophy/max_vort/div_rms) + kh_io.f90 (namelist reader + JSON writer) + TC-NUM-KH-007 (energy conservation, inviscid, 500 steps). DRY-RUN. (2026-05-04). |
 
 ### Next pending applies
 | ID | Target | Action |
@@ -283,22 +284,21 @@ MI-M-T-*   4-step-noble-steps-to-MI-M-T project
 
 ---
 
-## § HANDOFF BLOCK — 2026-05-03 (NUM-KH-FOR-01)
-**Last session:** 2026-05-03 (PoC-01 → PoC-02 → PoC-03 → KH-01 → NUM-KH-FOR-01 same session)  
-**Closed because:** NUM-KH-FOR-01 complete — kh_constants + kh_grid + kh_fft + TC-NUM-KH-001 written. DRY-RUN.  
+## § HANDOFF BLOCK — 2026-05-04 (NUM-KH-FOR-05)
+**Last session:** 2026-05-04 (continuation — NUM-KH-FOR-05 diagnostics + IO + TC-007)  
+**Closed because:** NUM-KH-FOR-05 complete — kh_diagnostics + kh_io + TC-NUM-KH-007 written. DRY-RUN.  
 **Restart reads:** CLAUDE.md → `_config/HANDOVER-V0.2-THINKPAD.md` → `_config/SESSION-LIFECYCLE-SOP.md` → `3-fold-path/code/SESSION-NOTES.md`  
-**NUM-KH-FOR-01 delivered:**
-- `kh-sim/backends/fortran/src/kh_constants.f90` — physical + numerical constants, WATERMARK block
-- `kh-sim/backends/fortran/src/kh_grid.f90` — grid coords, kx/ky/k2 wavenumber arrays, 2/3-rule mask
-- `kh-sim/backends/fortran/src/kh_fft.f90` — kh_fft_forward_2d + kh_fft_inverse_2d; OQ-NUM-01 deferred
-- `kh-sim/backends/fortran/tests/test_num_001_fft_roundtrip.f90` — TC-NUM-KH-001, LCG seed 42, 64×32
-- Commit: `b68d4e7`
-**NUM-KH-FOR-02..04 delivered:**
-- `kh_poisson.f90` — spectral Poisson (ψ̂=ω̂/k², zero mode) + `test_num_002_poisson.f90` (TC-NUM-KH-002)
-- `kh_velocity.f90` — û=i·ky·ψ̂, v̂=-i·kx·ψ̂, IFFT to physical u,v
-- `kh_nonlinear.f90` — nonlinear RHS + kh_dealias (Orszag 2/3-rule) + `test_num_005_dealias.f90` (TC-NUM-KH-005)
-- `kh_etdrk4.f90` — Cox-Matthews 2002 ETDRK4 (precompute + step) + `test_num_003_etdrk4_linear.f90` (TC-NUM-KH-003)
-- Commits: `3cfeb8b` `2374290` `83e926e`
+**NUM-KH-FOR-05 delivered:**
+- `kh-sim/backends/fortran/src/kh_diagnostics.f90` — KE, enstrophy, max_vort, div_rms (spectral, Parseval-normalised)
+- `kh-sim/backends/fortran/src/kh_io.f90` — namelist param reader + JSON snapshot writer (one line per step)
+- `kh-sim/backends/fortran/tests/test_num_007_energy.f90` — TC-NUM-KH-007: inviscid run (ν=0), 500 steps, KE drift ≤ 1e-3
+- DRY-RUN — compile + validate on ThinkPad (see SESSION-NOTES for PowerShell commands)
+**NUM-KH-FOR-01..04 delivered (prior):**
+- `kh_constants.f90` + `kh_grid.f90` + `kh_fft.f90` + TC-001 — Commit `b68d4e7`
+- `kh_poisson.f90` + `kh_velocity.f90` + TC-002 — Commit `3cfeb8b`
+- `kh_nonlinear.f90` + TC-005 — Commit `2374290`
+- `kh_etdrk4.f90` + TC-003 — Commit `83e926e`
+- ThinkPad validation: 4/4 PASS (all near machine epsilon). Commit `a814cc9`
 **KH-01 delivered (earlier):** community files + kh-sim-public branch at `19d7eaa`
 **PoC-03 delivered (earlier):** D05-REDMINE-CONTRACT.md + OQ-100..103 + OQ-300
 **PoC-04 STOP gate:** O
