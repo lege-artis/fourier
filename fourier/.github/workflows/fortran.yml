@@ -1,0 +1,47 @@
+name: Fortran reference build + test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backends/fortran/**'
+      - '.github/workflows/fortran.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backends/fortran/**'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: gfortran reference build + DFT unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install gfortran
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran make
+          gfortran --version
+          make --version
+
+      - name: Build (reference flags — -O0 -fcheck=all)
+        working-directory: backends/fortran
+        run: make all
+
+      - name: Run unit tests
+        working-directory: backends/fortran
+        run: make test
+
+      - name: Build status summary
+        if: always()
+        run: |
+          echo "═══════════════════════════════════════════════════════"
+          echo "Fortran reference build status"
+          echo "  Compiler: $(gfortran --version | head -1)"
+          echo "  Per WORKING-SPEC-v0.3-EN.md §4.1 — canonical reference"
+          echo "  Stage 5 perf build: 'make perf' (v0.5+)"
+          echo "═══════════════════════════════════════════════════════"

@@ -1,0 +1,155 @@
+% Canonical equation — Fast Fourier Transform (Cooley-Tukey radix-2)
+% lege-artis/fourier — v0.1.0
+% Companion to fft-cooley-tukey.md
+% License: CC-BY-SA-4.0
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{../reference-bibliography/refs.bib}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+
+\title{Canonical equation: Cooley-Tukey radix-2 FFT}
+\author{lege-artis/fourier}
+\date{2026-05-09}
+
+\begin{document}
+\maketitle
+
+\section{Setup}
+
+Throughout, $N = 2^m$ for some $m \in \mathbb{N}_0$, and $\omega_N = e^{-2\pi i / N}$
+is the primitive $N$-th root of unity.
+
+\section{Decimation-in-time decomposition}
+
+Split $x \in \mathbb{C}^N$ into even- and odd-indexed subsequences:
+\[
+x_{\mathrm{e}}[r] = x[2r], \qquad x_{\mathrm{o}}[r] = x[2r+1], \qquad r = 0, 1, \ldots, N/2 - 1.
+\]
+
+\begin{lemma}[Even/odd split]
+\label{lem:split}
+With $X[k] = \sum_{n=0}^{N-1} x[n] \omega_N^{nk}$ as in \texttt{dft.tex} Eq.~(1):
+\begin{equation}
+\label{eq:fft-split}
+X[k] = X_{\mathrm{e}}[k] + \omega_N^k \cdot X_{\mathrm{o}}[k], \qquad k = 0, 1, \ldots, N/2 - 1
+\end{equation}
+where $X_{\mathrm{e}}, X_{\mathrm{o}}$ are length-$N/2$ DFTs of $x_{\mathrm{e}}, x_{\mathrm{o}}$.
+\end{lemma}
+
+\begin{proof}
+Substitute and use $\omega_N^{2rk} = \omega_{N/2}^{rk}$:
+\begin{align*}
+X[k] &= \sum_{r=0}^{N/2-1} x[2r] \omega_N^{2rk} + \sum_{r=0}^{N/2-1} x[2r+1] \omega_N^{(2r+1)k} \\
+     &= \sum_{r=0}^{N/2-1} x_{\mathrm{e}}[r] \omega_{N/2}^{rk} + \omega_N^k \sum_{r=0}^{N/2-1} x_{\mathrm{o}}[r] \omega_{N/2}^{rk} \\
+     &= X_{\mathrm{e}}[k] + \omega_N^k X_{\mathrm{o}}[k]. \qed
+\end{align*}
+\end{proof}
+
+\section{Periodicity exploit (the second half)}
+
+\begin{lemma}[Second-half identity]
+\label{lem:second-half}
+For $j \in \{0, 1, \ldots, N/2-1\}$:
+\begin{equation}
+\label{eq:fft-second-half}
+X[N/2 + j] = X_{\mathrm{e}}[j] - \omega_N^j \cdot X_{\mathrm{o}}[j].
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Setting $k = N/2 + j$ in \eqref{eq:fft-split}, and using
+$\omega_{N/2}^{r(N/2)} = (\omega_{N/2}^{N/2})^r = 1^r = 1$ (so
+$X_{\mathrm{e}}[N/2+j] = X_{\mathrm{e}}[j]$ and similarly for $X_{\mathrm{o}}$),
+together with $\omega_N^{N/2} = e^{-\pi i} = -1$:
+\[
+X[N/2+j] = X_{\mathrm{e}}[j] + \omega_N^{N/2+j} X_{\mathrm{o}}[j]
+         = X_{\mathrm{e}}[j] - \omega_N^j X_{\mathrm{o}}[j]. \qed
+\]
+\end{proof}
+
+\section{The butterfly}
+
+Combining Lemmas~\ref{lem:split} and~\ref{lem:second-half} yields the
+\emph{butterfly operation}: for each $k \in \{0, 1, \ldots, N/2-1\}$,
+\begin{equation}
+\label{eq:butterfly}
+\begin{aligned}
+X[k]       &= X_{\mathrm{e}}[k] + \omega_N^k X_{\mathrm{o}}[k] \\
+X[k + N/2] &= X_{\mathrm{e}}[k] - \omega_N^k X_{\mathrm{o}}[k].
+\end{aligned}
+\end{equation}
+
+Each butterfly: one complex multiplication ($\omega_N^k \cdot X_{\mathrm{o}}[k]$)
+plus one addition and one subtraction. Two outputs from two inputs sharing one
+twiddle factor.
+
+\section{Recursion and complexity}
+
+\begin{theorem}[FFT complexity]
+\label{thm:fft-complexity}
+With $T(N)$ denoting the cost of computing the DFT of length $N$ via Cooley-Tukey:
+\begin{equation}
+\label{eq:fft-recurrence}
+T(N) = 2 T(N/2) + cN, \qquad T(1) = O(1)
+\end{equation}
+which by the master theorem yields
+\begin{equation}
+\label{eq:fft-asymp}
+T(N) = \Theta(N \log_2 N).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\eqref{eq:fft-recurrence} follows directly from \eqref{eq:butterfly}: solve
+two subproblems of size $N/2$, then perform $N/2$ butterflies of constant cost.
+\eqref{eq:fft-asymp} is the master-theorem solution for $a = 2$, $b = 2$,
+$f(N) = cN$. \cite{Cooley1965}
+\end{proof}
+
+Concretely: $\log_2 N$ stages $\times N/2$ butterflies/stage gives
+$\frac{N}{2}\log_2 N$ complex multiplications, $N \log_2 N$ complex additions.
+
+\section{Equivalence with direct DFT}
+
+\begin{theorem}[FFT-DFT equivalence in exact arithmetic]
+\label{thm:fft-dft-exact}
+For $N = 2^m$ and $x \in \mathbb{C}^N$:
+\begin{equation}
+\mathrm{FFT}(x) = \mathrm{DFT}(x).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By induction on $m$. Base case $m = 0$ ($N = 1$): both transforms return $x$
+unchanged. Inductive step: assume the equivalence holds at length $N/2$;
+Lemma~\ref{lem:split} and Lemma~\ref{lem:second-half} together compute every
+$X[k]$ for $k \in \{0, \ldots, N-1\}$ in terms of length-$N/2$ DFTs, which
+by hypothesis equal the corresponding length-$N/2$ FFT outputs. \qed
+\end{proof}
+
+\begin{proposition}[FFT-DFT equivalence in floating-point]
+\label{prop:fft-dft-fp}
+In IEEE 754 binary64 arithmetic with rounding-to-nearest:
+\begin{equation}
+\label{eq:fft-rounding}
+\big\| \mathrm{FFT}(x) - \mathrm{DFT}(x) \big\|_\infty
+\leq C \cdot \log_2(N) \cdot \varepsilon_{\mathrm{machine}} \cdot \|x\|_\infty
+\end{equation}
+with $C \leq 4$ a small constant \cite[§12.2]{NumRec3rd}.
+\end{proposition}
+
+\eqref{eq:fft-rounding} is the gate condition for the cross-algorithm equivalence
+test in \texttt{shared/property-tests/dft.md} (Property~P5). It is a stronger bound
+than the direct DFT rounding bound $\sim N \cdot \varepsilon$ because the recursive
+halving keeps each addition's roundoff small.
+
+\printbibliography
+\end{document}

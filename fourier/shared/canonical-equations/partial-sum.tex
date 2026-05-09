@@ -1,0 +1,159 @@
+% Canonical equation — Numerical Partial Sum of Fourier Series
+% lege-artis/fourier — v0.1.0
+% Companion to partial-sum.md
+% License: CC-BY-SA-4.0
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{../reference-bibliography/refs.bib}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\title{Canonical equation: Numerical partial sum of Fourier series}
+\author{lege-artis/fourier}
+\date{2026-05-09}
+
+\begin{document}
+\maketitle
+
+\section{Continuous Fourier series}
+
+\begin{definition}[Fourier coefficients]
+For an integrable function $f: \mathbb{T} \to \mathbb{C}$ on the circle
+($f$ periodic with period $2\pi$), the \emph{Fourier coefficients} are
+\begin{equation}
+\label{eq:psf-coeffs}
+c_n = \frac{1}{2\pi} \int_{-\pi}^{\pi} f(x) e^{-i n x} dx, \qquad n \in \mathbb{Z}.
+\end{equation}
+\end{definition}
+
+The formal Fourier series is $\sum_{n=-\infty}^{\infty} c_n e^{i n x}$.
+The "$\sim$" relating $f$ and its series acknowledges that pointwise convergence
+depends on $f$'s regularity (Theorem~\ref{thm:smooth-conv} below).
+
+\section{The partial-sum operator}
+
+\begin{definition}[Partial sum]
+\label{def:partial-sum}
+\begin{equation}
+\label{eq:partial-sum}
+S_M[f](x) = \sum_{n=-M}^{M} c_n e^{i n x}.
+\end{equation}
+\end{definition}
+
+For real-valued $f$, $c_{-n} = \overline{c_n}$ and \eqref{eq:partial-sum} reduces to
+\begin{equation}
+\label{eq:partial-sum-real}
+S_M[f](x) = \frac{a_0}{2} + \sum_{n=1}^{M} \big( a_n \cos(nx) + b_n \sin(nx) \big)
+\end{equation}
+with real coefficients
+\begin{equation}
+\label{eq:abn-coeffs}
+a_n = \frac{1}{\pi} \int_{-\pi}^{\pi} f(x) \cos(nx) dx, \qquad
+b_n = \frac{1}{\pi} \int_{-\pi}^{\pi} f(x) \sin(nx) dx.
+\end{equation}
+
+\section{Numerical evaluation via DFT}
+
+For numerical computation, \eqref{eq:psf-coeffs} is approximated by the
+trapezoidal rule on $K$ equally-spaced sample points
+$x_j = -\pi + 2\pi j/K$, $j = 0, \ldots, K-1$:
+\begin{equation}
+\label{eq:psf-trapezoidal}
+\hat{c}_n = \frac{1}{K} \sum_{j=0}^{K-1} f(x_j) e^{-i n x_j},
+\end{equation}
+which equals $\frac{1}{K} \cdot \mathrm{DFT}_K\{f[j]\}[n]$ up to a phase factor
+arising from the $-\pi$ origin shift. When $f$ is band-limited to frequencies
+$|n| < K/2$, the trapezoidal approximation $\hat{c}_n$ equals the exact $c_n$.
+
+\section{Convergence}
+
+\begin{theorem}[Smooth-function rapid decay]
+\label{thm:smooth-conv}
+If $f \in C^\infty(\mathbb{T})$, the Fourier coefficients decay faster than
+any polynomial:
+\begin{equation}
+|c_n| = O(|n|^{-k}) \qquad \text{for every } k \in \mathbb{N},
+\end{equation}
+and $S_M[f] \to f$ uniformly as $M \to \infty$.
+\end{theorem}
+
+\begin{proof}
+Repeated integration by parts in \eqref{eq:psf-coeffs}; the derivatives of
+$f$ are bounded on $\mathbb{T}$. \cite[Ch.~5]{Korner1989}.
+\end{proof}
+
+\begin{theorem}[Piecewise-smooth: $L^2$ convergence]
+\label{thm:piecewise-conv}
+If $f$ is piecewise smooth (continuous with continuous derivative except at
+finitely many points where finite jumps occur):
+\begin{equation}
+\label{eq:l2-conv}
+\| f - S_M[f] \|_2 = O(M^{-1}).
+\end{equation}
+$S_M[f]$ converges pointwise to $f(x)$ at points of continuity and to
+$\frac{1}{2}(f(x^-) + f(x^+))$ at jump points.
+\end{theorem}
+
+\begin{proof}
+\cite[Ch.~12]{Korner1989}.
+\end{proof}
+
+\begin{theorem}[Gibbs phenomenon]
+\label{thm:gibbs}
+At a jump discontinuity of magnitude $\Delta$, the partial sum overshoots:
+\begin{equation}
+\label{eq:gibbs}
+\lim_{M \to \infty} \big( \max_x S_M[f](x) - f(\sup) \big) = G \Delta
+\end{equation}
+where $G = \frac{1}{\pi}\int_0^\pi \frac{\sin t}{t} dt - \frac{1}{2} \approx 0.0895$.
+\end{theorem}
+
+\begin{proof}
+\cite[§3.5]{Folland1992}.
+\end{proof}
+
+The Gibbs phenomenon is an analytical property, not a numerical artifact.
+Any correct implementation must reproduce it.
+
+\section{Test cases for \texttt{shared/physics-testbeds/dft.md}}
+
+\subsection{Sawtooth wave}
+
+$f(x) = x$ on $(-\pi, \pi]$. Coefficients: $c_n = i(-1)^n/n$ for $n \neq 0$,
+$c_0 = 0$. Partial sum:
+\[
+S_M[f](x) = -2 \sum_{n=1}^{M} \frac{(-1)^{n+1}}{n} \sin(nx).
+\]
+Gibbs overshoot at endpoints: $\approx 0.179\pi$.
+
+\subsection{Square wave}
+
+$f(x) = \mathrm{sgn}(x)$ on $(-\pi, \pi]$. Coefficients: $c_n = 2/(i n \pi)$
+for odd $n$, $0$ for even $n$. Partial sum:
+\[
+S_M[f](x) = \frac{4}{\pi} \sum_{\substack{n \text{ odd}\\ n \leq M}} \frac{\sin(nx)}{n}.
+\]
+Gibbs overshoot at $x = 0$: $\approx 1.179$ vs true $\pm 1$.
+
+\subsection{Triangular wave}
+
+$f(x) = |x|$ on $[-\pi, \pi]$. Coefficients: $a_0 = \pi$,
+$a_n = -4/(\pi n^2)$ for odd $n$, $0$ for even $n$. Partial sum:
+\[
+S_M[f](x) = \frac{\pi}{2} - \frac{4}{\pi} \sum_{\substack{n \text{ odd}\\ n \leq M}} \frac{\cos(nx)}{n^2}.
+\]
+No Gibbs (continuous function); convergence $O(1/M^2)$ in $L^\infty$.
+
+These three cases populate the v0.1.0 partial-sum track of
+\texttt{shared/physics-testbeds/dft.md}.
+
+\printbibliography
+\end{document}
