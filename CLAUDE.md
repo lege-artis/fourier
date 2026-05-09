@@ -252,31 +252,41 @@ FOURIER-*  lege-artis/fourier project (added 2026-05-09)
 
 ---
 
-## § HANDOFF BLOCK — 2026-05-09 (CP-SUPIN-05 close + Fourier bootstrap)
-**Last session:** 2026-05-09 (extended — workspace mount expanded; existing infra surveyed; PORTFOLIO-META v0.1 retired; CLAUDE-MD-DELTA-2026-05-09.md authored + merged into this CLAUDE.md; lege-artis/fourier bootstrapped private at v0.0.1-bootstrap)
-**Closed because:** Fourier weekend Stage 1 ready to start; CP-SUPIN-05 work parked with BUG-CY-001 evidence-captured-fix-deferred; full-portfolio governance updated.
-**Restart reads:** CLAUDE.md (this file, now merged) → `_config/SESSION-LIFECYCLE-SOP.md` → `_config/KB-LESSONS-LEARNED.yaml` (KB-036 R-WORKSPACE-SURVEY-1 mandatory) → `MANIFEST.yaml` → relevant project session-close docs.
-**Delivered 2026-05-09 (governance):**
+## § HANDOFF BLOCK — 2026-05-09 (Fourier Stages 1-4 green + Sonnet handoff authored)
+**Last session:** 2026-05-09 (extended — Fourier weekend cut: Stages 1+2+3+4 all landed in single Opus session; Fortran reference v0.1.0 implementation 5/5 unit tests PASS at machine-epsilon; Sonnet delegation pack authored for Stage-4 follow-on)
+**Closed because:** v0.0.2-fortran-ref-green milestone reached; remaining Stage-4 work (property tests + physics testbeds + golden-vector loader) is well-specified and suitable for Sonnet delegation; build chain debugged across three layers; further Opus work would be diminishing returns vs handing off mechanical implementation to Sonnet.
+**Restart reads:** CLAUDE.md (this file) → `_config/SESSION-LIFECYCLE-SOP.md` → `_config/KB-LESSONS-LEARNED.yaml` (KB-036 R-WORKSPACE-SURVEY-1, KB-037..039 added today) → `MANIFEST.yaml` → `fourier/_specs/WORKING-SPEC-v0.3-EN.md` → `fourier/_specs/SONNET-HANDOFF-v0.1-FOURIER-STAGE-4-FOLLOWON.md` (delegation contract for next Sonnet sessions).
+**Repo state (post-session):**
+- Monorepo @ github:petr-yamyang/VibeCodeProjects branch `thinkpad` HEAD `0079b1b`, tagged `v0.0.2-fortran-ref-green`
+- lege-artis/fourier @ github:lege-artis/fourier branch `main` HEAD `24531a0`, tagged `v0.0.1-bootstrap` + `v0.0.2-fortran-ref-green` (private; flips public at v0.1.0)
+- 26 files / 10,436 insertions covering: WORKING-SPEC-v0.3, refs.bib (13 sources), 3 canonical equations (.md+.tex), 5 unit tests, 8 properties + 4 physics testbeds (specs only — implementations queued), 6 golden-vector JSONs, Fortran reference kernel + Makefile + GitHub Actions CI, canonical/engineer doc tiers (chapters 00+01 each), Shaddack-tier scope-doc + Miyazaki-dragon iconography
+**Delivered 2026-05-09 (governance, earlier in session):**
 - `_config/CLAUDE-MD-DELTA-2026-05-09.md` — delta source (now merged; this file ready for retirement at next Phase 4)
-- `_config/LEGE-ARTIS-ORG-MIGRATION-PLAN-v0.1.md` — operational walkthrough (NOTE: needs minor update — `--prefix=fourier` not `--prefix=lege-artis/fourier`; transfer pattern for kh-sim superseded by subtree-push pattern)
+- `_config/LEGE-ARTIS-ORG-MIGRATION-PLAN-v0.1.md` — operational walkthrough (NOTE: needs minor update — `--prefix=fourier` not `--prefix=lege-artis/fourier`; transfer pattern for kh-sim superseded by subtree-push pattern empirically validated 2x today)
 - `4-step-noble-steps to MI-M-T/lege-artis-fourier-bootstrap.md` — first content under previously-empty 4-step folder
-- `_config/KB-LESSONS-LEARNED.yaml` + `_config/KB-LESSONS-LEARNED-OPUS-v0.2.yaml` — KB-036 R-WORKSPACE-SURVEY-1 entries appended
 - `SUPIN/archive/obsolete/portfolio-meta-v0.1/PORTFOLIO-META-v0.1-EN.md` + `RETIREMENT-NOTE.md` — retired predecessor doc
-- `SUPIN/FOURIER-FOUNDATIONS-WORKING-SPEC-v0.2-EN.md` — locked Apache 2.0 + CC-BY-SA-4.0 + TRADEMARK + Pascal v0.2.0 sequencing
-**Delivered 2026-05-09 (lege-artis/fourier bootstrap):**
-- `lege-artis` GitHub org created (private)
-- `lege-artis/fourier` empty repo created (private)
-- `VibeCodeProjects/fourier/` subdirectory created with full bootstrap content (LICENSE Apache 2.0, LICENSE-DOCS CC-BY-SA-4.0, NOTICE, TRADEMARK.md, README.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, .gitignore, .github/FUNDING.yml, _specs/WORKING-SPEC-v0.2-EN.md, multi-backend directory tree)
-- Subtree-push to `lege-artis/fourier` (15 objects, 19.95 KiB) tagged `v0.0.1-bootstrap`
-- Pattern empirically validated: private VibeCodeProjects monorepo as source-of-truth, lege-artis/* repos as published-snapshots-at-version-boundaries via `git subtree split` + push
-**Open / active:**
-- FOURIER-S1 — bibliography + canonical equations (Stage 1 of WORKING-SPEC v0.2, ready to start in `VibeCodeProjects/fourier/shared/reference-bibliography/` + `shared/canonical-equations/`)
-- BUG-CY-001 — parked with Round-4 IPC-114 evidence; same-origin persistent connection hypothesis; next diagnostic = headed Cypress + Network DevTools
-- VibeCodeProjects monorepo commit pending — captures today's other work (delta + KB + retirement + bootstrap docs); Pete authors per next-session guidance
-- LEGE-ARTIS-ORG-MIGRATION-PLAN-v0.1.md needs `--prefix=fourier` correction + subtree-not-transfer pattern note
-**NUM-KH-FOR-08 + D-10 carried forward (prior):**
-- `kh-sim/backends/fortran/tests/test_num_004_convergence.f90` — TC-NUM-KH-004: Richardson dt-halving (4 levels), rate ≥ 1.2; 8/8 TCs PASS
-- `3-fold-path/code/deploy/active24-bundle.zip` — D-10 dry-run; validate on ThinkPad with real Active24 credentials
+- `SUPIN/FOURIER-FOUNDATIONS-WORKING-SPEC-v0.2-EN.md` — superseded by v0.3 in repo
+**Delivered 2026-05-09 (Fourier Stages 1-4):**
+- Stage 1 — bibliography (`fourier/shared/reference-bibliography/refs.bib`, 13 confirmed sources, JA/DE/IT v0.1.1+ deferred)
+- Stage 2 — canonical equations (`fourier/shared/canonical-equations/{dft,fft-cooley-tukey,partial-sum}.{md,tex}`)
+- Stage 3 — review (implicit; equations cross-checked vs Folland/Pinsky/Oppenheim/Numerical-Recipes)
+- Stage 4 — Fortran reference (`fourier/backends/fortran/{src,tests}/*.f90` + Makefile + CI) — 5/5 PASS at 3.7e-16 to 4.6e-15 (gate 1e-13)
+- Three doc tiers: canonical-tier ch 00+01 (`docs/canonical/en/`), engineer-tier ch 00+01 (`docs/engineer/en/`), Shaddack-tier scope-doc (`_specs/PLANNED-SHADDACK-TIER-SCOPE-v0.1.md`)
+- Golden-vector generator + 6 cross-checked JSONs (NumPy + SciPy oracles agree to <1.2e-13)
+- Sonnet delegation pack (`_specs/SONNET-HANDOFF-v0.1-FOURIER-STAGE-4-FOLLOWON.md`) — three independent Jobs ready for parallel Sonnet sessions
+**Build-chain lessons learned (added to KB):**
+- KB-037 — Fortran case-insensitivity: `integer :: N, n` declares `n` twice; root cause of confusing "Symbol already has basic type INTEGER" errors. Convention: use `nlen` for size, lowercase loop indices for math notation.
+- KB-038 — GNU Make on Windows: cmd.exe builtin mkdir doesn't accept `-p`. OS-aware Makefile pattern: `ifeq ($(OS),Windows_NT)` → `if not exist ... mkdir`, else `mkdir -p`.
+- KB-039 — gfortran `-std=f2018 -pedantic` byte-counts UTF-8 against 132-column limit; multi-byte chars trip line-truncation + unterminated-character-constant cascade. Rule: ASCII-only Fortran source.
+**Open / active (next sessions):**
+- FOURIER-S4-PROP — Job-1 from Sonnet handoff: property test backend (P1+P2+P3+P4+P7+P8). Inputs locked in handoff §2.1. Tag at green = `v0.0.3-fortran-property-green`.
+- FOURIER-S4-PHYS — Job-2: physics testbed backend (PT-DFT-01/02/03A/03B). Tag = `v0.0.4-fortran-physics-green`.
+- FOURIER-S4-GOLD — Job-3: golden-vector loader + verification. Includes `tools/json_to_fortran_data.py` build step. Tag = `v0.0.5-fortran-golden-green`.
+- After all three Sonnet jobs green → v0.1.0-rc state → Opus authors public-flip + final v0.1.0 tag → lege-artis/fourier flips PUBLIC.
+- BUG-CY-001 — parked with Round-4 IPC-114 evidence; same-origin persistent connection hypothesis; next diagnostic = headed Cypress + Network DevTools (NOT BLOCKING Fourier track).
+- LEGE-ARTIS-ORG-MIGRATION-PLAN-v0.1.md — minor doc update needed (`--prefix=fourier` correction + subtree-not-transfer pattern note); deferred, low-priority.
+**NUM-KH-FOR-08 + D-10 carried forward (prior, unchanged):**
+- `kh-sim/backends/fortran/tests/test_num_004_convergence.f90` — TC-NUM-KH-004: 8/8 TCs PASS (validated)
+- `3-fold-path/code/deploy/active24-bundle.zip` — D-10 dry-run; validate on ThinkPad with real Active24 credentials when in scope
 **KH-01 (earlier):** community files + kh-sim-public branch at `19d7eaa` (local-only; subtree-publishable to `lege-artis/kh-sim` per same pattern as fourier when ready)
-**PoC-04 STOP gate:** OQ-100 (org status names) + OQ-101 (instance URL/version) — must be answered before next iteration; see `3-fold-path/backlog/MI-M-T-D05-REDMINE-CONTRACT.md` v0.1.0 §11.
-rsion) — must be answered before next iteration; see `3-fold-path/backlog/MI-M-T-D05-REDMINE-CONTRACT.md` v0.1.0 §11.
+**PoC-04 STOP gate (MI-M-T):** OQ-100 (org status names) + OQ-101 (instance URL/version) — must be answered before next iteration; see `3-fold-path/backlog/MI-M-T-D05-REDMINE-CONTRACT.md` v0.1.0 §11.

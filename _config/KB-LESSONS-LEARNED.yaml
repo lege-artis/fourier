@@ -827,3 +827,136 @@ python_dev:
   rule_id: R-WORKSPACE-SURVEY-1
   applies_to: [opus_sessions, sonnet_sessions, all_devices]
   tags: [workspace, mount, governance, portfolio, sonnet-handoff, lessons-learned, opus-cycle]
+
+- id: KB-037
+  date: 2026-05-09
+  title: Fortran is case-insensitive — N and n are the same identifier
+  context: |
+    First Fortran reference compile of lege-artis/fourier dft_kernel.f90 on ThinkPad
+    failed with cascading gfortran errors that looked unrelated:
+        Error: Symbol 'n' at (1) already has basic type of INTEGER
+        Error: Symbol 'k' has no IMPLICIT type
+        Error: Symbol 'n' has no IMPLICIT type
+    The first error was the real one; the rest were parser cascade after the line failed.
+  diagnosis: |
+    The declaration `integer :: N, k, n` was attempting to declare two variables that
+    Fortran considers identical (Fortran identifiers are case-insensitive). The compiler
+    reads `N` first and assigns INTEGER type; then sees `n` and reports it as already-
+    typed. The rest of the function body then references `N`/`n`/`k` which the compiler
+    has marked as broken state, hence the "no IMPLICIT type" cascade.
+  fix: |
+    Renamed the size variable from `N` to `nlen` everywhere it appears in dft_kernel.f90
+    (both `dft()` and `idft()` functions). The math-equation indices `k` and `n` from
+    Eq. DFT-1 were preserved as-is to keep the code-equation mapping legible. Module
+    header documents the rename and the case-insensitivity rule explicitly.
+  lesson: |
+    NEVER use case to disambiguate identifiers in Fortran. The convention adopted in
+    this codebase: lowercase loop indices match the math-equation symbols (k, n);
+    sequence length / array bound variables get a distinct name (nlen, npts, nseq);
+    constants get all-caps with no risk of clash (TWO_PI, MAX_ITER).
+  prevention: |
+    - Module header in every Fortran file in lege-artis/fourier carries a doc-comment
+      block reminding the reader of the case-insensitivity rule.
+    - Sonnet handoff doc (_specs/SONNET-HANDOFF-v0.1-FOURIER-STAGE-4-FOLLOWON.md) §1.2
+      lists this as a non-negotiable convention.
+    - When reviewing Fortran source, scan declarations for any pair (X, x) — that's the
+      signature of this trap.
+  rule_id: KB-037
+  applies_to: [fortran_authoring, lege_artis_fourier, kh_sim_fortran_backend]
+  tags: [fortran, language-trap, case-insensitivity, gfortran, debugging]
+
+- id: KB-038
+  date: 2026-05-09
+  title: GNU Make on Windows defaults to cmd.exe — `mkdir -p` is broken
+  context: |
+    Second build attempt of lege-artis/fourier on Windows ThinkPad with PowerShell host
+    failed at the build-directory creation step:
+        if not exist "build" mkdir "build"   (FAILED in earlier attempt as `mkdir -p build`)
+        A subdirectory or file -p already exists.
+    But `make clean` (`rm -rf build`) had succeeded, leading to apparent inconsistency.
+  diagnosis: |
+    GNU Make on Windows invokes recipes via cmd.exe by default (unless sh.exe is in
+    PATH at make-startup time, which it usually isn't even when MSYS2/MinGW is
+    installed). cmd.exe's BUILT-IN `mkdir` does not accept `-p` and throws on it.
+    Conversely, cmd.exe has no built-in `rm`, so it falls through to PATH and finds
+    rm.exe (from Git-for-Windows or MSYS2 bin). That asymmetry is what made the
+    failure look weird: half the recipes worked, half didn't.
+  fix: |
+    OS-aware Makefile pattern. Detect Windows via `OS=Windows_NT` env var (set by the
+    OS itself on Windows). Switch idioms accordingly:
+        ifeq ($(OS),Windows_NT)
+            MKDIR_BUILD = if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
+            RM_BUILD    = if exist "$(BUILD_DIR)" rmdir /s /q "$(BUILD_DIR)"
+        else
+            MKDIR_BUILD = mkdir -p "$(BUILD_DIR)"
+            RM_BUILD    = rm -rf "$(BUILD_DIR)"
+        endif
+    Recipes use $(MKDIR_BUILD) and $(RM_BUILD) variables; both forms produce
+    semantically equivalent behaviour on their respective shells.
+  lesson: |
+    Any Makefile that needs to run cross-platform on personal devices in this
+    portfolio (ThinkPad/MacBook/future devices) must use this OS-aware pattern.
+    Don't assume sh.exe is on PATH; don't assume cmd.exe has GNU coreutils;
+    don't trust that `rm` working means `mkdir -p` will too.
+  prevention: |
+    - Sonnet handoff §1.7 makes the OS-aware-Makefile pattern non-negotiable.
+    - Every new Makefile target in lege-artis/fourier (and kh-sim, mimt, etc.)
+      uses MKDIR_BUILD / RM_BUILD via the same ifeq($(OS),Windows_NT) block.
+    - When reviewing a Makefile change, check that no recipe relies on POSIX-only
+      flag idioms (`mkdir -p`, `cp -R`, `rm -rf`, `find -delete`, `xargs -0`).
+  rule_id: KB-038
+  applies_to: [makefile_authoring, all_personal_devices_windows_macos_linux]
+  tags: [make, build-system, cmd-exe, windows, posix-portability, debugging]
+
+- id: KB-039
+  date: 2026-05-09
+  title: gfortran -std=f2018 -pedantic byte-counts UTF-8 against 132-column limit
+  context: |
+    Third build failure on lege-artis/fourier test_dft_unit.f90 — kernel compiled clean
+    but the test program failed at:
+        tests/test_dft_unit.f90:29:132:
+           29 |     write(*, '(A)') '═════════════════════════...═════════════'
+           Error: Line truncated at (1) [-Werror=line-truncation]
+        tests/test_dft_unit.f90:29:22:
+           Error: Unterminated character constant beginning at (1)
+    PowerShell rendered the source bytes as `ΓòÉ` (cp437/cp850 mojibake of the UTF-8
+    bytes for U+2550 BOX DRAWINGS DOUBLE HORIZONTAL).
+  diagnosis: |
+    Each `═` (U+2550) is 3 UTF-8 bytes. The banner line was 57 box-drawing chars,
+    so 57 × 3 = 171 bytes for that span alone. Adding indentation + write-statement
+    prefix took the line to ~192 bytes total. gfortran with `-std=f2018 -pedantic`
+    counts BYTES (not characters) against the f2018 free-form 132-column line limit;
+    the line truncates at byte 132 mid-multibyte-sequence; the apostrophe-string never
+    closes (parser sees garbage), hence the "unterminated character constant" cascade.
+    `-Wall -Wextra -pedantic` promotes the line-truncation warning to error. Comments
+    with the same characters survive only when the line stays short enough that 132
+    bytes isn't exceeded.
+  fix: |
+    ASCII-only Fortran source. Replaced:
+        ═ (U+2550 box-drawing double horizontal) → = (U+003D)
+        ─ (U+2500 box-drawing light horizontal)  → -
+        — (U+2014 em-dash)                       → -
+        § (U+00A7 section sign)                  → "section"
+        π (U+03C0 Greek pi)                      → pi
+        → (U+2192 arrow)                         → ->
+        ≡ (U+2261 identical-to)                  → ==
+        · (U+00B7 middle dot)                    → *
+    Both `dft_kernel.f90` and `test_dft_unit.f90` scrubbed; Makefile @echo statements
+    also scrubbed (cmd.exe mojibake-renders multi-byte chars from the recipe).
+    Module header in dft_kernel.f90 explicitly documents the ASCII-only rule.
+  lesson: |
+    Fortran source files in lege-artis/fourier (and any other Fortran project compiled
+    with f2018/f2008/f2018-strict + pedantic) must be ASCII-only. The visual cost
+    (banner separators look slightly less elegant) is dramatically smaller than the
+    debugging cost when the trap fires.
+  prevention: |
+    - Sonnet handoff §1.1 makes ASCII-only Fortran a non-negotiable convention.
+    - Every new Fortran file gets a header doc-comment reminding of the rule.
+    - Pre-commit / CI check (TODO): grep -P "[^\x00-\x7F]" *.f90 should return zero;
+      if it returns matches, commit is rejected.
+    - Same rule should be considered for C++ / Rust / Pascal source files in v0.2.0
+      multi-language work: ASCII-only by default, opt-in to UTF-8 with explicit BOM
+      or compiler flag only when justified.
+  rule_id: KB-039
+  applies_to: [fortran_authoring, lege_artis_fourier, future_strict_compiler_languages]
+  tags: [fortran, encoding, utf-8, gfortran, line-truncation, pedantic, debugging]
