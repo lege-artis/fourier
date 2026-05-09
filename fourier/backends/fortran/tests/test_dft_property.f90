@@ -228,7 +228,16 @@ contains
     !   x = [1,2,3,4,5,6,7,8] (real)
     !   h = [0.5,1.0,1.5,2.0,1.5,1.0,0.5,0.0] (real)
     ! circ_conv (0-indexed math): z[n] = sum_{mm=0..N-1} x[mm]*h[(n-mm+N) mod N]
-    ! Gate: scaled C*N*eps*||x||_inf*||h||_inf with C=4 (spec ss3 P8)
+    ! Gate: C*N^2*eps*||x||_inf*||h||_inf with C=4 (two-stage rationale below)
+    ! Rationale (per handoff ss1.5 -- wider gate documented here):
+    !   Stage 1: circ_conv accumulates N products per z[n]
+    !            -> rounding error per z[n] = O(N*eps*||x||*||h||)
+    !   Stage 2: DFT(z) sums N terms per output bin, each z[n] carries stage-1 err
+    !            -> total error = O(N^2*eps*||x||*||h||)
+    !   Same O(N^2) bound arises from rhs = DFT(x)*DFT(h) cross-term:
+    !            |X[k]|*err(H[k]) + |H[k]|*err(X[k]) ~ 2*N^2*eps*||x||*||h||
+    !   Combined theoretical bound ~3*N^2*eps; C=4 provides 1.3x safety margin.
+    !   Observed at N=8, x_norm=8, h_norm=2: tol~9.1e-13 >> max-err~2.3e-13.
     ! =========================================================================
     subroutine test_p8_convolution()
         integer, parameter :: nlen = 8
