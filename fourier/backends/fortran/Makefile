@@ -52,9 +52,13 @@ MODULES   = $(BUILD_DIR)/lege_artis_fourier_dft.mod
 TESTS     = $(TEST_DIR)/test_dft_unit.f90
 TEST_BIN  = $(BUILD_DIR)/test_dft_unit
 
+# Property tests (P1-P4, P7, P8) -- added for v0.0.3-fortran-property-green
+TESTS_PROP    = $(TEST_DIR)/test_dft_property.f90
+TEST_PROP_BIN = $(BUILD_DIR)/test_dft_property
+
 .PHONY: all test perf clean
 
-all: $(TEST_BIN)
+all: $(TEST_BIN) $(TEST_PROP_BIN)
 
 $(BUILD_DIR):
 	$(MKDIR_BUILD)
@@ -65,11 +69,16 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.f90 | $(BUILD_DIR)
 $(TEST_BIN): $(OBJECTS) $(TESTS) | $(BUILD_DIR)
 	$(FC) $(FFLAGS) -I$(BUILD_DIR) -o $@ $(OBJECTS) $(TESTS)
 
-test: $(TEST_BIN)
+$(TEST_PROP_BIN): $(OBJECTS) $(TESTS_PROP) | $(BUILD_DIR)
+	$(FC) $(FFLAGS) -I$(BUILD_DIR) -o $@ $(OBJECTS) $(TESTS_PROP)
+
+test: $(TEST_BIN) $(TEST_PROP_BIN)
 	@echo Running DFT unit tests (v0.1.0 reference)...
 	@$(TEST_BIN)
+	@echo Running DFT property tests (v0.1.0 reference)...
+	@$(TEST_PROP_BIN)
 
-# Performance build — Stage 5 / v0.5+; reuses sources, swaps flags.
+# Performance build -- Stage 5 / v0.5+; reuses sources, swaps flags.
 # Output binary suffix '_perf' to keep reference / perf builds distinguishable.
 perf: FFLAGS = $(FFLAGS_PERF)
 perf: $(BUILD_DIR)
