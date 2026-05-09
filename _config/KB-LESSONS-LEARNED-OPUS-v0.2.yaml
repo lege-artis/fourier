@@ -761,3 +761,69 @@ python_dev:
     device to commit should note the fix in the task registry so the second
     device skips duplicate work.
   tags: [ci, conflict, concurrent-edit, scala, pascal, react, workflow]
+
+- id: KB-036
+  date: 2026-05-09
+  project: portfolio
+  component: session_protocol
+  category: governance
+  title: "Workspace-survey rule — always check VibeCodeProjects parent before inventing portfolio governance"
+  description: |
+    During CP-SUPIN-05 work, an Opus session authored PORTFOLIO-META-v0.1-EN.md (~600 lines)
+    proposing portfolio-level governance conventions: device placement matrix, Sonnet
+    orchestration patterns, six-map taxonomy, Gate-with-Window catalogue, R-COVERAGE-ZERO
+    methodology rule, Apache 2.0 + CC-BY-SA-4.0 license stack, shibboleth aesthetic principle.
+    Significant fraction of that content duplicated existing infrastructure already living
+    at the VibeCodeProjects root level: CLAUDE.md (entry doc + load order), MANIFEST.yaml,
+    TASKS-shared.yaml, queue-thinkpad.yaml, queue-macbook.yaml, OPUS-CYCLE-v0.2-MASTER.md
+    (covers strategic framing, three deployment modes, conceptual triple, three pilot
+    tracks), SESSION-LIFECYCLE-SOP.md (5-phase cycle), HANDOVER-V0.2-MACBOOK.md +
+    HANDOVER-V0.2-THINKPAD.md (Sonnet handoff prompts), KB-LESSONS-LEARNED.yaml
+    (cross-project KB), DEVICES.md (device matrix), GITHUB-ORCH-V0.2.md (parallel-sync
+    protocol), PROJECT-CLOSING-HOWTO.md, plus 30+ governance docs in _config/.
+    Root cause: workspace mount was scoped to SUPIN/ only when session began; Opus
+    session inferred portfolio state from session-close docs accumulated inside SUPIN
+    folder rather than checking the parent. Specific factual errors that resulted:
+    misidentified "3-fold-path" as Fortran/C++/Rust language tracks (actual: Mind/Spirit/
+    Body trinity = three WordPress sites zemla.org/mim2000.cz/bodyterapie.com); used
+    generic "MI-M-T" without knowing the corrected expansion (Meta Informed/Inferred/
+    Integrated Measurement-which-do-Testing per OPUS-CYCLE §1.1, "Manual" word
+    explicitly wrong); didn't know kh-sim, mim2000, bodyterapie, MI-M-T FastAPI service
+    are all actively shipped; reinvented the 6-element-chain algebra as "Round Zero
+    coverage" without recognising it was already the canonical traceability chain.
+  resolution: |
+    Workspace mount expanded via mcp__cowork__request_cowork_directory to
+    C:\Users\vitez\Documents\VibeCodeProjects parent folder; existing infrastructure
+    surveyed; PORTFOLIO-META v0.1 retired to archive/obsolete/ with superseded note;
+    salvageable content (lege-artis org confirmation, Fourier-as-new-track positioning,
+    R-COVERAGE-ZERO label for the existing 6-element-chain algebra) extracted into
+    additive CLAUDE-MD-DELTA-2026-05-09.md for review and merge into canonical CLAUDE.md.
+  lesson: |
+    Every Opus and Sonnet session — whether on ThinkPad, MacBook, or any future device —
+    MUST survey C:\Users\vitez\Documents\VibeCodeProjects (parent of all projects) at
+    session start when:
+      (a) any structural / governance / portfolio-level decision is being considered,
+      (b) any uncertainty arises about whether existing infrastructure addresses a
+          question that seems novel,
+      (c) authoring any cross-project document (governance, methodology, conventions),
+      (d) starting work on a project whose folder context-only makes the project look
+          standalone when it is actually part of a tightly integrated portfolio.
+    Read order at minimum: CLAUDE.md → MANIFEST.yaml → _config/SESSION-LIFECYCLE-SOP.md
+    → _config/OPUS-CYCLE-v0.2-MASTER.md (or current cycle master) → KB-LESSONS-LEARNED.yaml
+    → _config/DEVICES.md → relevant project session-close doc.
+    Failure mode: reinventing existing infrastructure, propagating wrong terminology,
+    proposing structural changes that conflict with active conventions.
+  prevention: |
+    - Add R-WORKSPACE-SURVEY-1 to CLAUDE.md as binding rule referenced from load order.
+    - Sonnet handoff prompts (HANDOVER-V0.2-*) MUST include workspace-survey step in
+      pre-read list — not just project-specific files.
+    - When Cowork session opens with a sub-folder mount (e.g. only SUPIN/), the FIRST
+      action is to request mount expansion to VibeCodeProjects parent before any work
+      that touches portfolio-level concepts.
+    - The mcp__cowork__request_cowork_directory tool exists for exactly this purpose;
+      use it without asking when the survey is needed (the user grants in UI).
+    - GitHub mirror after every CLAUDE.md / KB-LESSONS-LEARNED edit so MacBook / future
+      devices pull the latest workspace-survey rule via standard sync protocol.
+  rule_id: R-WORKSPACE-SURVEY-1
+  applies_to: [opus_sessions, sonnet_sessions, all_devices]
+  tags: [workspace, mount, governance, portfolio, sonnet-handoff, lessons-learned, opus-cycle]
