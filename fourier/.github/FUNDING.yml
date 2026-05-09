@@ -1,0 +1,8 @@
+﻿# .github/FUNDING.yml — voluntary funding handles
+# Pete: replace placeholders with actual usernames before first PUBLIC push.
+# This file is YAML — keys must match exactly what GitHub Sponsors expects.
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# github: petr-yamyang             # GitHub Sponsors username (TODO: confirm)
+# patreon: petr-yamyang            # Patreon username (TODO: fill in)
+# custom: ['https://paypal.me/petr-yamyang']   # PayPal.me URL (TODO: fill in)

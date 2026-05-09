@@ -1,0 +1,24 @@
+﻿# Documentation license — CC-BY-SA-4.0
+
+The prose-only contents of this repository — specifically:
+
+* `docs/canonical/**`
+* `docs/engineer/**`
+* `shared/canonical-equations/*.md` (the Markdown form; `.tex` siblings under same)
+* `shared/property-tests/*.md`
+* The eventual `Fourier's story` essay, when authored
+* Any other Markdown document not directly accompanying source code
+
+are licensed under the **Creative Commons Attribution-ShareAlike 4.0
+International License (CC-BY-SA-4.0)**.
+
+* Full legal text: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+* Summary: https://creativecommons.org/licenses/by-sa/4.0/
+
+Code in this repository (everything not covered by this LICENSE-DOCS) is
+licensed separately under the Apache License, Version 2.0 — see `LICENSE`.
+
+Source citations: documents that cite published works (e.g. Cooley-Tukey 1965,
+Numerical Recipes, Bracewell, Stein-Shakarchi) are held to academic
+attribution standards; CC-BY-SA-4.0 attribution requirements are an additional
+overlay, not a replacement.
