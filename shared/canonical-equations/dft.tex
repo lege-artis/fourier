@@ -1,0 +1,141 @@
+% Canonical equation — Discrete Fourier Transform
+% lege-artis/fourier — v0.1.0
+% Companion to dft.md
+% Per WORKING-SPEC-v0.3-EN.md §3.2
+% License: CC-BY-SA-4.0
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{../reference-bibliography/refs.bib}
+
+\title{Canonical equation: Discrete Fourier Transform (DFT)}
+\author{lege-artis/fourier}
+\date{2026-05-09}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+\maketitle
+
+\section{Definition}
+
+\begin{definition}[Discrete Fourier Transform]
+\label{def:dft}
+Let $x[0], x[1], \ldots, x[N-1] \in \mathbb{C}$ be a finite sequence with $N \in \mathbb{N}$.
+The \emph{Discrete Fourier Transform} of $x$ is the sequence $X[0], X[1], \ldots, X[N-1] \in \mathbb{C}$
+defined by
+\begin{equation}
+\label{eq:dft}
+X[k] = \sum_{n=0}^{N-1} x[n] \cdot e^{-2\pi i k n / N}
+\qquad k \in \{0, 1, \ldots, N-1\}.
+\end{equation}
+\end{definition}
+
+Writing $\omega_N = e^{-2\pi i / N}$ for the primitive $N$-th root of unity:
+\begin{equation}
+\label{eq:dft-twiddle}
+X[k] = \sum_{n=0}^{N-1} x[n] \cdot \omega_N^{k n}.
+\end{equation}
+
+The inverse transform recovers $x$ from $X$:
+\begin{equation}
+\label{eq:idft}
+x[n] = \frac{1}{N} \sum_{k=0}^{N-1} X[k] \cdot e^{+2\pi i k n / N}.
+\end{equation}
+
+\section{Complexity}
+
+\begin{proposition}[Direct evaluation cost]
+\label{prop:complexity}
+Direct evaluation of \eqref{eq:dft} for all $k \in \{0, \ldots, N-1\}$ requires
+$N^2$ complex multiplications and $N(N-1)$ complex additions:
+\begin{equation}
+\label{eq:dft-cost}
+T_{\mathrm{DFT}}(N) = \Theta(N^2).
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For each of the $N$ output coefficients $X[k]$, the inner sum has $N$ terms, each
+requiring one complex multiplication ($x[n] \cdot \omega_N^{kn}$) and one complex
+addition (accumulation into $X[k]$, save for the first term). Total operations:
+$N$ multiplications $\times N$ outputs $= N^2$ multiplications,
+plus $(N-1) \times N = N(N-1)$ additions. Both grow as $\Theta(N^2)$.
+\qed
+\end{proof}
+
+The Cooley-Tukey FFT \cite{Cooley1965} reduces this to $\Theta(N \log N)$ when $N$
+is a power of 2; see companion \texttt{fft-cooley-tukey.tex}.
+
+\section{Linearity}
+
+\begin{theorem}[Linearity of DFT]
+\label{thm:linearity}
+For scalars $\alpha, \beta \in \mathbb{C}$ and sequences $x, y \in \mathbb{C}^N$:
+\begin{equation}
+\mathrm{DFT}\{\alpha x[n] + \beta y[n]\} = \alpha\, \mathrm{DFT}\{x[n]\} + \beta\, \mathrm{DFT}\{y[n]\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Direct from \eqref{eq:dft} by linearity of the finite sum:
+\begin{align*}
+\sum_{n=0}^{N-1} (\alpha x[n] + \beta y[n]) \cdot e^{-2\pi i k n / N}
+&= \alpha \sum_{n=0}^{N-1} x[n] e^{-2\pi i k n / N} + \beta \sum_{n=0}^{N-1} y[n] e^{-2\pi i k n / N} \\
+&= \alpha X[k] + \beta Y[k]. \qed
+\end{align*}
+\end{proof}
+
+This is Property P1 in \texttt{shared/property-tests/dft.md}.
+
+\section{Plancherel / Parseval relation}
+
+\begin{theorem}[Plancherel for DFT]
+\label{thm:plancherel}
+For $x \in \mathbb{C}^N$ with DFT $X$ as in \eqref{eq:dft}:
+\begin{equation}
+\label{eq:plancherel}
+\sum_{n=0}^{N-1} |x[n]|^2 = \frac{1}{N} \sum_{k=0}^{N-1} |X[k]|^2.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Substitute \eqref{eq:idft} into the left-hand side:
+\begin{align*}
+\sum_{n=0}^{N-1} |x[n]|^2 &= \sum_{n=0}^{N-1} x[n] \overline{x[n]} \\
+&= \sum_{n=0}^{N-1} \left( \frac{1}{N} \sum_{k=0}^{N-1} X[k] e^{2\pi i k n/N} \right)
+\left( \frac{1}{N} \sum_{\ell=0}^{N-1} \overline{X[\ell]} e^{-2\pi i \ell n/N} \right) \\
+&= \frac{1}{N^2} \sum_{k=0}^{N-1} \sum_{\ell=0}^{N-1} X[k] \overline{X[\ell]}
+\sum_{n=0}^{N-1} e^{2\pi i (k-\ell) n / N}.
+\end{align*}
+The inner sum equals $N \cdot \delta_{k\ell}$ (orthogonality of roots of unity),
+so the double sum collapses:
+\[
+= \frac{1}{N^2} \sum_{k=0}^{N-1} X[k] \overline{X[k]} \cdot N
+= \frac{1}{N} \sum_{k=0}^{N-1} |X[k]|^2. \qed
+\]
+\end{proof}
+
+See \cite[§7.2]{Folland1992} for the continuous analogue. This is Property P2 in
+\texttt{shared/property-tests/dft.md}.
+
+\section{Numerical precision}
+
+By IEEE 754-2019 \cite{IEEE754_2019}, the rounding bound for direct evaluation
+of \eqref{eq:dft} in IEEE binary64 (double precision) is conservatively:
+\begin{equation}
+\varepsilon_{\mathrm{double}}(N) \lesssim N \cdot 2^{-52} \approx 2.22 \times 10^{-16} \cdot N.
+\end{equation}
+Statistical accumulation in benign inputs is $O(\sqrt{N} \cdot \varepsilon)$
+\cite[§12.1]{NumRec3rd}, but property tests use the linear-in-$N$ bound as
+the gate.
+
+\printbibliography
+\end{document}
