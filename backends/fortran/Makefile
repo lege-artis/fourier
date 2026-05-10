@@ -56,9 +56,13 @@ TEST_BIN  = $(BUILD_DIR)/test_dft_unit
 TESTS_PROP    = $(TEST_DIR)/test_dft_property.f90
 TEST_PROP_BIN = $(BUILD_DIR)/test_dft_property
 
+# Physics testbeds (PT-DFT-01/02/03A/03B) -- added for v0.0.4-fortran-physics-green
+TESTS_PHYS    = $(TEST_DIR)/test_dft_physics.f90
+TEST_PHYS_BIN = $(BUILD_DIR)/test_dft_physics
+
 .PHONY: all test perf clean
 
-all: $(TEST_BIN) $(TEST_PROP_BIN)
+all: $(TEST_BIN) $(TEST_PROP_BIN) $(TEST_PHYS_BIN)
 
 $(BUILD_DIR):
 	$(MKDIR_BUILD)
@@ -72,11 +76,16 @@ $(TEST_BIN): $(OBJECTS) $(TESTS) | $(BUILD_DIR)
 $(TEST_PROP_BIN): $(OBJECTS) $(TESTS_PROP) | $(BUILD_DIR)
 	$(FC) $(FFLAGS) -I$(BUILD_DIR) -o $@ $(OBJECTS) $(TESTS_PROP)
 
-test: $(TEST_BIN) $(TEST_PROP_BIN)
+$(TEST_PHYS_BIN): $(OBJECTS) $(TESTS_PHYS) | $(BUILD_DIR)
+	$(FC) $(FFLAGS) -I$(BUILD_DIR) -o $@ $(OBJECTS) $(TESTS_PHYS)
+
+test: $(TEST_BIN) $(TEST_PROP_BIN) $(TEST_PHYS_BIN)
 	@echo Running DFT unit tests (v0.1.0 reference)...
 	@$(TEST_BIN)
 	@echo Running DFT property tests (v0.1.0 reference)...
 	@$(TEST_PROP_BIN)
+	@echo Running DFT physics testbeds (v0.1.0 reference)...
+	@$(TEST_PHYS_BIN)
 
 # Performance build -- Stage 5 / v0.5+; reuses sources, swaps flags.
 # Output binary suffix '_perf' to keep reference / perf builds distinguishable.

@@ -284,7 +284,8 @@ contains
             if (abs(x(n)) > x_norm) x_norm = abs(x(n))
             if (abs(h(n)) > h_norm) h_norm = abs(h(n))
         end do
-        tol_scaled = 4.0_dp * real(nlen, dp) * epsilon(1.0_dp) * x_norm * h_norm
+        ! N^2 scaling: stage-1 circ_conv O(N*eps) per z[n], stage-2 DFT sums N of those
+        tol_scaled = 4.0_dp * real(nlen, dp) * real(nlen, dp) * epsilon(1.0_dp) * x_norm * h_norm
         tol_scaled = max(tol_scaled, 1.0e-13_dp)   ! floor per handoff ss1.5
 
         call assert_complex_array_close('test_p8_convolution (N=8)', Z_out, rhs, tol_scaled)
