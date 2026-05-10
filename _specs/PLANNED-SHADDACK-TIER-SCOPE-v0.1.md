@@ -1,10 +1,11 @@
-# Planned: Shaddack's Guide to Fourier's Galaxy
+# Planned: Just Shad's Guide to Fourier's Galaxy
 
-**Status:** SCOPE LOCKED · IMPLEMENTATION DEFERRED
-**Target version:** v0.2.x (after v0.1.0 reference green + v0.2.0 multi-language)
+**Status:** SCOPE LOCKED · IMPLEMENTATION ON-DECK (raised priority — see §7)
+**Target version:** runs alongside v0.2.0 code work (not after); first deliverable batch covers bands B1+B2+B3 as a coherent published package
 **Author:** Petr Yamyang
-**Date:** 2026-05-09 (v0.1)
+**Date:** 2026-05-10 (v0.2 — name "Shaddack" replaced by "Shad" / "Just Shad" per project owner 2026-05-10; first-deliverable scope expanded from B1-only to B1+B2+B3; priority raised to alongside-code-and-tests)
 **License:** CC-BY-SA-4.0 (this is a docs scope-doc)
+**Filename note:** the file path retains `PLANNED-SHADDACK-TIER-SCOPE-v0.1.md` for path continuity from v0.1.0 release; treat the filename as historical paper-trail. The active name for this doc tier is **"Shad-tier"** or, in deliverable titles, **"Just Shad's Guide"**.
 
 > "Standard technical documentation is must-have. But extra layer 'Fourier
 > for dummies especially for Shaddack' or 'Shaddack's Guide to Fourier's
@@ -36,13 +37,15 @@ public API has a usability bug.
 
 ## 2. Audience proxy
 
-**Shaddack** — friend of project owner; superb hacker; sober technical
-humour; approaching 50; comfortable with `oscilloscope.csv` and very
-uncomfortable with `\hat{f}(\xi) = \int f(x) e^{-2\pi i \xi x} dx`.
+**Shad** (close-friend nickname; "Just Shad" in deliverable titles where
+extra warmth is appropriate) — friend of the project owner; superb
+hacker; sober technical humour; approaching 50; comfortable with
+`oscilloscope.csv` and very uncomfortable with
+`\hat{f}(\xi) = \int f(x) e^{-2\pi i \xi x} dx`.
 
-If a doc page successfully takes Shaddack from "what is this Fourier
-thing" to "I have my data on a graph and the algorithm worked", that
-page passes the Shaddack-tier acceptance gate.
+If a doc page successfully takes Shad from "what is this Fourier thing"
+to "I have my data on a graph and the algorithm worked", that page
+passes the Shad-tier acceptance gate.
 
 ### 2.1. Iconography (locked 2026-05-09)
 
@@ -165,20 +168,14 @@ also wired into CI so we discover when an external dataset URL rots.
 
 ## 7. Sequencing — when does this start
 
-Locked sequencing per Pete 2026-05-09:
+Locked sequencing per Pete 2026-05-10 (raised priority from v0.1's "after v0.2.0" to "alongside v0.2.0"):
 
-- **NOT NOW.** v0.1.0 reference (Fortran + canonical/engineer tier 1+2
-  docs) must close green first. Stage 4 must complete; Stage 5 (perf)
-  scoped.
-- **v0.2.0** lands the multi-language layout (C++ / Rust / Pascal).
-  At that point the public API is stable enough for example chapters
-  to call into.
-- **v0.2.1+** = first Shaddack-tier chapter (B1 oscilloscope) authored.
-  Shaddack reviews. If feedback is "I followed it and the code ran",
-  proceed to B2, B3, B4, B5 across v0.2.x point releases.
-- **Birthday gift target.** Shaddack approaches 50; B1 chapter aimed
-  to be reviewable-quality before that birthday. Concrete date deferred
-  pending v0.1.0 closure.
+- **v0.1.0 — DONE 2026-05-10.** Fortran reference public; Stage 4 closed green.
+- **v0.2.0 work runs in parallel with Shad-tier work.** Multi-language ports (C++ / Rust / Pascal) and Shad-tier B1+B2+B3 first-deliverable batch progress on parallel tracks rather than sequentially. Rationale: Shad-tier examples need the public API but don't need ALL languages — B1+B2+B3 can be authored against the Fortran v0.1.0 + the first ported language (whichever lands first), and ported to other languages in the same v0.2.x sweep where natural.
+- **First deliverable = B1 + B2 + B3 as a coherent published package** (not B1 alone). Rationale: a single-band first cut undersells the progression; three bands together demonstrate the escalation pattern (oscilloscope trace → audio with windowing → industrial vibration with harmonics) and let the reader form a real opinion about the doc tier's value. Better-formatted output, balanced graphs/numbers/text in the first shot.
+- **B4 + B5 follow.** Once B1-B3 lands and Shad reviews, B4 (geophysical / long-record) and B5 (radio interferometry / EHT / LIGO) ship in subsequent v0.2.x point releases.
+- **Stage 5 perf coupling.** Stage 5 (performance build, gated v0.5+) provides real-world performance numbers for the Shad-tier docs to display: when datasets get large (B4 long-record, B5 EHT/LIGO), the difference between O(N²) reference and FFT-optimised becomes a teaching point. The coupling is intentional — perf benchmarks supply the graphs/numbers for the upper-band Shad chapters; Shad-tier chapters supply the validation that perf optimisations didn't break correctness.
+- **Birthday-aware target.** Shad approaches 50; B1+B2+B3 first batch aimed to be reviewable-quality before that birthday. Concrete target-date locked when v0.2.0 first-port lands.
 
 ## 8. Acceptance gate for the tier as a whole
 
@@ -204,16 +201,12 @@ when:
 | Tier becomes "the only tier people read", canonical tier neglected | Every Shaddack chapter ends with link-back box: "if you want to know WHY this works, here is the canonical-tier chapter that proves it" |
 | Reader misreads engineering tolerance as mathematical proof | Each chapter has explicit "this is empirical / numerical, not a theorem" sidebar |
 
-## 10. Open questions (not blocking authoring of this scope-doc)
+## 10. Open questions
 
-- Q-SHAD-1: Will Shaddack consent to having his nickname used as the
-  named tier? (Pete's call. If yes → "Shaddack's Guide" stays. If no →
-  rename to "Hacker's Guide to Fourier" or similar.)
-- Q-SHAD-2: Does B5 use EHT specifically, or LIGO (which has friendlier
-  public-data tooling via `gwpy`)? Decide when authoring B5.
-- Q-SHAD-3: Does the tier ship in EN-only at v0.2.x, or simultaneously
-  with CS / JA / DE / IT? Suggest EN-only first, translate after one
-  full review pass.
+- ~~Q-SHAD-1: Will Shaddack consent to having his nickname used as the named tier?~~ **Resolved 2026-05-10**: deliverable name is "Shad" / "Just Shad" (slight familiarity, less direct than "Shaddack"). Final consent for the named tier still wanted before publishing the first batch — but the name reduction de-risks the consent step.
+- Q-SHAD-2: Does B5 use EHT specifically, or LIGO (which has friendlier public-data tooling via `gwpy`)? Decide when authoring B5. Pete's lean (2026-05-10): include both — EHT for the radio-interferometry-as-imaging story, LIGO for the strain-as-time-series story. They illustrate different aspects of the same FFT machinery.
+- Q-SHAD-3: Does the tier ship in EN-only at v0.2.x, or simultaneously with CS / JA / DE / IT? Suggest EN-only first, translate after one full review pass.
+- Q-SHAD-4 (new 2026-05-10): Which of the v0.2.0 ported languages (C++, Rust, Pascal) is the right "first co-published" language for Shad-tier examples? Shad's habit-set leans C++ / hacker-stack — likely C++. Pascal is anchor for v0.2.0 historical-fidelity but not the natural Shad-reader language. Decide when v0.2.0 first port lands.
 
 ---
 
