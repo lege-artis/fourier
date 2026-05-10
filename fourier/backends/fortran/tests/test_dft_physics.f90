@@ -99,15 +99,18 @@ contains
             'PT-DFT-01 first sidelobe max power (k=5..7)', &
             sidelobe_max, 10.0_dp, 14.0_dp)
 
-        ! Assertion 4: max sidelobe/peak ratio over k>=5 in [0.04, 0.05]
-        ! k>=5 (0-indexed) -> 1-indexed positions 6..64
+        ! Assertion 4: max sidelobe/peak ratio over k=5..N/2 in [0.04, 0.05]
+        ! Spec "k>=5" means positive-frequency sidelobes only (k=5..N/2).
+        ! Hermitian mirrors k=N/2+1..N-1 replicate the same magnitudes; including
+        ! them would also pick up mirrors of k=1..3 (main lobe), giving ratio ~0.81.
+        ! Restricting to k=5..N/2 (0-indexed) = 1-indexed positions 6..nlen/2+1.
         ratio_max = 0.0_dp
-        do k = 6, nlen
+        do k = 6, nlen / 2 + 1
             pwr_k = real(X_out(k) * conjg(X_out(k)), dp)
             if (pwr_k / pwr0 > ratio_max) ratio_max = pwr_k / pwr0
         end do
         call assert_real_in_range( &
-            'PT-DFT-01 sidelobe/peak ratio max (k>=5)', &
+            'PT-DFT-01 sidelobe/peak ratio (k=5..N/2)', &
             ratio_max, 0.04_dp, 0.05_dp)
     end subroutine
 
