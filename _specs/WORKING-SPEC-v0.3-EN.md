@@ -5,26 +5,19 @@
 >
 > **Status of bootstrap.** `lege-artis/fourier` repo created on GitHub 2026-05-09; v0.0.1-bootstrap tag pushed via subtree from `VibeCodeProjects/fourier/`. Subtree-publish pattern empirically validated. Repo private until v0.1.0 release ceremony (shibboleth aesthetic — public sees canonical state).
 >
-> **Author.** Pete Y. + Cowork Opus on ThinkPad. **Audience.** Pete (project owner), future MI-M-T contributors, OSS community evaluating MI-M-T as methodology pilot.
+> **Author.** Pete Y. (project owner). **Audience.** Practitioners and OSS community evaluating top-down validation methodology applied to canonical numerical algorithms.
 
 ---
 
-## §1. Methodological frame — top-down by design (unchanged from v0.2)
+## §1. Methodological frame — top-down by design
 
-Fourier-Foundations and Bouračka are **siblings under MI-M-T** but face the methodology from opposite ends, intentionally:
+Fourier-Foundations is a **top-down validation case study**. The starting evidence is mathematical: canonical equations, theorems, and rigorous textbook treatment (Cooley-Tukey 1965, Stein-Shakarchi 2003, Folland 1992, Pinsky 2009, Numerical Recipes 2007). Implementation follows the model. Testing is **model-first, empirical-second**: outputs of each language backend are compared against independent high-precision oracles (SciPy, NumPy, FFTW) and against the algebraic properties the math guarantees (linearity, Plancherel, Hermitian symmetry, time-shift, convolution).
 
-| Axis | Bouračka case (calibration) | Fourier case (validation) |
-|---|---|---|
-| Direction of inquiry | bottom-up | top-down |
-| Starting evidence | live SUT, screenshots, browser DOM | mathematical definition (Cooley-Tukey 1965, Stein-Shakarchi rigorous text, Folland) |
-| Discovery technique | reverse engineering | derivation |
-| Testing posture | empirical first, model second | model first, empirical second (against canonical reference values from independent oracles) |
-| Drift surface | runtime environment | numerical precision (rounding, IEEE-754 edge cases, FMA contraction, language-runtime float semantics) |
-| Reference truth | recon-derived screen flow + ČKP analytical doc | high-precision SciPy / NumPy / Wolfram / FFTW outputs + theorems with proofs |
-| Failure mode | regression of UI / API behaviour | regression of numerical accuracy or convergence rate |
-| What "green" means | TC executes without unexpected SKIP/FAIL | output matches independent oracle within ε for chosen precision; properties (Plancherel, linearity, unitarity) hold; physical testbeds produce known answers |
+**What "green" means here:** output matches an independent oracle within ε for the chosen precision; algebraic properties hold to within numerical tolerance; physical testbeds (single-slit Fraunhofer diffraction, heat-equation impulse decay, simple harmonic oscillator frequency identification, spectral leakage on cosines at non-integer frequencies) reproduce textbook expected behaviour.
 
-Patterns that survive both directions are robust MI-M-T methodology; patterns that only work in one direction are revealed as method-specific accidents. This is the **point** of having Fourier as the second pilot.
+**Drift surface.** The drift this exercise surfaces is numerical: IEEE-754 rounding, FMA contraction, language-runtime float semantics, accumulated round-off in O(N²) direct evaluation versus O(N log N) FFT summation orders. Convergence and accuracy regression are the failure modes worth catching.
+
+**Scope of the pattern.** Top-down validation works when the algorithm is mathematically definable and an independent reference exists. It is one pattern among several; bottom-up calibration patterns (start from the running system, recover the model) are appropriate for other domains. This spec only argues for top-down where it fits — it makes no broader methodological claim.
 
 ---
 

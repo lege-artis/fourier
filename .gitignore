@@ -1,5 +1,6 @@
-# kh-sim — multi-language .gitignore
+# lege-artis/fourier — multi-language .gitignore
 # Covers: Python, Rust, Scala, C++, Fortran, Pascal, Node.js, React, Docker
+# (shared template across the lege-artis org repos)
 
 # ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
