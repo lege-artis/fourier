@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0",
+  "algorithm": "DFT",
+  "N": 2,
+  "convention": "asymmetric forward (no 1/N in forward); matches OppenheimSchafer3rd \u00a78.2 and numpy.fft.fft",
+  "precision": "double (IEEE 754 binary64)",
+  "generated_at": "2026-05-09T13:45:20Z",
+  "oracles": {
+    "numpy": "1.24.3",
+    "scipy_fft": "scipy.fft (scipy 1.15.3)",
+    "python": "3.10.11",
+    "platform": "Windows-10-10.0.26200-SP0"
+  },
+  "producing_script": "tools/generate_golden_vectors.py",
+  "epsilon_used": 1e-13,
+  "test_cases": {
+    "cosine_k1": {
+      "input": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0
+        ]
+      ],
+      "output": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          2.0,
+          0.0
+        ]
+      ],
+      "agreement": {
+        "max_abs_diff_numpy_vs_scipy": 0.0,
+        "agree_within_eps": true
+      },
+      "single_oracle": false
+    },
+    "sine_k1": {
+      "input": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.2246467991473532e-16,
+          0.0
+        ]
+      ],
+      "output": [
+        [
+          1.2246467991473532e-16,
+          0.0
+        ],
+        [
+          -1.2246467991473532e-16,
+          0.0
+        ]
+      ],
+      "agreement": {
+        "max_abs_diff_numpy_vs_scipy": 0.0,
+        "agree_within_eps": true
+      },
+      "single_oracle": false
+    },
+    "impulse_at_0": {
+      "input": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "output": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "agreement": {
+        "max_abs_diff_numpy_vs_scipy": 0.0,
+        "agree_within_eps": true
+      },
+      "single_oracle": false
+    },
+    "impulse_centred": {
+      "input": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "output": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0
+        ]
+      ],
+      "agreement": {
+        "max_abs_diff_numpy_vs_scipy": 0.0,
+        "agree_within_eps": true
+      },
+      "single_oracle": false
+    },
+    "dc_one": {
+      "input": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "output": [
+        [
+          2.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "agreement": {
+        "max_abs_diff_numpy_vs_scipy": 0.0,
+        "agree_within_eps": true
+      },
+      "single_oracle": false
+    },
+    "ramp": {
+      "input": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "output": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0
+        ]
+      ],
+      "agreement": {
+        "max_abs_diff_numpy_vs_scipy": 0.0,
+        "agree_within_eps": true
+      },
+      "single_oracle": false
+    }
+  }
+}

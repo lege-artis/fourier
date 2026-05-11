@@ -1,0 +1,212 @@
+% lege-artis/fourier — refs.bib
+% Authoritative bibliography for v0.1.0 release
+% Per WORKING-SPEC-v0.3-EN.md §3
+% Order: alphabetical by citation key (academic standard, T3 lock 2026-05-09)
+% Wikipedia explicitly excluded (v0.3 lock 2026-05-09).
+%
+% Tier classification:
+%   Principal  — cited directly in canonical-tier proofs
+%   Referential — cited as alternative perspectives or backup
+%   Track-specific — anchors a specific backend track (Pascal) or doc tier (CS/JA/DE/IT)
+
+@book{Boyd2001,
+  author    = {Boyd, John P.},
+  title     = {Chebyshev and {F}ourier Spectral Methods},
+  edition   = {2nd},
+  publisher = {Dover Publications},
+  year      = {2001},
+  address   = {Mineola, NY},
+  isbn      = {0-486-41183-4},
+  note      = {Free PDF available from author's site at University of Michigan.
+               Tier: Referential. Spectral-methods classic; bridges Fourier with
+               adjacent function-approximation classes.}
+}
+
+@book{Bracewell3rd,
+  author    = {Bracewell, Ronald N.},
+  title     = {The {F}ourier Transform and Its Applications},
+  edition   = {3rd},
+  publisher = {McGraw-Hill},
+  year      = {2000},
+  address   = {Boston},
+  isbn      = {0-07-303938-1},
+  note      = {Tier: Principal (engineer-friendly companion to OppenheimSchafer3rd).
+               Continuous + discrete; engineer-friendly register.}
+}
+
+@article{Cooley1965,
+  author    = {Cooley, James W. and Tukey, John W.},
+  title     = {An Algorithm for the Machine Calculation of Complex {F}ourier Series},
+  journal   = {Mathematics of Computation},
+  volume    = {19},
+  number    = {90},
+  pages     = {297--301},
+  year      = {1965},
+  doi       = {10.1090/S0025-5718-1965-0178586-1},
+  note      = {Tier: Principal. Original FFT paper. Primary citation for any
+               FFT theorem.}
+}
+
+@book{DiskretniFourierovaCS,
+  author    = {Vejmola, Stanislav},
+  title     = {Diskr{\'e}tn{\'\i} {F}ourierova transformace a jej{\'\i} pou{\v z}it{\'\i}},
+  publisher = {SNTL},
+  year      = {1989},
+  address   = {Praha},
+  language  = {czech},
+  url       = {https://openlibrary.org/books/OL3874116M/},
+  note      = {Tier: Track-specific (CS doc tier). Czech-language reference for
+               terminology check + Czech mathematical conventions when CS
+               seeders ship in v0.1.1+. Open Library record OL3874116M.}
+}
+
+@book{Folland1992,
+  author    = {Folland, Gerald B.},
+  title     = {{F}ourier Analysis and Its Applications},
+  publisher = {Wadsworth \& Brooks/Cole},
+  year      = {1992},
+  address   = {Pacific Grove, CA},
+  isbn      = {0-534-17094-3},
+  note      = {Tier: Principal. Second canonical math reference (locked v0.3
+               2026-05-09). Bridges Korner1989 pure-math rigor with Bracewell3rd
+               applied register. Theorem-proof structure at advanced-undergraduate
+               / first-graduate level.}
+}
+
+@misc{IEEE754_2019,
+  author       = {{IEEE}},
+  title        = {{IEEE} Standard for Floating-Point Arithmetic},
+  howpublished = {IEEE Std 754-2019},
+  year         = {2019},
+  doi          = {10.1109/IEEESTD.2019.8766229},
+  note         = {Tier: Principal. Precision claims for single / double / quad-
+                  precision tiers across all backend tracks.}
+}
+
+@book{Korner1989,
+  author    = {K{\"o}rner, T. W.},
+  title     = {{F}ourier Analysis},
+  publisher = {Cambridge University Press},
+  year      = {1989},
+  address   = {Cambridge},
+  isbn      = {0-521-38991-7},
+  note      = {Tier: Principal. Rigorous mathematical foundation; convergence
+               theorems with proofs. Companion to Folland1992 + SteinShakarchi2003.}
+}
+
+@book{NumRec3rd,
+  author    = {Press, William H. and Teukolsky, Saul A. and Vetterling, William T.
+               and Flannery, Brian P.},
+  title     = {Numerical Recipes: The Art of Scientific Computing},
+  edition   = {3rd},
+  publisher = {Cambridge University Press},
+  year      = {2007},
+  address   = {Cambridge},
+  isbn      = {978-0-521-88068-8},
+  chapter   = {12},
+  note      = {Tier: Principal. **Implementation + coding-standard golden reference**
+               (Q3 lock 2026-05-09). Engineer-grade FFT recipes + numerical pitfalls.
+               Cross-references NumRecPascal1986 as parallel edition.}
+}
+
+@book{NumRecPascal1986,
+  author    = {Press, William H. and Flannery, Brian P. and Teukolsky, Saul A.
+               and Vetterling, William T.},
+  title     = {Numerical Recipes: The Art of Scientific Computing},
+  subtitle  = {Pascal Edition},
+  publisher = {Cambridge University Press},
+  year      = {1986},
+  address   = {Cambridge},
+  isbn      = {0-521-37516-9},
+  language  = {english},
+  note      = {Tier: Track-specific (Pascal backend). Direct historical anchor
+               for the Pascal track (v0.2.0). Ensures Pascal implementation respects
+               canonical Pascal-numerical-computing tradition rather than treating
+               Pascal as a curiosity. Cross-reference of NumRec3rd at parallel edition.}
+}
+
+@book{OppenheimSchafer3rd,
+  author    = {Oppenheim, Alan V. and Schafer, Ronald W.},
+  title     = {Discrete-Time Signal Processing},
+  edition   = {3rd},
+  publisher = {Pearson},
+  year      = {2009},
+  address   = {Upper Saddle River, NJ},
+  isbn      = {978-0-13-198842-2},
+  note      = {Tier: Principal. DSP textbook standard; DFT/FFT in chapters 8-9.}
+}
+
+@book{Pinsky2009,
+  author    = {Pinsky, Mark A.},
+  title     = {Introduction to {F}ourier Analysis and Wavelets},
+  publisher = {American Mathematical Society},
+  year      = {2009},
+  address   = {Providence, RI},
+  isbn      = {978-0-8218-4797-8},
+  series    = {Graduate Studies in Mathematics},
+  volume    = {102},
+  note      = {Tier: Principal. Modern cross-check (locked v0.3 2026-05-09)
+               against Folland1992. Explicit attention to numerical aspects;
+               useful if scope ever extends to wavelets.}
+}
+
+@book{SteinShakarchi2003,
+  author    = {Stein, Elias M. and Shakarchi, Rami},
+  title     = {{F}ourier Analysis: An Introduction},
+  publisher = {Princeton University Press},
+  year      = {2003},
+  address   = {Princeton, NJ},
+  isbn      = {0-691-11384-X},
+  series    = {Princeton Lectures in Analysis},
+  volume    = {1},
+  note      = {Tier: Principal. Modern undergraduate-grade rigor; bridge between
+               Korner1989 and applied texts.}
+}
+
+@book{Strang1986,
+  author    = {Strang, Gilbert},
+  title     = {Introduction to Applied Mathematics},
+  publisher = {Wellesley-Cambridge Press},
+  year      = {1986},
+  address   = {Wellesley, MA},
+  isbn      = {0-9614088-0-4},
+  note      = {Tier: Referential. Applied-mathematics framing of FFT with
+               worked examples. Backup if Folland1992 reads too dense.}
+}
+
+@book{Thorne2017,
+  author    = {Thorne, Kip S. and Blandford, Roger D.},
+  title     = {Modern Classical Physics: Optics, Fluids, Plasmas, Elasticity,
+               Relativity, and Statistical Physics},
+  publisher = {Princeton University Press},
+  year      = {2017},
+  address   = {Princeton, NJ},
+  isbn      = {978-0-691-15902-7},
+  note      = {Tier: Principal. **Physics-side testcase source** (locked v0.3
+               2026-05-09). Heat equation, wave propagation, statistical mechanics,
+               optics — all use Fourier methods extensively, with worked examples
+               reproducible as physics testbeds in shared/physics-testbeds/.}
+}
+
+@book{Trefethen2000,
+  author    = {Trefethen, Lloyd N.},
+  title     = {Spectral Methods in {MATLAB}},
+  publisher = {Society for Industrial and Applied Mathematics},
+  year      = {2000},
+  address   = {Philadelphia, PA},
+  isbn      = {0-89871-465-6},
+  series    = {Software, Environments, and Tools},
+  note      = {Tier: Referential. Spectral derivation; cross-language portability
+               of spectral kernels.}
+}
+
+% ── Deferred to v0.1.1+ — open questions OQ-FFP-7-JA / -DE / -IT ──────────────
+% Japanese canonical reference: 4-candidate shortlist in WORKING-SPEC-v0.3 §3.
+%   Iwanami Shoten (岩波書店) "現代数学への入門" Fourier volume — preferred
+%   Tatsumi Tsuneo (辰巳常男) Fourier-analysis textbooks for engineering
+%   Ohishi Shinichi (大石進一) numerical Fourier methods + rigorous numerics
+%   Direct Japanese translation of Bracewell or Numerical Recipes — weakest fit
+% Pete to pick before v0.1.1.
+%
+% German canonical: Forster *Analysis 3* candidate; pending confirmation.
+% Italian canonical: no candidate yet; research needed by v0.1.1.
