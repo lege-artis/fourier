@@ -12,8 +12,10 @@ result, without first learning calculus.
 | 01 | [B1 — Oscilloscope](01-oscilloscope.md) | shipped v0.2.x | DFT as time → frequency machine |
 | 02 | [B2 — Audio](02-audio.md) | shipped v0.2.x | Multiple peaks + leakage + windowing |
 | 03 | [B3 — Vibration](03-vibration.md) | shipped v0.2.x | Harmonics + fault signatures + diagnostic reading |
-| 04 | B4 — Geophysical | queued v0.2.x | Long records + noise floors + periodogram averaging |
-| 05 | B5 — Radio interferometry / LIGO | queued v0.2.x | FFT in modern observational physics |
+| 04 | [B4 — Electronic systems](04-electronic.md) | shipped v0.2.x | AC mains harmonics + active filter + heterodyne mixer |
+| 05 | B5 — Radar | queued v0.2.x | Doppler + range-Doppler + pulse compression |
+| 06 | B6 — Radioastronomy | queued v0.2.x | Faint signals + integration time + pulsar timing |
+| 07 | B7 — Nuclear-reactor capstone | queued v0.3+ | Beyond-Fourier: Welch PSD, Rossi-alpha, HHT/EMD |
 
 ## Example scripts
 
@@ -23,6 +25,7 @@ The figures in each chapter are rendered by the corresponding script in
 - [`b1-scope/main.py`](../../examples/shad/b1-scope/main.py) → `figures/fig-b1-*.png`
 - [`b2-audio/main.py`](../../examples/shad/b2-audio/main.py) → `figures/fig-b2-*.png`
 - [`b3-vibration/main.py`](../../examples/shad/b3-vibration/main.py) → `figures/fig-b3-*.png`
+- [`b4-electronic/main.py`](../../examples/shad/b4-electronic/main.py) → `figures/fig-b4-*.png`
 
 Each script runs on its own (no internet required) with `python main.py`.
 Requires Python 3.10+, NumPy, Matplotlib. A real-data extension sketch
