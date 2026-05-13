@@ -1,0 +1,29 @@
+# S2a -- Wikimedia Commons Sine_wave_440.ogg
+# pure 440 Hz tone (reference, single-peak sanity check)
+# fs = 132000.0 Hz, N = 660000 samples, duration = 5.000 s
+
+--- first 10 raw samples ---
+[  0] t = 0.000000 s   v = +0.002467 (normalised)
+[  1] t = 0.000008 s   v = +0.020518 (normalised)
+[  2] t = 0.000015 s   v = +0.039410 (normalised)
+[  3] t = 0.000023 s   v = +0.058782 (normalised)
+[  4] t = 0.000030 s   v = +0.078239 (normalised)
+[  5] t = 0.000038 s   v = +0.097508 (normalised)
+[  6] t = 0.000045 s   v = +0.116521 (normalised)
+[  7] t = 0.000053 s   v = +0.135376 (normalised)
+[  8] t = 0.000061 s   v = +0.154216 (normalised)
+[  9] t = 0.000068 s   v = +0.173120 (normalised)
+
+--- first 10 spectrum bins ---
+[  0] f =     0.0000 Hz   |X|/N = 2.377294e-06
+[  1] f =     0.2000 Hz   |X|/N = 4.763852e-06
+[  2] f =     0.4000 Hz   |X|/N = 4.794247e-06
+[  3] f =     0.6000 Hz   |X|/N = 4.851063e-06
+[  4] f =     0.8000 Hz   |X|/N = 4.946867e-06
+[  5] f =     1.0000 Hz   |X|/N = 5.109859e-06
+[  6] f =     1.2000 Hz   |X|/N = 5.413242e-06
+[  7] f =     1.4000 Hz   |X|/N = 6.116206e-06
+[  8] f =     1.6000 Hz   |X|/N = 9.240662e-06
+[  9] f =     1.8000 Hz   |X|/N = 3.499421e-06
+
+dominant peak: f = 440.00 Hz, |X|/N = 4.6185e-01

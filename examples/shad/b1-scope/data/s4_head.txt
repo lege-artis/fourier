@@ -1,0 +1,29 @@
+# S4 -- Wikimedia Commons Guitar_string_E2.ogg
+# single guitar string pluck E2, fundamental ~82 Hz + harmonic stack
+# fs = 44100.0 Hz, N = 132300 samples, duration = 3.000 s
+
+--- first 10 raw samples ---
+[  0] t = 0.000000 s   v = +0.164434 (normalised)
+[  1] t = 0.000023 s   v = +0.042730 (normalised)
+[  2] t = 0.000045 s   v = -0.117632 (normalised)
+[  3] t = 0.000068 s   v = -0.255682 (normalised)
+[  4] t = 0.000091 s   v = +0.140293 (normalised)
+[  5] t = 0.000113 s   v = +0.167371 (normalised)
+[  6] t = 0.000136 s   v = +0.040363 (normalised)
+[  7] t = 0.000159 s   v = +0.026536 (normalised)
+[  8] t = 0.000181 s   v = -0.024657 (normalised)
+[  9] t = 0.000204 s   v = -0.024920 (normalised)
+
+--- first 10 spectrum bins ---
+[  0] f =     0.0000 Hz   |X|/N = 1.608667e-05
+[  1] f =     0.3333 Hz   |X|/N = 1.371745e-05
+[  2] f =     0.6667 Hz   |X|/N = 1.346004e-05
+[  3] f =     1.0000 Hz   |X|/N = 1.351683e-05
+[  4] f =     1.3333 Hz   |X|/N = 1.547173e-05
+[  5] f =     1.6667 Hz   |X|/N = 1.479958e-05
+[  6] f =     2.0000 Hz   |X|/N = 1.437533e-05
+[  7] f =     2.3333 Hz   |X|/N = 1.448999e-05
+[  8] f =     2.6667 Hz   |X|/N = 1.405990e-05
+[  9] f =     3.0000 Hz   |X|/N = 1.766649e-05
+
+dominant peak: f = 164.33 Hz, |X|/N = 1.2054e-02

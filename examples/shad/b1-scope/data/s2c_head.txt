@@ -1,0 +1,29 @@
+# S2c -- Wikimedia Commons Example.ogg
+# example speech sample (broadband content)
+# fs = 44100.0 Hz, N = 269188 samples, duration = 6.104 s
+
+--- first 10 raw samples ---
+[  0] t = 0.000000 s   v = -0.001459 (normalised)
+[  1] t = 0.000023 s   v = -0.001039 (normalised)
+[  2] t = 0.000045 s   v = -0.000322 (normalised)
+[  3] t = 0.000068 s   v = -0.000413 (normalised)
+[  4] t = 0.000091 s   v = -0.000984 (normalised)
+[  5] t = 0.000113 s   v = -0.001711 (normalised)
+[  6] t = 0.000136 s   v = -0.002279 (normalised)
+[  7] t = 0.000159 s   v = -0.002329 (normalised)
+[  8] t = 0.000181 s   v = -0.001864 (normalised)
+[  9] t = 0.000204 s   v = -0.000914 (normalised)
+
+--- first 10 spectrum bins ---
+[  0] f =     0.0000 Hz   |X|/N = 1.965776e-05
+[  1] f =     0.1638 Hz   |X|/N = 4.880533e-06
+[  2] f =     0.3277 Hz   |X|/N = 3.815724e-06
+[  3] f =     0.4915 Hz   |X|/N = 9.252424e-07
+[  4] f =     0.6553 Hz   |X|/N = 3.308635e-06
+[  5] f =     0.8191 Hz   |X|/N = 2.684686e-06
+[  6] f =     0.9830 Hz   |X|/N = 5.514224e-06
+[  7] f =     1.1468 Hz   |X|/N = 7.818887e-06
+[  8] f =     1.3106 Hz   |X|/N = 3.763730e-06
+[  9] f =     1.4744 Hz   |X|/N = 3.068525e-06
+
+dominant peak: f = 144.82 Hz, |X|/N = 1.2486e-03

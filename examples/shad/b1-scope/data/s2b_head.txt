@@ -1,0 +1,29 @@
+# S2b -- Wikimedia Commons Tone_440Hz.ogg
+# alternative 440 Hz tone (different encoder / upload path)
+# fs = 22050.0 Hz, N = 44100 samples, duration = 2.000 s
+
+--- first 10 raw samples ---
+[  0] t = 0.000000 s   v = +0.005559 (normalised)
+[  1] t = 0.000045 s   v = +0.082632 (normalised)
+[  2] t = 0.000091 s   v = +0.158301 (normalised)
+[  3] t = 0.000136 s   v = +0.231406 (normalised)
+[  4] t = 0.000181 s   v = +0.300825 (normalised)
+[  5] t = 0.000227 s   v = +0.365493 (normalised)
+[  6] t = 0.000272 s   v = +0.424418 (normalised)
+[  7] t = 0.000317 s   v = +0.476695 (normalised)
+[  8] t = 0.000363 s   v = +0.521522 (normalised)
+[  9] t = 0.000408 s   v = +0.558207 (normalised)
+
+--- first 10 spectrum bins ---
+[  0] f =     0.0000 Hz   |X|/N = 3.697831e-06
+[  1] f =     0.5000 Hz   |X|/N = 3.680159e-06
+[  2] f =     1.0000 Hz   |X|/N = 3.675124e-06
+[  3] f =     1.5000 Hz   |X|/N = 3.669244e-06
+[  4] f =     2.0000 Hz   |X|/N = 3.689133e-06
+[  5] f =     2.5000 Hz   |X|/N = 3.690262e-06
+[  6] f =     3.0000 Hz   |X|/N = 3.666600e-06
+[  7] f =     3.5000 Hz   |X|/N = 3.655037e-06
+[  8] f =     4.0000 Hz   |X|/N = 3.644409e-06
+[  9] f =     4.5000 Hz   |X|/N = 3.649067e-06
+
+dominant peak: f = 440.00 Hz, |X|/N = 3.1523e-01
