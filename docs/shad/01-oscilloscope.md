@@ -62,6 +62,16 @@ for i, l in enumerate(lines):
 counts = [int(lines[j].strip()) for j in range(start, start + 16384)]
 ```
 
+> **Data provenance.** The 30-row snippet below is a fair-use educational
+> citation; the full `MainRunFinal.Spe` (16 384 channels, ~22 k events,
+> ~165 kB) is not redistributed with lege-artis/fourier. Fetch via
+> `python probe_b1_muon.py` — the script downloads from
+> [amor.cms.hu-berlin.de/~rodrigus](https://amor.cms.hu-berlin.de/~rodrigus/)
+> under Santiago Rodriguez's personal-use copyright (cite key
+> `Rodriguez2018` in `shared/reference-bibliography/refs.bib`). Public
+> reproduction beyond fair-use citation requires written permission per
+> the dataset's stated terms.
+
 Head of data (first 30 non-zero channels, rebinned to 0.2 µs for display):
 
 ```
