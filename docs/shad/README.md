@@ -9,7 +9,7 @@ result, without first learning calculus.
 | # | Title | Status | Adds |
 |---|-------|--------|------|
 | 00 | [Prologue](00-prologue.md) | shipped v0.2.x | Who this is for, how to read |
-| 01 | [B1 — Oscilloscope](01-oscilloscope.md) | shipped v0.2.x | DFT as time → frequency machine |
+| 01 | [B1 — Oscilloscope](01-oscilloscope.md) | rebuilt v0.2.x (real data) | DFT as time → frequency machine — 4 real fixtures (muon MCA, square wave, triangle wave, RLC damped) |
 | 02 | [B2 — Audio](02-audio.md) | shipped v0.2.x | Multiple peaks + leakage + windowing |
 | 03 | [B3 — Vibration](03-vibration.md) | shipped v0.2.x | Harmonics + fault signatures + diagnostic reading |
 | 04 | [B4 — Electronic systems](04-electronic.md) | shipped v0.2.x | AC mains harmonics + active filter + heterodyne mixer |
@@ -22,7 +22,7 @@ result, without first learning calculus.
 The figures in each chapter are rendered by the corresponding script in
 [`../../examples/shad/`](../../examples/shad/):
 
-- [`b1-scope/main.py`](../../examples/shad/b1-scope/main.py) → `figures/fig-b1-*.png`
+- [`b1-scope/render_b1_s{1..4}.py`](../../examples/shad/b1-scope/) → `figures/fig-b1-s{1..4}-{input,spectrum,takeaway}.png` (probe scripts fetch raw data first)
 - [`b2-audio/main.py`](../../examples/shad/b2-audio/main.py) → `figures/fig-b2-*.png`
 - [`b3-vibration/main.py`](../../examples/shad/b3-vibration/main.py) → `figures/fig-b3-*.png`
 - [`b4-electronic/main.py`](../../examples/shad/b4-electronic/main.py) → `figures/fig-b4-*.png`

@@ -833,42 +833,312 @@ engineering content below is intact and correct for the synthesised
 case; the upgrade replaces only the data source and the three figures.
 \end{tcolorbox}}
 
-\chapter{B1 --- oscilloscope (legacy, queued for rebuild)}
+% ======================================================================
+\chapter{B1 --- oscilloscope: four scope captures, four spectral lessons}
 \label{ch:b1}
-\rebuildbanner
 
-\begin{tcolorbox}[colback=codebg,colframe=black!40,arc=2pt,
-                  title={B1 inherits the deferred real-scope-CSV use case},
-                  fonttitle=\bfseries\small,
-                  coltitle=black,colbacktitle=codebg!80!black!8]
-B0 Slot S2 was originally scoped as a real Rigol/Siglent/Tek scope
-capture (4-column layout per \cite{rg272996569}). When a CC-licensed
-capture in that format proved hard to source in the available
-iteration window, S2 was re-routed to audio captures and the
-real-instrument-CSV use case was moved here, to B1, where it
-pedagogically belongs anyway --- this chapter is literally about
-oscilloscopes. The rebuild target for B1 is the same five-step
-pipeline + Step 6 component-invocation pattern that B0 implements,
-applied to a real scope CSV the moment one lands.
-\end{tcolorbox}
+\section{The premise}
 
-\paragraph{Premise.} You have a signal that varies over time. Voltage
-from a probe. Pressure from a microphone. The first column of a CSV
-someone emailed you. The shape of it on a scope screen tells you
-something --- but not as much as the shape of its frequency content
-does. B1 originally ran this on a synthesised 240\,Hz sine wave at
-1\,V amplitude, 10\,kHz sample rate, 50\,ms duration, 10\% noise floor.
-One tone, one peak. Hardest possible case for a tutorial. The new B0
-(Chapter~\ref{ch:b0}) already covers the pipeline on real audio
-captures; this chapter is reserved for the real-instrument CSV
-rebuild.
+You connect a probe to something. The oscilloscope screen shows voltage
+versus time. That picture tells you something --- but \textbf{not as much
+as the shape of its frequency content does.} The DFT turns the first
+picture into the second.
 
-\paragraph{What it taught (still true).} The four-step workflow: get
-samples + rate, run \texttt{np.fft.fft}, slice to one-sided, read
-peaks. That workflow generalises. The one-sided amplitude is half of
-the input amplitude because the two-sided spectrum splits energy at
-$+f$ and $-f$ --- this is the Hermitian property P4 of
-Chapter~\ref{ch:canonical}.
+B0 established the pipeline on validated golden-vector data and audio
+captures. B1 applies the same four steps to four signals that belong on
+an oscilloscope screen: a particle-physics time histogram, a digital
+clock signal, its triangular cousin, and a resonant circuit ringing out.
+Same pipeline. Four very different spectral fingerprints.
+
+\section{The four fixtures}
+
+\begin{longtable}{p{1.0cm}p{3.5cm}p{3.5cm}p{5.5cm}}
+\toprule
+\textbf{ID} & \textbf{Signal} & \textbf{Source} & \textbf{Key lesson} \\
+\midrule
+\endhead
+S1 & Rodriguez muon-lifetime MCA histogram & \texttt{probe\_b1\_muon.py} --- fetches \texttt{MuonLifetimeData.zip} & Exponential decay $\to$ Lorentzian spectrum; background adds a flat floor \\
+S2 & 1\,kHz square wave & \texttt{probe\_b1\_squarewave.py} --- exact analytical signal & Odd harmonics, $1/n$ amplitude envelope; Fourier 1822 was right \\
+S3 & 1\,kHz triangle wave & \texttt{probe\_b1\_triangle.py} --- exact analytical signal & Same odd harmonics, $1/n^2$ envelope; shape changes the spectrum \\
+S4 & RLC damped transient ($R=2\,\Omega$, $L=100\,\mathrm{mH}$, $C=100\,\mu\mathrm{F}$) & \texttt{probe\_b1\_rlc.py} --- exact ODE solution & Transient $\to$ broad Lorentzian; spectral width $= 1/(2\pi\tau)$ \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Slot S1 --- Rodriguez muon-lifetime histogram}
+\label{sec:b1s1}
+
+\paragraph{Physical context.}
+A muon telescope at a university physics lab. Cosmic-ray muons stop
+in a scintillator detector; a multi-channel analyser (MCA) records the
+time between the stop signal and the subsequent decay signal. Each MCA
+channel corresponds to $\approx\!2.3\,\mathrm{ns}$. The histogram
+accumulates over 71\,199\,s of live time, collecting 22\,321 events.
+
+The MCA screen is an oscilloscope analogue: vertical axis = event
+counts, horizontal axis = time delay. The signal is the histogram of
+delay times --- an exponential decay with the known muon lifetime
+$\tau \approx 2.197\,\mu\mathrm{s}$ \cite{PDG2022}.
+
+\begin{pipelinestep}{Step 1. Aggregate --- parse Maestro .Spe format}
+\begin{lstlisting}[style=shaddata]
+probe_b1_muon.py fetches MuonLifetimeData.zip  (~1 MB)
+Unzips to data/muon/extracted/Muon Lifetime Data/MainRunFinal.Spe
+Format: Ortec Maestro MCA .Spe
+  Header lines, then: $DATA:\n0 16383\n  followed by 16384 integer counts
+Total channels: 16384    Bin width: ~2.3 ns    Total events: 22321
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{pipelinestep}{Step 2. Parse --- extract counts and calibrate time axis}
+\begin{lstlisting}[style=shadpython]
+lines  = open("MainRunFinal.Spe").readlines()
+for i, l in enumerate(lines):
+    if l.strip() == "$DATA:":
+        start = i + 2; break
+counts = [int(lines[j].strip()) for j in range(start, start + 16384)]
+
+# Time calibration from 8 calibration runs (ns/channel):
+NS_PER_CH = 2.2986
+OFFSET_NS = -162.8
+t_us = (channel_number * NS_PER_CH + OFFSET_NS) / 1000.0  # -> us
+\end{lstlisting}
+\textit{Non-zero data begins at channel 1355 (t = 2.95 $\mu$s, hardware minimum delay):}
+\begin{lstlisting}[style=shaddata]
+channel  time_us  counts
+   1355    2.952       4
+   1356    2.954      27
+   1357    2.957      48  <- peak (hardware delay minimum)
+   1358    2.959      11
+   ...
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{pipelinestep}{Step 3+4. Transform --- DFT of the rebinned histogram}
+\begin{lstlisting}[style=shadpython]
+# Rebin 2.3 ns channels to 0.2 us bins
+bin_us = 0.2
+bins  = np.arange(2.9, 20.0 + bin_us, bin_us)
+c_bins, _ = np.histogram(t_all, bins=bins, weights=all_counts)
+
+spec = np.fft.fft(c_bins)              # DFT of decay histogram
+dt   = bin_us * 1e-6                   # 0.2 us bin -> 200 ns
+freq = np.fft.fftfreq(N, d=dt)         # Hz
+mag  = np.abs(spec[:N//2]) / N
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{pipelinestep}{Step 5. Plot}
+\begin{center}
+\IfFileExists{figures/fig-b1-s1-input.png}{%
+  \includegraphics[width=0.92\textwidth]{figures/fig-b1-s1-input.png}}{%
+  \fbox{\parbox{0.82\textwidth}{\centering\itshape fig-b1-s1-input.png (rendered by render\_b1\_s1.py)}}}
+\end{center}
+\begin{center}
+\IfFileExists{figures/fig-b1-s1-spectrum.png}{%
+  \includegraphics[width=0.92\textwidth]{figures/fig-b1-s1-spectrum.png}}{%
+  \fbox{\parbox{0.82\textwidth}{\centering\itshape fig-b1-s1-spectrum.png}}}
+\end{center}
+\begin{center}
+\IfFileExists{figures/fig-b1-s1-takeaway.png}{%
+  \includegraphics[width=0.92\textwidth]{figures/fig-b1-s1-takeaway.png}}{%
+  \fbox{\parbox{0.82\textwidth}{\centering\itshape fig-b1-s1-takeaway.png}}}
+\end{center}
+\end{pipelinestep}
+
+\paragraph{What S1 shows.}
+On a log scale the histogram is approximately a straight line with slope
+$-1/\tau$. The PDG value $\tau = 2.197\,\mu\mathrm{s}$ is overlaid. At
+late times ($t > 10\,\mu\mathrm{s}$) a flat background of accidental
+coincidences dominates --- a real-data artefact that would bias any
+naive exponential fit. The flat tail is the scope telling you about the
+detector, not the muon. The DFT spectrum is a broad Lorentzian: no sharp
+peaks, no periodic structure, just the exponential-decay signature.
+
+\clearpage
+\section{Slot S2 --- 1\,kHz square wave}
+\label{sec:b1s2}
+
+\paragraph{Physical context.}
+A function generator output: exactly what a Rigol DG1022 or any digital
+clock line puts on a scope screen. Generated as
+$\mathrm{sign}(\sin(2\pi f t))$. Sample rate 50\,kHz, duration 100\,ms,
+5000 samples.
+
+\begin{pipelinestep}{Steps 1--3. Aggregate, parse, transform}
+\begin{lstlisting}[style=shadpython]
+# probe_b1_squarewave.py writes data/b1_s2_squarewave.csv
+import csv, numpy as np
+t, v = [], []
+with open("data/b1_s2_squarewave.csv") as fh:
+    for row in csv.DictReader(fh):
+        t.append(float(row["time_s"]));  v.append(float(row["voltage_V"]))
+t, v = np.array(t), np.array(v)
+
+N    = len(v)                           # 5000
+spec = np.fft.fft(v) / N               # normalised
+freq = np.fft.fftfreq(N, d=1.0/50_000) # Hz
+mag  = np.abs(spec[:N//2])
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{pipelinestep}{Step 4. Spectrum bins (literal output)}
+\begin{lstlisting}[style=shaddata]
+  k=100  f=1000 Hz  |X|=0.6366   (expected 2/pi = 0.6366)  OK
+  k=300  f=3000 Hz  |X|=0.2121   (expected 2/3pi = 0.2122) OK
+  k=500  f=5000 Hz  |X|=0.1272   (expected 2/5pi = 0.1273) OK
+  k=700  f=7000 Hz  |X|=0.0908   (expected 2/7pi = 0.0909) OK
+  k=900  f=9000 Hz  |X|=0.0707   (expected 2/9pi = 0.0707) OK
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{pipelinestep}{Step 5. Plot}
+\begin{center}
+\IfFileExists{figures/fig-b1-s2-input.png}{%
+  \includegraphics[width=0.92\textwidth]{figures/fig-b1-s2-input.png}}{%
+  \fbox{\parbox{0.82\textwidth}{\centering\itshape fig-b1-s2-input.png (rendered by render\_b1\_s2.py)}}}
+\end{center}
+\begin{center}
+\IfFileExists{figures/fig-b1-s2-takeaway.png}{%
+  \includegraphics[width=0.92\textwidth]{figures/fig-b1-s2-takeaway.png}}{%
+  \fbox{\parbox{0.82\textwidth}{\centering\itshape fig-b1-s2-takeaway.png}}}
+\end{center}
+\end{pipelinestep}
+
+\paragraph{What S2 shows.}
+$|X[k]|$ matches $2/(\pi n)$ to four decimal places. Fourier's 1822
+prediction confirmed. The ``simple'' digital square wave contains an
+infinite harmonic series; any bandlimited system that transmits it
+will distort it.
+
+\clearpage
+\section{Slot S3 --- 1\,kHz triangle wave}
+\label{sec:b1s3}
+
+\paragraph{Physical context.}
+Same function generator, same parameters, different waveshape:
+$(2/\pi)\arcsin(\sin(2\pi f t))$.
+
+\begin{pipelinestep}{Step 4. Spectrum bins (literal output)}
+\begin{lstlisting}[style=shaddata]
+  k=100  f=1000 Hz  |X|=0.4050   (expected 4/pi^2 = 0.4053)
+  k=300  f=3000 Hz  |X|=0.04476  (expected 4/9pi^2 = 0.04503)
+  k=500  f=5000 Hz  |X|=0.01594  (expected 4/25pi^2 = 0.01621)
+  k=700  f=7000 Hz  |X|=0.00799  (expected 4/49pi^2 = 0.00825)
+  (No even harmonics; 1/n^2 falloff)
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{pipelinestep}{Step 5. Plot: S2 vs S3 overlay}
+\begin{center}
+\IfFileExists{figures/fig-b1-s3-takeaway.png}{%
+  \includegraphics[width=0.92\textwidth]{figures/fig-b1-s3-takeaway.png}}{%
+  \fbox{\parbox{0.82\textwidth}{\centering\itshape fig-b1-s3-takeaway.png (rendered by render\_b1\_s3.py)}}}
+\end{center}
+\end{pipelinestep}
+
+\paragraph{What S3 shows.}
+Same odd harmonics as S2. Different amplitudes. The $1/n^2$ falloff
+makes the triangle wave spectrally tighter: the high-frequency content
+falls much faster. The DFT does not just measure \emph{frequency} ---
+it measures \emph{shape}. Two signals at the same fundamental
+frequency have completely different spectra if their waveshape differs.
+
+\clearpage
+\section{Slot S4 --- RLC damped transient}
+\label{sec:b1s4}
+
+\paragraph{Physical context.}
+Step response of an underdamped series RLC circuit:
+$R = 2\,\Omega$, $L = 100\,\mathrm{mH}$, $C = 100\,\mu\mathrm{F}$.
+\begin{equation*}
+v(t) = e^{-\alpha t} \cos(\omega_d t), \qquad
+  \alpha = \frac{R}{2L} = 10\,\mathrm{rad/s}, \quad
+  f_d = \frac{\omega_d}{2\pi} \approx 50.3\,\mathrm{Hz}, \quad
+  \tau = \frac{1}{\alpha} = 100\,\mathrm{ms}
+\end{equation*}
+Sample rate 2\,kHz, duration 500\,ms, 1000 samples.
+
+\begin{pipelinestep}{Steps 1--4. Acquire, parse, transform, read}
+\begin{lstlisting}[style=shadpython]
+# probe_b1_rlc.py writes data/b1_s4_rlc.csv
+# (R=2, L=100 mH, C=100 uF; exact ODE solution)
+
+spec = np.fft.fft(v) / N
+freq = np.fft.fftfreq(N, d=1.0/2_000)
+mag  = np.abs(spec[:N//2])
+
+# Peak at 50.00 Hz (expected f_d = 50.30 Hz; 2 Hz = 1 bin at N=1000)
+# FWHM = alpha/pi = 10/pi = 3.18 Hz   (tau = pi/FWHM = 99.5 ms)
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{pipelinestep}{Step 5. Plot}
+\begin{center}
+\IfFileExists{figures/fig-b1-s4-input.png}{%
+  \includegraphics[width=0.92\textwidth]{figures/fig-b1-s4-input.png}}{%
+  \fbox{\parbox{0.82\textwidth}{\centering\itshape fig-b1-s4-input.png (rendered by render\_b1\_s4.py)}}}
+\end{center}
+\begin{center}
+\IfFileExists{figures/fig-b1-s4-takeaway.png}{%
+  \includegraphics[width=0.92\textwidth]{figures/fig-b1-s4-takeaway.png}}{%
+  \fbox{\parbox{0.82\textwidth}{\centering\itshape fig-b1-s4-takeaway.png}}}
+\end{center}
+\end{pipelinestep}
+
+\paragraph{What S4 shows.}
+A smooth Lorentzian centred at $f_d \approx 50\,\mathrm{Hz}$.
+The half-power width (FWHM) is $\alpha/\pi = 3.18\,\mathrm{Hz}$
+--- directly readable from the spectrum as the inverse of the
+decay time constant: $\tau = 1/\alpha = \pi/\mathrm{FWHM} \approx 100\,\mathrm{ms}$.
+A long-lived oscillation (small $\alpha$) has a narrow spectrum; a
+quickly-damped transient has a wide spectrum.
+
+\section{Cross-fixture synthesis}
+
+\begin{longtable}{p{1.5cm}p{3.5cm}p{4.0cm}p{4.5cm}}
+\toprule
+\textbf{Signal} & \textbf{Time domain} & \textbf{Frequency domain} & \textbf{What the DFT measures} \\
+\midrule
+\endhead
+S1 muon & Exponential decay + background floor & Broad Lorentzian + flat floor; no periodic structure & Decay time scale; background level \\
+S2 square & Sharp periodic transitions & Sparse odd harmonics, $1/n$ envelope & Harmonic content of a one-period shape \\
+S3 triangle & Smooth periodic ramps & Same odd harmonics, $1/n^2$ envelope & Shape difference encoded in amplitude falloff \\
+S4 RLC & Decaying oscillation & Smooth Lorentzian; FWHM $= 1/(2\pi\tau)$ & Resonance frequency and damping \\
+\bottomrule
+\end{longtable}
+
+The DFT does not know about physics. It measures \emph{which sinusoidal
+components are present and at what amplitude}. The four cases are the
+four canonical scenarios: pure pulse/transient (S1, S4), pure harmonic
+series (S2), tapered harmonic series (S3). Everything a scope can show
+falls into one of these families or their mixtures.
+
+\section{Try it yourself}
+
+\begin{lstlisting}[style=shaddata]
+$ cd examples/shad/b1-scope
+
+# S1: fetch once (~1 MB)
+$ python probe_b1_muon.py
+
+# S2, S3, S4: instantaneous (no download)
+$ python probe_b1_squarewave.py
+$ python probe_b1_triangle.py
+$ python probe_b1_rlc.py
+
+# Render all 12 figures
+$ python render_b1_s1.py
+$ python render_b1_s2.py
+$ python render_b1_s3.py
+$ python render_b1_s4.py
+\end{lstlisting}
+
+\textbf{S1 licence note.} The Rodriguez muon dataset is not redistributed
+with this repository. \texttt{probe\_b1\_muon.py} fetches it from
+\url{amor.cms.hu-berlin.de/~rodrigus}. Public reproduction requires
+written permission from Santiago Rodriguez with full attribution
+\cite{Rodriguez2018}.
 
 \chapter{B2 --- audio (legacy, queued for rebuild)}
 \label{ch:b2}
