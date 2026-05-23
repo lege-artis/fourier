@@ -1,5 +1,7 @@
 # Sonnet handoff — Shad-tier B6: Radioastronomy (pulsar-timing lead)
 
+**VOICE UPDATE (2026-05-23):** Read `_handoffs/SHAD-V0.2-VOICE-ADDENDUM-FOR-BRIEFS.md` BEFORE proceeding. The "mirror B3 voice" instruction in this brief is superseded; new exemplars are B0 + B1 v0.2.
+
 **Status:** Ready to execute. Best authored after B5 lands (the "1D time-series spectral analysis before generalising to 2D" arc benefits from radar groundwork). Independent of B7.
 **Estimated effort:** 1 Sonnet session (~3-4 hours authoring + figures). Possibly 2 if depth wanted.
 **Acceptance gate:** all checks in §9 pass.

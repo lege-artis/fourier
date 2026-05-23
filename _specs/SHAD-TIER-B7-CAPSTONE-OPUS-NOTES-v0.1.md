@@ -88,6 +88,23 @@ Before opening the authoring session, re-confirm the public-safety surface:
 - No project-owner real-name beyond `Pete Y.`
 - No private-monorepo paths leaking via dataset filenames
 
+### §2.6 Figure budget — explicit grant for B7 (project-owner direction 2026-05-23)
+
+The general Shad-tier convention (per `_specs/SHAD-TIER-AUTHORING-ROADMAP-B4-B7-v0.1.md` §5.2) is **3 figures per band**: input + spectrum + takeaway. This convention exists because the underlying project doctrine is **formulas and data first, visualisations second** — the prose, equations, and reported numerical outputs (spectrum-bin tables, fit values, error figures) carry the load; plots are the human-readable cross-check, not the primary artefact.
+
+**B7 is the explicit exception.** Project-owner direction (2026-05-23) locks the following figure-budget guidance into the B7 design contract:
+
+- **Higher figure budget granted.** B7 may carry **8–14 figures** covering the spectral characteristics of the reactor fields. This is a 2-4× expansion over the standard 3-per-band cap, justified because:
+  1. The chapter's pedagogical payoff IS reading dynamics off spectra — every additional spectral plot is content, not decoration.
+  2. The "Fourier and beyond" toolkit (§2.3) is itself a sequence of spectral representations: bare DFT → Welch → STFT/spectrogram → wavelets → Rossi-α → Feynman-α → bispectrum → coherence. Each method earns its own figure as part of the toolkit walkthrough.
+  3. The synthesised model (§2.2) cross-validates the real data; comparing real-vs-synth spectra side-by-side is part of the "the theory matches the data" reveal.
+- **Doctrine reaffirmed for B0–B6.** The "formulas and data first" rule stays in force for B0 through B6. B7 is an exception, not a precedent.
+- **Embedded vs. extra-file referenced — author's call.** B7 figures may live inline in the chapter (embedded in the primary document) OR as extra files referenced from the chapter (auxiliary appendix, separate figure-pack, supplementary panels). The choice depends on production constraints — chapter PDF length, figure resolution at publication scale, dual-publication targets per §6 below. Recommended default: inline the 4-6 most pedagogically central figures; defer the rest to an auxiliary `figures-supplementary-b7/` directory referenced from the chapter's "for further inspection" section.
+- **Three classes of B7 figure, suggested ordering of authoring:**
+  1. **Core diagnostic figures (must-have, inline):** raw time-series + bare-DFT spectrum showing Lorentzian + Lorentzian fit overlaid (4 figures minimum)
+  2. **Toolkit-walkthrough figures (one per "beyond" method, inline or supplementary):** Welch PSD, spectrogram, wavelet scalogram, Rossi-α histogram, Feynman-α variance curve, bispectrum, coherence — one figure per method (6-8 figures, may be split between inline and supplementary)
+  3. **Cross-publication figures (supplementary, designed for §6 reuse):** higher-resolution versions of the most striking spectral plots, sized + styled for web reading (zemla.org / mim2000.cz embedding) rather than for PDF print — see §6
+
 ---
 
 ## §3. Pedagogical arc — locked
@@ -130,15 +147,20 @@ Before opening the authoring session, re-confirm the public-safety surface:
 - §2.1 dataset selection + fetch + format-conversion
 - §2.2 synthesised model implementation
 - Chapter §1-§4 (open with real → DFT → theory match → α extraction)
-- 2 figures: input + bare-DFT spectrum
+- **4 figures (revised 2026-05-23 per §2.6):** raw input + bare-DFT spectrum + Lorentzian fit overlaid + real-vs-synthesised side-by-side
 - Tag at green: `v0.2.x-shad-b7-session1-real-and-theory`
 
 **Session 2 — Toolkit walkthrough + closing** (4-5 hours):
 - §2.3 toolkit implementation (six or seven methods)
 - Chapter §5-§7 (limit-test → toolkit → closing)
-- 2-3 figures: time-frequency comparison, Rossi-α, Feynman-α
-- Final chapter density target: 10-12 markdown pages (B7 is longest)
+- **6-10 figures (revised 2026-05-23 per §2.6):** one per toolkit method (Welch PSD, STFT/spectrogram, wavelet scalogram, Rossi-α histogram, Feynman-α variance curve, bispectrum, coherence) — author's call on inline vs. supplementary split
+- Final chapter density target: 12-16 markdown pages (B7 is longest, expanded for figure embedding)
 - Tag at green: `v0.2.x-shad-b7-shipped` (final tag)
+
+**Optional Session 3 — Cross-publication figure pack** (1-2 hours, see §6):
+- Re-render core spectral figures at web-publication sizing/styling for zemla.org + mim2000.cz reuse
+- Document figure-license terms per CC-BY-SA-4.0 to enable site embedding
+- Tag at green: `v0.2.x-shad-b7-figure-pack-web-ready`
 
 ---
 
@@ -157,5 +179,46 @@ When B7 ships, the seven-band Shad-tier journey is **complete**. The chapter ind
 - B9 quantum spectroscopy (FID → spectrum)
 
 None of these is committed; they're future-expansion candidates only.
+
+---
+
+## §6. Cross-publication scope — B7 spectral figures on zemla.org + mim2000.cz (project-owner direction 2026-05-23)
+
+The expanded B7 figure set per §2.6 is **dual-purpose by design**: the same spectral plots that earn their place in the Shad guide chapter also serve as content for the 3-fold-path sites' science-facing sections. Lock this expectation into the B7 production plan so figures are sized, styled, and licensed for reuse rather than retrofitted later.
+
+### §6.1 Target site sections
+
+- **zemla.org → Philosophy/Science section** (under "Mind → Philosophy/Science: physics, mathematics, epistemology"). Natural home for the conceptual / pedagogical framing of reactor noise as a physics-via-spectra topic. Audience: science-curious readers from the broader zemla.org audience (philosophy, dharma, psychology). Expect long-form prose framing around each figure.
+- **mim2000.cz → Teaching section.** Natural home for the technical walkthrough. Cross-links into the MI-M-T section once that lands in v1.18.0 stage-c (see `_config/CLAUDE-MD-DELTA-2026-05-09.md` and the 3FP stage-c sub-briefs). Audience: technical-professional readers from the mim2000.cz teaching/consulting funnel.
+
+### §6.2 Figure production guidance for cross-publication
+
+When authoring B7 figures with §6 reuse in mind:
+- Render two output sizes per central figure: print (PDF, 600+ DPI, B5/A4 column-width) AND web (PNG, 1600-2000 px wide, retina-friendly without bloat)
+- Use the same color palette across both — keep figures recognisable when a reader moves from PDF to web
+- Keep axis labels and legends readable at small sizes — assume web reader on mobile (zemla.org + mim2000.cz are both multilingual mobile-responsive sites)
+- Caption text should be self-contained — i.e. a web embed shows the figure + caption with no chapter context required
+- Save the matplotlib rcParams / plot config alongside the figure so re-renders are byte-deterministic
+
+### §6.3 Licensing
+
+Figures inherit CC-BY-SA-4.0 from the doc tier (per repo `LICENSE-DOCS`). When embedded on zemla.org or mim2000.cz, the site post must carry the attribution string + link back to the source chapter in `lege-artis/fourier`. Attribution template:
+
+> Figure: [title]. From "Just Shad's Guide to Fourier's Galaxy" chapter B7, lege-artis/fourier. CC-BY-SA-4.0. [link to GitHub source]
+
+### §6.4 Authoring sequencing
+
+The cross-publication figure-pack is a **Session 3 optional add-on** (see §4 above), explicitly NOT in the critical path for B7 ship. Sequence:
+1. Sessions 1 + 2 produce the core + toolkit figures sized for PDF inline
+2. After `v0.2.x-shad-b7-shipped` tags, Session 3 re-renders the central figures for web publication
+3. 3FP stage-c (or later) authoring picks up the figure pack as content for zemla.org Philosophy/Science + mim2000.cz Teaching posts
+
+This separation keeps B7 ship-quality intact and treats web-publication as a follow-on activity rather than a critical-path constraint. If Session 3 slips, B7 still ships; the web pieces can fire later in their own sessions.
+
+### §6.5 Cross-references
+
+- `_config/CLAUDE-MD-DELTA-2026-05-09.md` — mim2000 MI-M-T section v1.18.0 lock (planning context)
+- 3FP stage-c sub-briefs in `3-fold-path/backlog/3FP-STAGE-C-*-BRIEF-v0.1.md` — where stage-c work picks up these figures
+- `_config/SANITISATION-POLICY-v0.1.md` — public-mirror two-context rule; B7 figures must be sanitisation-clean for both lege-artis and 3FP-site embedding
 
 End of SHAD-TIER-B7-CAPSTONE-OPUS-NOTES-v0.1.md

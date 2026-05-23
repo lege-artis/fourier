@@ -192,23 +192,43 @@ what is going on here\\[6pt]
 
 \bigskip
 
-This document is for people who can read an oscilloscope, have soldered
-something, know what a decibel is, and are deeply suspicious of anyone
-who leads with the Riemann--Lebesgue lemma.
+Most books about the Fourier transform start by writing the Fourier
+transform on the page. They write it in its full integral form, with
+the limits going to infinity and the integrand involving a complex
+exponential, and they apologise for none of it. The reader, having
+opened the book hoping to understand something interesting about the
+world, closes it again and goes looking for a different book.
+
+This guide does not do that. This guide starts somewhere else entirely.
+It starts with the assumption that you can read an oscilloscope, have
+soldered something, know what a decibel is, and are deeply suspicious
+of anyone who leads with the Riemann--Lebesgue lemma.
 
 There is real mathematics inside the Fourier transform. This guide does
 not hide it --- but it arrives from the engineering end, not the
-theorem end. By the time you reach the definition you will already know
-why it matters and what the machinery does. The equations are
-consequences, not premises.
+theorem end. By the time you reach the definition you will already
+know why it matters and what the machinery does. The equations are
+consequences, not premises. \textbf{Don't panic} about the complex
+exponential when it shows up. We will deal with it when we get there.
 
 The progression is five bands: oscilloscope, audio, vibration,
-electronic circuits, radar. Each band adds one layer of the same idea.
-By the end you will have used \texttt{np.fft.fft} to do matched-filter
-pulse compression on a NEXRAD-style radar return, and you will
-understand, in reasonable detail, how that is related to the three
-lines of Python that extracted a 240\,Hz tone from a real scope
+electronic circuits, radar. Each band adds one layer of the same
+idea. By the end you will have used \texttt{np.fft.fft} to do
+matched-filter pulse compression on a NEXRAD-style radar return, and
+you will understand, in reasonable detail, how that is related to the
+three lines of Python that extracted a 240\,Hz tone from a real scope
 capture in Band 1.
+
+\paragraph{What you need to bring.}
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+\item curiosity about your data, or somebody else's data;
+\item the willingness to read a plot;
+\item a Python interpreter, if you want to run the code (optional, but
+  recommended);
+\item about 25 minutes per chapter, give or take;
+\item nothing else --- no calculus, no remembered complex-number
+  rules, no theorem-proving discipline.
+\end{itemize}
 
 \paragraph{Pedagogical contract.} Every band chapter follows the same
 five-step pipeline, applied to \emph{real} captured data:
@@ -839,16 +859,28 @@ case; the upgrade replaces only the data source and the three figures.
 
 \section{The premise}
 
-You connect a probe to something. The oscilloscope screen shows voltage
-versus time. That picture tells you something --- but \textbf{not as much
-as the shape of its frequency content does.} The DFT turns the first
-picture into the second.
+An oscilloscope is a remarkable instrument. It shows you precisely the
+wrong thing.
+
+It shows you voltage versus time. What it does not show you --- and
+what, in nearly every interesting case, you actually want to know ---
+is voltage versus frequency. The DFT turns the first picture into the
+second. It does so reliably, deterministically, and at speeds that
+would have astonished anyone who tried to do this with a slide rule in
+1900.
+
+You connect a probe to something. The screen shows the trace. That
+trace tells you something. It does not tell you nearly as much as
+\textbf{the shape of its frequency content does.} For four out of
+four signals in this chapter, the spectrum will say something the
+time-domain trace alone could not have said without staring at the
+screen for considerably longer than is reasonable.
 
 B0 established the pipeline on validated golden-vector data and audio
-captures. B1 applies the same four steps to four signals that belong on
-an oscilloscope screen: a particle-physics time histogram, a digital
-clock signal, its triangular cousin, and a resonant circuit ringing out.
-Same pipeline. Four very different spectral fingerprints.
+captures. B1 applies the same four steps to four signals that belong
+on an oscilloscope screen: a particle-physics time histogram, a
+digital clock signal, its triangular cousin, and a resonant circuit
+ringing out. Same pipeline. Four very different spectral fingerprints.
 
 \section{The four fixtures}
 
@@ -947,13 +979,20 @@ mag  = np.abs(spec[:N//2]) / N
 \end{pipelinestep}
 
 \paragraph{What S1 shows.}
-On a log scale the histogram is approximately a straight line with slope
-$-1/\tau$. The PDG value $\tau = 2.197\,\mu\mathrm{s}$ is overlaid. At
-late times ($t > 10\,\mu\mathrm{s}$) a flat background of accidental
-coincidences dominates --- a real-data artefact that would bias any
-naive exponential fit. The flat tail is the scope telling you about the
-detector, not the muon. The DFT spectrum is a broad Lorentzian: no sharp
-peaks, no periodic structure, just the exponential-decay signature.
+On a log scale the histogram is approximately a straight line with
+slope $-1/\tau$. The PDG value $\tau = 2.197\,\mu\mathrm{s}$ is
+overlaid \cite{PDG2022}. The muon, it turns out, is unwilling to take
+sides on whether it should still exist after about 2.2 microseconds,
+and so on average it doesn't. At late times ($t > 10\,\mu\mathrm{s}$)
+a flat background of accidental coincidences dominates --- a
+real-data artefact that would bias any naive exponential fit. The
+flat tail is the scope telling you about the detector, not the muon.
+
+The DFT spectrum is a broad Lorentzian: no sharp peaks, no periodic
+structure, just the exponential-decay signature. This is the
+spectrum's way of saying \emph{nothing in this signal repeats}. The
+muon's decay is the most fundamentally aperiodic event physics has on
+offer below the Planck scale.
 
 \clearpage
 \section{Slot S2 --- 1\,kHz square wave}
@@ -1007,9 +1046,14 @@ mag  = np.abs(spec[:N//2])
 
 \paragraph{What S2 shows.}
 $|X[k]|$ matches $2/(\pi n)$ to four decimal places. Fourier's 1822
-prediction confirmed. The ``simple'' digital square wave contains an
-infinite harmonic series; any bandlimited system that transmits it
-will distort it.
+prediction confirmed, in case anyone was wondering whether 200 years
+had been enough time for the equation to drift. A square wave is the
+most aggressive thing a function generator can produce while still
+pretending to be polite: it contains an infinite harmonic series, and
+any bandlimited system that transmits it will distort it. There is no
+amplifier in the world that does not silently round the corners of a
+square wave. The DFT tells you exactly which harmonics are doing the
+rounding.
 
 \clearpage
 \section{Slot S3 --- 1\,kHz triangle wave}
@@ -1042,7 +1086,12 @@ Same odd harmonics as S2. Different amplitudes. The $1/n^2$ falloff
 makes the triangle wave spectrally tighter: the high-frequency content
 falls much faster. The DFT does not just measure \emph{frequency} ---
 it measures \emph{shape}. Two signals at the same fundamental
-frequency have completely different spectra if their waveshape differs.
+frequency have completely different spectra if their waveshape
+differs. (This is the basis for almost every kind of synthesiser
+patch ever made by anyone who got into modular synthesis in the
+1970s. They did not know they were sweeping the harmonic envelope of
+an idealised periodic function. They knew it sounded different. The
+DFT tells you why.)
 
 \clearpage
 \section{Slot S4 --- RLC damped transient}
@@ -1090,9 +1139,13 @@ mag  = np.abs(spec[:N//2])
 A smooth Lorentzian centred at $f_d \approx 50\,\mathrm{Hz}$.
 The half-power width (FWHM) is $\alpha/\pi = 3.18\,\mathrm{Hz}$
 --- directly readable from the spectrum as the inverse of the
-decay time constant: $\tau = 1/\alpha = \pi/\mathrm{FWHM} \approx 100\,\mathrm{ms}$.
-A long-lived oscillation (small $\alpha$) has a narrow spectrum; a
-quickly-damped transient has a wide spectrum.
+decay time constant: $\tau = 1/\alpha = \pi/\mathrm{FWHM} \approx
+100\,\mathrm{ms}$. A long-lived oscillation (small $\alpha$) has a
+narrow spectrum; a quickly-damped transient has a wide spectrum.
+This is the time-frequency uncertainty principle, presented here
+without ceremony as a thing that simply falls out of the arithmetic.
+A resistor, asked directly, is more honest about Heisenberg than most
+physicists.
 
 \section{Cross-fixture synthesis}
 
@@ -1108,11 +1161,23 @@ S4 RLC & Decaying oscillation & Smooth Lorentzian; FWHM $= 1/(2\pi\tau)$ & Reson
 \bottomrule
 \end{longtable}
 
-The DFT does not know about physics. It measures \emph{which sinusoidal
-components are present and at what amplitude}. The four cases are the
-four canonical scenarios: pure pulse/transient (S1, S4), pure harmonic
-series (S2), tapered harmonic series (S3). Everything a scope can show
-falls into one of these families or their mixtures.
+The DFT does not know about physics. It measures \emph{which
+sinusoidal components are present and at what amplitude}. It is, in
+this sense, the most aggressively agnostic instrument in the
+toolbox: it will give you the same kind of answer whether you feed
+it the decay curve of a subatomic particle, the output of a function
+generator, or the ringing of an electrical circuit. Physics happens
+to all four of these signals; the DFT does not care which physics
+and produces, in every case, a spectrum.
+
+The four cases are the four canonical scenarios: pure pulse or
+transient (S1, S4), pure harmonic series (S2), tapered harmonic
+series (S3). Everything a scope can show falls into one of these
+families or a mixture of them. By the time you reach the end of B5
+you will recognise these four shapes in radar returns, audio
+recordings, machine-vibration data, and the output of an electronic
+filter chain. The signals will look very different. The spectra will
+look like cousins of these four.
 
 \section{Try it yourself}
 

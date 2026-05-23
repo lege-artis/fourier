@@ -1,5 +1,7 @@
 # Sonnet handoff — Shad-tier B5: Radar (NEXRAD lead)
 
+**VOICE UPDATE (2026-05-23):** Read `_handoffs/SHAD-V0.2-VOICE-ADDENDUM-FOR-BRIEFS.md` BEFORE proceeding. The "mirror B3 voice" instruction in this brief is superseded; new exemplars are B0 + B1 v0.2.
+
 **Status:** Ready to execute. Independent session; no prior dependency beyond shipped B1+B2+B3.
 **Estimated effort:** 1 Sonnet session (~3-4 hours authoring + figures).
 **Acceptance gate:** all checks in §9 pass.

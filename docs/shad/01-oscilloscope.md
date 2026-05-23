@@ -2,14 +2,15 @@
 
 ## The premise
 
-You connect a probe to something. The oscilloscope screen shows voltage versus time.
-That picture tells you something — but **not as much as the shape of its frequency
-content does**. The DFT turns the first picture into the second.
+An oscilloscope is a remarkable instrument. It shows you precisely the wrong thing.
 
-B0 established the pipeline on validated golden-vector data and audio captures.
-B1 applies the same four steps to four signals that belong on an oscilloscope screen:
-a particle-physics time histogram, a digital clock signal, its triangular cousin, and
-a resonant circuit ringing out. Same pipeline. Four very different spectral fingerprints.
+Or, more accurately: it shows you what voltage is doing as time passes. This is what voltage *does* — it changes — and a useful thing to know. It is, however, not what the voltage *is*. The voltage is, in nearly every interesting case, the sum of several sinusoidal signals at different frequencies, each doing its own thing, occasionally interfering with the others in ways that produce the misleadingly simple-looking trace on the scope's screen. The oscilloscope cannot tell you about the sinusoids. It can only show you their sum.
+
+This is what the Discrete Fourier Transform is for. The DFT takes the trace and pulls it apart into its constituent sinusoids, each with their frequency and amplitude attached. It is the instrument-after-the-instrument. The oscilloscope shows you time; the DFT shows you frequency; both pictures are true; both are needed.
+
+We are going to do this to four signals today, and the four signals are not what you might guess.
+
+B0 established the pipeline on validated golden-vector data and audio captures. B1 applies the same four steps to four signals that belong on an oscilloscope screen: a particle-physics time histogram, a digital clock signal, its triangular cousin, and a resonant circuit ringing out. Same pipeline. Four very different spectral fingerprints.
 
 ---
 
@@ -22,14 +23,11 @@ a resonant circuit ringing out. Same pipeline. Four very different spectral fing
 | S3 | 1 kHz triangle wave | `probe_b1_triangle.py` — exact analytical signal | Same odd harmonics, 1/n² envelope; shape changes the spectrum |
 | S4 | RLC damped transient (R=2 Ω, L=100 mH, C=100 µF) | `probe_b1_rlc.py` — exact ODE solution | Transient → broad Lorentzian; spectral width = 1/(2πτ) |
 
-Attribution and licence trail for S1: © 2018–2022 Santiago Rodriguez,
-`amor.cms.hu-berlin.de/~rodrigus`. Personal reproduction unrestricted;
-public reproduction requires written permission and attribution. The
-lege-artis/fourier repository does **not** redistribute the data; `probe_b1_muon.py`
-fetches it from the original URL on the reader's machine.
+These four are, broadly speaking, the four canonical things an oscilloscope can show you: a slow random decay (S1), a sharp periodic signal (S2), a smooth periodic signal (S3), and a resonant transient (S4). There is, in addition, a fifth thing an oscilloscope can show you, which is noise; we will get to noise eventually, but not in this chapter — noise is what is left over when all the signals are accounted for, and you need to know what signals look like before you can recognise their absence.
 
-S2, S3, S4 are analytically derived signals (Apache-2.0) representing the exact
-physical waveforms that a benchtop function generator or circuit would produce.
+Attribution and licence trail for S1: © 2018–2022 Santiago Rodriguez, `amor.cms.hu-berlin.de/~rodrigus`. Personal reproduction unrestricted; public reproduction requires written permission and attribution. The lege-artis/fourier repository does **not** redistribute the data; `probe_b1_muon.py` fetches it from the original URL on the reader's machine.
+
+S2, S3, S4 are analytically derived signals (Apache-2.0) representing the exact physical waveforms that a benchtop function generator or circuit would produce.
 
 ---
 
@@ -37,15 +35,15 @@ physical waveforms that a benchtop function generator or circuit would produce.
 
 ### What generated this signal
 
-A muon telescope at a university physics lab. Cosmic-ray muons stop in a
-scintillator detector; a multi-channel analyser (MCA) records the time between the
-stop signal and the subsequent decay signal. Each MCA channel corresponds to a
-~2.3 ns time interval. The histogram accumulates over 71 199 s of live time,
-collecting 22 321 muon decay events.
+A muon telescope at a university physics lab. Cosmic-ray muons stop in a scintillator detector; a multi-channel analyser (MCA) records the time between the stop signal and the subsequent decay signal.
 
-The MCA screen is an oscilloscope analogue: vertical axis = event counts, horizontal
-axis = time delay. The signal is the histogram of delay times — an exponential
-decay with the known muon lifetime τ ≈ 2.197 µs (PDG 2024).
+A muon is, briefly, an electron's heavier cousin¹, and it decays into an electron and two neutrinos with a mean life of 2.197 microseconds. This is short enough to be measurable in a university physics lab with patience, and long enough to be worth measuring at all — long enough, indeed, that cosmic muons formed at altitude can occasionally reach the ground before decaying, which is one of the historical experimental confirmations of special relativity, though that is a different chapter in a different book. What concerns us here is that 22 321 muons in a basement stopped, sat for a moment, and then decayed; and that someone with an MCA and patience wrote down when.
+
+(¹ It is, more rigorously, a lepton of the second generation, and getting the relationship between leptons and electrons and weight precisely right is a project for the Standard Model section of a different textbook. The point here is just that muons exist, and that they are kind enough to decay at a known rate.)
+
+Each MCA channel records the gap between a muon arriving and a muon expiring, in bins 2.3 nanoseconds wide. The MCA is, in effect, a stopwatch with 16 384 detents and a fondness for short intervals. The histogram accumulates over 71 199 s of live time, collecting 22 321 muon decay events.
+
+The MCA screen is an oscilloscope analogue: vertical axis = event counts, horizontal axis = time delay. The signal is the histogram of delay times — an exponential decay with the known muon lifetime τ ≈ 2.197 µs (PDG 2024).
 
 ### The input
 
@@ -87,9 +85,7 @@ Head of data (first 30 non-zero channels, rebinned to 0.2 µs for display):
 
 ![S1 MCA histogram](figures/fig-b1-s1-input.png)
 
-*71 199 s live time. 22 321 muon decays accumulated. Rebinned to 0.2 µs per bin.
-The histogram starts at ~3 µs (hardware minimum coincidence delay); earlier decays
-are not recorded.*
+*71 199 s live time. 22 321 muon decays accumulated. Rebinned to 0.2 µs per bin. The histogram starts at ~3 µs (hardware minimum coincidence delay); earlier decays are not recorded.*
 
 ### The transform
 
@@ -109,28 +105,21 @@ half = N // 2
 mag  = np.abs(spec[:half]) / N
 ```
 
+**Don't panic about the complex output.** `np.fft.fft` returns an array of complex numbers — one per frequency bin. Complex numbers, here, are doing one specific job: they encode amplitude *and* phase in the same number. You take their magnitude (`np.abs`) and you get back ordinary positive real numbers — the amplitudes you would plot. The phases are still there if you ever want them; for this chapter, you won't, and that is fine.
+
 ### The spectrum
 
 ![S1 spectrum](figures/fig-b1-s1-spectrum.png)
 
-The spectrum is dominated by the DC bin (bin 0 = total event count). The
-low-frequency content rolls off gradually — the signature of an exponential decay
-in the time domain is a Lorentzian in the frequency domain, broad and centred at
-DC. There are no sharp peaks; the muon is not a periodic source.
+The spectrum is dominated by the DC bin (bin 0 = total event count). The low-frequency content rolls off gradually — the signature of an exponential decay in the time domain is a Lorentzian in the frequency domain, broad and centred at DC. There are no sharp peaks; the muon is not a periodic source. It decays when it feels like decaying, and the only thing it agrees on with other muons is the average time it takes.
 
 ### The takeaway
 
 ![S1 takeaway](figures/fig-b1-s1-takeaway.png)
 
-On a log scale the histogram should be a straight line with slope −1/τ. The PDG
-value τ = 2.197 µs (overlaid in red) passes through the early bins where
-statistics are good. At later times (t > 10 µs) a flat background of accidental
-coincidences dominates — a real data artefact that biases any naive fit. The flat
-tail is the scope telling you about your detector, not about the muon.
+On a log scale the histogram should be a straight line with slope −1/τ. The PDG value τ = 2.197 µs (overlaid in red) passes through the early bins where statistics are good. At later times (t > 10 µs) a flat background of accidental coincidences dominates — a real data artefact that biases any naive fit. The flat tail is the scope telling you about your detector, not about the muon.
 
-**Real-data observation:** peak frequency DC, no harmonic structure. The DFT
-distinguishes "exponential decay" from "periodic" without any model fitting — the
-shape of the spectrum is sufficient.
+**Real-data observation:** peak frequency DC, no harmonic structure. The DFT distinguishes "exponential decay" from "periodic" without any model fitting — the shape of the spectrum is sufficient.
 
 ---
 
@@ -138,10 +127,11 @@ shape of the spectrum is sufficient.
 
 ### What generated this signal
 
-A function generator output: exactly what a Rigol DG1022, Tektronix AFG or any
-digital signal driving a clock line would put on a scope screen. The waveform is
-`sign(sin(2π·f·t))` — the mathematical definition of a square wave. Sample rate
-50 kHz, duration 100 ms, 5000 samples.
+A function generator output: exactly what a Rigol DG1022, Tektronix AFG or any digital signal driving a clock line would put on a scope screen. The waveform is `sign(sin(2π·f·t))` — the mathematical definition of a square wave. Sample rate 50 kHz, duration 100 ms, 5000 samples.
+
+A square wave is the most aggressive thing a function generator can produce while still pretending to be polite. It changes voltage instantaneously, holds the new voltage for half a period, then changes back. This is not a real signal that any real circuit could produce; real circuits have inductance and capacitance, and inductance and capacitance object strongly to instantaneous change. The square wave is, however, a useful fiction, in the same way that point masses are a useful fiction in mechanics — it tells you what *would* happen if your circuit were infinitely fast, which, for purposes of theoretical work, is exactly the question you wanted answered.
+
+Run a square wave through the DFT and what comes out is, in a phrase that this chapter will repeat several times before it is over, *what Fourier said it would*.
 
 ### The input
 
@@ -170,8 +160,7 @@ t, v = np.array(t), np.array(v)
 
 ![S2 square wave, first 5 ms](figures/fig-b1-s2-input.png)
 
-*5 complete cycles at 1 kHz. The scope shows sharp transitions — what the eye sees
-as a "simple" waveform.*
+*5 complete cycles at 1 kHz. The scope shows sharp transitions — what the eye sees as a "simple" waveform.*
 
 ### The transform
 
@@ -187,9 +176,7 @@ mag  = np.abs(spec[:half])             # one-sided magnitude
 
 ![S2 spectrum (log scale)](figures/fig-b1-s2-spectrum.png)
 
-The peaks appear at 1 kHz, 3 kHz, 5 kHz, 7 kHz, 9 kHz — the odd harmonics only.
-Even harmonics are zero. On a log scale the peaks descend in a perfect straight
-line; the amplitudes follow 2/(πn) for n = 1, 3, 5, ...
+The peaks appear at 1 kHz, 3 kHz, 5 kHz, 7 kHz, 9 kHz — the odd harmonics only. Even harmonics are zero. On a log scale the peaks descend in a perfect straight line; the amplitudes follow 2/(πn) for n = 1, 3, 5, ...
 
 ### The takeaway
 
@@ -202,11 +189,9 @@ line; the amplitudes follow 2/(πn) for n = 1, 3, 5, ...
   k=700  f=7000 Hz  |X|=0.0908   (expected 2/7π = 0.0909) ✓
 ```
 
-**Real-data observation:** |X[k]| matches 2/(πn) to four decimal places. Fourier's
-1822 prediction confirmed. The DFT is not approximating — for a periodic signal it
-is exact. The "simple" digital square wave contains an infinite harmonic series;
-any bandlimited system that transmits it will distort it, because it cannot
-reproduce all harmonics.
+**Real-data observation:** |X[k]| matches 2/(πn) to four decimal places. Fourier's 1822 prediction confirmed, two centuries later, on a laptop. The DFT is not approximating — for a periodic signal it is exact. The "simple" digital square wave contains an infinite harmonic series; any bandlimited system that transmits it will distort it, because it cannot reproduce all harmonics.
+
+This is, by the way, why high-quality digital transmission requires bandwidth that vastly exceeds the bit rate: a 1 Mbps clock has significant Fourier energy out to 5 MHz, 10 MHz, and beyond, and chopping that energy off makes the receiver's job — distinguishing a 1 from a 0 — measurably harder.
 
 ---
 
@@ -214,8 +199,7 @@ reproduce all harmonics.
 
 ### What generated this signal
 
-Same function generator, same output parameters, different waveshape:
-`(2/π)·arcsin(sin(2π·f·t))`. Sample rate 50 kHz, 100 ms, 5000 samples.
+Same function generator, same output parameters, different waveshape: `(2/π)·arcsin(sin(2π·f·t))`. Sample rate 50 kHz, 100 ms, 5000 samples.
 
 ### The input
 
@@ -235,8 +219,7 @@ Same three lines as S2, different input array.
 
 ![S3 takeaway: S2 vs S3 spectral overlay](figures/fig-b1-s3-takeaway.png)
 
-Both signals have the same odd-harmonic series: 1 kHz, 3 kHz, 5 kHz, ...
-The difference is the amplitude envelope:
+Both signals have the same odd-harmonic series: 1 kHz, 3 kHz, 5 kHz, ... The difference is the amplitude envelope:
 
 ```
               Square (S2)          Triangle (S3)
@@ -246,14 +229,9 @@ Fundamental:  2/π   = 0.6366      4/π²  = 0.4050
 7th harmonic: 2/7π  = 0.0909      4/49π²= 0.0083
 ```
 
-**Real-data observation:** same frequencies, different shapes. The 1/n² falloff
-makes the triangle wave spectrally "tighter" — the high-frequency content falls
-much faster. This is why a triangle wave sounds softer than a square wave at the
-same fundamental frequency: the harmonics that give timbre are weaker.
+**Real-data observation:** same frequencies, different shapes. The 1/n² falloff makes the triangle wave spectrally "tighter" — the high-frequency content falls much faster. This is why a triangle wave sounds softer than a square wave at the same fundamental frequency: the harmonics that give timbre are weaker.
 
-The DFT does not just measure *frequency*. It measures *shape*. Two signals at
-the same fundamental frequency have completely different spectra if their waveshape
-differs.
+The DFT does not just measure *frequency*. It measures *shape*. Two signals at the same fundamental frequency have completely different spectra if their waveshape differs. This is one of those facts that, once you have absorbed it, will gently rewire your intuition about every signal you ever see again.
 
 ---
 
@@ -261,9 +239,7 @@ differs.
 
 ### What generated this signal
 
-The step response of an underdamped series RLC circuit: R = 2 Ω, L = 100 mH,
-C = 100 µF. After a voltage step at t = 0, the capacitor voltage rings at the
-damped resonance frequency:
+The step response of an underdamped series RLC circuit: R = 2 Ω, L = 100 mH, C = 100 µF. After a voltage step at t = 0, the capacitor voltage rings at the damped resonance frequency:
 
 ```
 v(t) = exp(−α·t) · cos(ω_d·t)
@@ -273,6 +249,10 @@ v(t) = exp(−α·t) · cos(ω_d·t)
 ```
 
 Sample rate 2 kHz, duration 500 ms, 1000 samples.
+
+A ringing RLC circuit is what happens when a perfectly impatient voltage source hits a perfectly polite collection of inductors and capacitors. The voltage source jumps to its new value immediately; the capacitor's voltage cannot, because the capacitor has charge to consider; the inductor objects to any rate of current change at all; the result is a polite negotiation between the three of them, mediated by the resistor² and resolved over a few hundred milliseconds in the form of a slowly-decaying oscillation. The frequency of the oscillation tells you about the L and the C. The decay rate tells you about the R. The shape of the spectrum tells you both at once.
+
+(² The resistor, in this metaphor, is the lawyer who charges per ringing cycle.)
 
 ### The input
 
@@ -310,16 +290,13 @@ mag  = np.abs(spec[:half])
 
 ![S4 spectrum: Lorentzian](figures/fig-b1-s4-spectrum.png)
 
-A smooth hump centred near 50 Hz. No sharp peaks. This is not a periodic signal;
-it is a *transient* with internal periodicity — "ringing". Its spectrum is the
-**Lorentzian** distribution, the Fourier transform of an exponential decay:
+A smooth hump centred near 50 Hz. No sharp peaks. This is not a periodic signal; it is a *transient* with internal periodicity — "ringing". Its spectrum is the **Lorentzian** distribution, the Fourier transform of an exponential decay:
 
 ```
 |X(f)|² ∝  1 / [(f − f_d)² + (α/2π)²]
 ```
 
-The half-power width (FWHM) is α/π = 10/π ≈ 3.18 Hz — directly related to the
-decay time constant τ = 1/α = 100 ms.
+The half-power width of the spectrum is α/π, which works out to about 3.18 Hz. This is, perhaps unexpectedly, the same number as 1/(π × the time constant) — the spectral width and the decay time are, in the language of Fourier analysis, two views of the same thing: how long the circuit rings determines how narrow the spectral peak. A long ring is a sharp peak; a quick decay is a fat peak. The circuit cannot decide; it is what it is, and the DFT calmly reports it.
 
 ### The takeaway
 
@@ -331,10 +308,7 @@ decay time constant τ = 1/α = 100 ms.
   tau : 100 ms    (= π/FWHM = 1/α)
 ```
 
-**Real-data observation:** the spectral width is a direct measurement of the
-decay time constant. A long-lived oscillation (small α) has a narrow spectrum;
-a quickly-damped transient has a wide spectrum. You can read the circuit's damping
-off the frequency-domain picture without fitting the time-domain envelope.
+**Real-data observation:** the spectral width is a direct measurement of the decay time constant. A long-lived oscillation (small α) has a narrow spectrum; a quickly-damped transient has a wide spectrum. You can read the circuit's damping off the frequency-domain picture without fitting the time-domain envelope.
 
 ---
 
@@ -351,20 +325,13 @@ Four signals, one pipeline. What changed:
 
 The four cases are the four canonical scenarios for what a scope can show:
 
-1. **Pulse / transient** (S1, S4): broad spectrum, spectral width inversely related
-   to decay time. The muon decays at a random time; the RLC rings at a fixed
-   frequency but decays. Both are spectrally broad.
+1. **Pulse / transient** (S1, S4): broad spectrum, spectral width inversely related to decay time. The muon decays at a random time; the RLC rings at a fixed frequency but decays. Both are spectrally broad.
 
-2. **Pure harmonic series** (S2): the DFT is a sparse comb. Every frequency that
-   is present carries an amplitude determined by the shape of one period of the wave.
+2. **Pure harmonic series** (S2): the DFT is a sparse comb. Every frequency that is present carries an amplitude determined by the shape of one period of the wave.
 
-3. **Tapered harmonic series** (S3): same comb, different amplitudes. The 1/n vs
-   1/n² contrast captures the difference between "sharp corners" (square) and
-   "smooth corners" (triangle) in frequency-domain language.
+3. **Tapered harmonic series** (S3): same comb, different amplitudes. The 1/n vs 1/n² contrast captures the difference between "sharp corners" (square) and "smooth corners" (triangle) in frequency-domain language.
 
-The DFT does not know about physics. It does not know whether the input is a
-muon histogram or a clock signal. It measures *which sinusoidal components are
-present and at what amplitude*. The rest is interpretation.
+The DFT does not know about physics. It does not know whether the input is a muon histogram or a clock signal or the ringing in a capacitor that has just been disturbed by a step. It measures, without prejudice, which sinusoidal components are present in its input and at what amplitude. The rest is interpretation, and interpretation is, you will be pleased to learn, the part of this work that gets to remain in human hands.
 
 ---
 
@@ -389,32 +356,19 @@ python render_b1_s3.py   # fig-b1-s3-*
 python render_b1_s4.py   # fig-b1-s4-*
 ```
 
-The three PNGs per fixture regenerate in `docs/shad/figures/`. Modify signal
-parameters in the probe scripts (e.g. change `F_SIGNAL` from 1000 to 1500 Hz in
-`probe_b1_squarewave.py`) and re-run the render script. Observe how the harmonic
-comb shifts in lockstep.
+The three PNGs per fixture regenerate in `docs/shad/figures/`. Modify signal parameters in the probe scripts (e.g. change `F_SIGNAL` from 1000 to 1500 Hz in `probe_b1_squarewave.py`) and re-run the render script. Observe how the harmonic comb shifts in lockstep.
 
-**S1 licence note:** The Rodriguez muon dataset is not redistributed with this
-repository. `probe_b1_muon.py` fetches it from
-`amor.cms.hu-berlin.de/~rodrigus/Resources/MuonLifetimeData.zip`. Public
-reproduction requires written permission from Santiago Rodriguez with full
-attribution. The data snippets embedded in this chapter are reproduced under
-fair-use educational citation.
+**S1 licence note:** The Rodriguez muon dataset is not redistributed with this repository. `probe_b1_muon.py` fetches it from `amor.cms.hu-berlin.de/~rodrigus/Resources/MuonLifetimeData.zip`. Public reproduction requires written permission from Santiago Rodriguez with full attribution. The data snippets embedded in this chapter are reproduced under fair-use educational citation.
 
 ---
 
 ## References
 
-- S. Rodriguez, *Muon Lifetime Data*, 2018–2022. Available at
-  `amor.cms.hu-berlin.de/~rodrigus`. © 2018–2022 Santiago Rodriguez.
-  (B1 S1 source data.)
+- S. Rodriguez, *Muon Lifetime Data*, 2018–2022. Available at `amor.cms.hu-berlin.de/~rodrigus`. © 2018–2022 Santiago Rodriguez. (B1 S1 source data.)
 
-- J. B. J. Fourier, *Théorie analytique de la chaleur*, Paris, 1822.
-  (The odd-harmonic series for square and triangle waves is a direct
-  consequence of the Fourier coefficients computed here.)
+- J. B. J. Fourier, *Théorie analytique de la chaleur*, Paris, 1822. (The odd-harmonic series for square and triangle waves is a direct consequence of the Fourier coefficients computed here. Fourier himself was working on heat propagation; the application to scope traces would have surprised him only in the matter of the scope.)
 
-- Particle Data Group, R. L. Workman et al., *Review of Particle Physics*,
-  PTEP 2022 (2022) 083C01. Muon mean life: τ = 2.1969811 µs ± 0.0000022 µs.
+- Particle Data Group, R. L. Workman et al., *Review of Particle Physics*, PTEP 2022 (2022) 083C01. Muon mean life: τ = 2.1969811 µs ± 0.0000022 µs.
 
 ---
 
@@ -422,9 +376,7 @@ fair-use educational citation.
 
 - Canonical Eq. DFT-1 definition: [`../canonical/en/01-dft-definition.md`](../canonical/en/01-dft-definition.md)
 - Engineer-tier introduction: [`../engineer/en/00-quick-start.md`](../engineer/en/00-quick-start.md)
-- The kernels that produce identical numbers to `np.fft.fft`:
-  [`../../backends/fortran/`](../../backends/fortran/) and
-  [`../../backends/cpp/`](../../backends/cpp/)
+- The kernels that produce identical numbers to `np.fft.fft`: [`../../backends/fortran/`](../../backends/fortran/) and [`../../backends/cpp/`](../../backends/cpp/)
 - B0 (golden vector + audio captures): [`00-prologue.md`](00-prologue.md)
 - B2 (spectral leakage, windowing): [`02-audio.md`](02-audio.md)
 
