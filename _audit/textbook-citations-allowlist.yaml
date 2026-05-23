@@ -1,0 +1,205 @@
+# textbook-citations-allowlist.yaml — fourier project
+#
+# Per doctrine §4.4 C3 — required textbook-citation headers for hand-rolled
+# canonical-reference routines. This file is the authoritative allowlist
+# referenced by `scripts/audit-citations.sh` (CI grep audit pre-build).
+#
+# Doctrine reference: ../../_config/LEGE-ARTIS-LANGUAGE-DOCTRINE-v0.1.md §4.4 C3.
+# Authored: 2026-05-22 (Opus, session-close scaffold; populated via fourier
+#   D1+C3 side-quest at v0.2.x execution time).
+# Version: v0.1.0 — schema scaffold; entries to be filled by Sonnet during
+#   fourier/_handoffs/v0.2.x-testbed-expansion-c1-c4/ execution.
+# License: Apache-2.0 + CC-BY-SA-4.0 (companion doc).
+#
+# ---------------------------------------------------------------------------
+# Schema (versioned at top-level):
+# ---------------------------------------------------------------------------
+#
+# schema_version: 0.1.0  # bump on breaking changes
+# project: fourier        # which lege-artis project this allowlist governs
+# doctrine_anchor: "_config/LEGE-ARTIS-LANGUAGE-DOCTRINE-v0.1.md#section-4-4"
+#
+# routines:                       # list of routine entries (one per public
+#   - file: relative/path/to/src/file.ext   #   hand-rolled routine subject
+#     symbol: routine_name        #   to C3 in this project)
+#     language: fortran           # fortran | cpp | pascal | rust | scala | python
+#     status: hand-rolled         # hand-rolled (C1-C4 binding) | library-backed (exempt)
+#     citations:                  # ordered list; primary first
+#       - reference_key: Press2007
+#         section: "§12.2"
+#         equation: "12.2.2"
+#         page: ~                 # null if not page-specific
+#         note: "decimation-in-time recurrence"
+#       - reference_key: Press1986Pascal  # secondary anchor (e.g., for cross-edition cite)
+#         section: "§12.2"
+#         equation: "12.2.2"
+#         page: 394
+#         note: ~
+#     sign_convention: "forward = exp(-2*pi*i*k*n/N)"
+#     sign_convention_anchor: "Press2007 §12.1 (standard)"
+#     complexity_claim: "O(N log N)"
+#     complexity_audit_test: "complexity_audit_fortran"  # C4 audit test name
+#     introduced_version: v0.1.0  # which fourier release introduced this routine
+#     last_audited: 2026-05-22    # date the allowlist entry last verified vs source
+#
+# references:                     # reference_key → BibTeX-style entry (mirrors refs.bib)
+#   Press2007:
+#     authors: ["Press, W. H.", "Teukolsky, S. A.", "Vetterling, W. T.", "Flannery, B. P."]
+#     year: 2007
+#     title: "Numerical Recipes: The Art of Scientific Computing"
+#     edition: "3rd"
+#     publisher: "Cambridge University Press"
+#   Press1986Pascal:
+#     authors: ["Press, W. H.", "Flannery, B. P.", "Teukolsky, S. A.", "Vetterling, W. T."]
+#     year: 1986
+#     title: "Numerical Recipes in Pascal: The Art of Scientific Computing"
+#     publisher: "Cambridge University Press"
+#   CooleyTukey1965:
+#     authors: ["Cooley, J. W.", "Tukey, J. W."]
+#     year: 1965
+#     title: "An algorithm for the machine calculation of complex Fourier series"
+#     journal: "Math. Comp."
+#     volume: 19
+#     number: 90
+#     pages: "297-301"
+#
+# ---------------------------------------------------------------------------
+# CI grep-audit contract:
+# ---------------------------------------------------------------------------
+#
+# 1. Pre-build, scripts/audit-citations.sh scans each file listed under
+#    `routines[].file`. For each entry, the script verifies:
+#    (a) The routine `symbol` is defined in that file (grep pattern is
+#        language-specific: `subroutine|function` for Fortran, `procedure|function`
+#        for Pascal, function-definition pattern for C++).
+#    (b) A comment block immediately preceding the routine declaration contains:
+#        - The primary reference_key string (e.g., "Press et al. (2007)")
+#        - The section identifier (e.g., "§12.2")
+#        - The equation identifier (e.g., "eq. 12.2.2")
+#        - The sign_convention text (literal match on the canonical phrase)
+#        - The complexity_claim text (literal match)
+#    (c) If any of (a)/(b) fails: build fails with a clear error citing the
+#        allowlist entry that mismatched.
+#
+# 2. Adding a new public hand-rolled routine WITHOUT a corresponding allowlist
+#    entry: build fails. The allowlist is the human-authored gate.
+#
+# 3. Library-backed routines (status: library-backed) are exempt from the
+#    grep audit per doctrine §4.4. They MAY still carry citation headers as
+#    good practice, but no enforcement.
+#
+# ---------------------------------------------------------------------------
+# Population status (2026-05-22):
+# ---------------------------------------------------------------------------
+
+schema_version: 0.1.0
+project: fourier
+doctrine_anchor: "_config/LEGE-ARTIS-LANGUAGE-DOCTRINE-v0.1.md#section-4-4"
+
+routines:
+  # ── Populated entries (FILL IN during fourier D1 + C3 side-quest execution) ──
+  # Each entry below is a SCAFFOLD with the expected routine identified but
+  # the citation details left for the Sonnet executor to verify against the
+  # actual source file headers + the textbook references.
+
+  - file: backends/fortran/src/dft_kernel.f90
+    symbol: dft_forward
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: TODO-fill-during-D1-execution
+        section: "TODO"
+        equation: "TODO"
+        page: ~
+        note: ~
+    sign_convention: "forward = exp(-2*pi*i*k*n/N)"
+    sign_convention_anchor: "TODO-fill"
+    complexity_claim: "O(N^2)"           # naive DFT, not FFT
+    complexity_audit_test: TODO-fill
+    introduced_version: v0.1.0
+    last_audited: ~                       # set when entry first verified clean
+
+  - file: backends/cpp/src/dft_kernel.cpp
+    symbol: dft_forward
+    language: cpp
+    status: hand-rolled
+    citations:
+      - reference_key: TODO-fill-during-D1-execution
+        section: "TODO"
+        equation: "TODO"
+        page: ~
+        note: ~
+    sign_convention: "forward = exp(-2*pi*i*k*n/N)"
+    sign_convention_anchor: "TODO-fill"
+    complexity_claim: "O(N^2)"
+    complexity_audit_test: TODO-fill
+    introduced_version: v0.2.0
+    last_audited: ~
+
+  # ── PENDING — entries to add during v0.2.x Pascal port + v0.2.2 Rust port ──
+  #
+  # backends/pascal/src/dft_kernel.pas:dft_forward     — hand-rolled, NR1986Pascal anchor
+  # backends/rust/src/dft_kernel.rs:dft_forward        — library-backed-or-hand-rolled TBD
+  #
+  # FFT routines (when v0.3+ adds FFT to fourier; v0.1.x–v0.2.x is DFT only):
+  # backends/<lang>/src/fft_kernel.*:fft1d_inplace     — hand-rolled iterative C-T
+
+references:
+  Press2007:
+    authors: ["Press, W. H.", "Teukolsky, S. A.", "Vetterling, W. T.", "Flannery, B. P."]
+    year: 2007
+    title: "Numerical Recipes: The Art of Scientific Computing"
+    edition: "3rd"
+    publisher: "Cambridge University Press"
+
+  Press1986Pascal:
+    authors: ["Press, W. H.", "Flannery, B. P.", "Teukolsky, S. A.", "Vetterling, W. T."]
+    year: 1986
+    title: "Numerical Recipes in Pascal: The Art of Scientific Computing"
+    publisher: "Cambridge University Press"
+
+  CooleyTukey1965:
+    authors: ["Cooley, J. W.", "Tukey, J. W."]
+    year: 1965
+    title: "An algorithm for the machine calculation of complex Fourier series"
+    journal: "Math. Comp."
+    volume: 19
+    number: 90
+    pages: "297-301"
+
+  Folland1992:                            # already in refs.bib
+    authors: ["Folland, G. B."]
+    year: 1992
+    title: "Fourier Analysis and Its Applications"
+    publisher: "Brooks/Cole"
+
+  IEEE754-2019:
+    organisation: "IEEE"
+    year: 2019
+    title: "IEEE Standard for Floating-Point Arithmetic"
+    standard: "IEEE Std 754-2019"
+
+# ---------------------------------------------------------------------------
+# Notes for the v0.2.x executor populating this scaffold:
+# ---------------------------------------------------------------------------
+#
+# 1. Each TODO entry above corresponds to a real source file that exists
+#    at the v0.2.0 baseline. Verify the file + symbol exist before filling.
+#
+# 2. The reference_key strings MUST match an entry in the `references:`
+#    section below. Adding new references: append both here AND in
+#    `shared/reference-bibliography/refs.bib` (the source-of-truth BibTeX file).
+#
+# 3. The `last_audited` field is set to today's date when the entry is
+#    first verified clean against the source headers. CI re-verifies on
+#    every build; if drift is detected, build fails (does NOT update
+#    last_audited silently).
+#
+# 4. Adding entries beyond the scaffold list above: append in routine
+#    declaration order within each file (matches readability of source).
+#
+# ---------------------------------------------------------------------------
+# End of fourier/_audit/textbook-citations-allowlist.yaml v0.1.0 scaffold.
+# Populate during fourier/_handoffs/v0.2.x-testbed-expansion-c1-c4/ execution.
+# Next bump: v0.2.0 of this schema when first FFT routines land in fourier v0.3+.
+# ---------------------------------------------------------------------------
