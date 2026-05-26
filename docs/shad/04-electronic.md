@@ -2,6 +2,30 @@
 
 ## The premise
 
+The word "filter" is borrowed from coffee, from water treatment, from air
+conditioning — and in each context it means approximately the same thing: a
+structure that lets some things through and stops the rest. The filter has no
+editorial preferences. It has a physical structure, and that structure
+determines what passes.
+
+Electronic versions of the same idea work on exactly this principle, except
+that the things being sorted are not particles or molecules but frequency
+components — sinusoidal elements that coexist inside a complicated waveform
+and can, rather surprisingly, be extracted from it individually. That this
+extraction is possible at all was not obvious to anyone before approximately
+1807, when a French administrator and mathematical physicist named Joseph
+Fourier argued that any periodic function could be decomposed into sines and
+cosines. He was told his proof had a gap in it¹. He had to wait fifteen years
+before mathematics officially agreed with him.
+
+(¹ The 1807 paper was submitted to the Institut de France and reviewed by
+Lagrange, Laplace, and Monge, who found the convergence argument incomplete.
+Fourier continued doing it anyway. The 1822 *Théorie analytique de la chaleur*
+was the version that properly established the result; Dirichlet filled in the
+last piece in 1829. The man responsible for "any signal can be decomposed into
+frequencies" had to wait twenty-two years for full mathematical vindication —
+which is, in retrospect, not how you'd choose to run things.)
+
 B3 showed you a spectrum you could only *observe*. The machine was already
 spinning; the fault was already there. Fourier handed you a picture.
 
@@ -25,6 +49,11 @@ you plug in that contains a rectifier (phone charger, computer power supply,
 LED dimmer) draws current in narrow pulses rather than sinusoidally. That
 non-linear current draw distorts the mains voltage, injecting energy at odd
 harmonics of the 50 Hz fundamental.
+
+The distortion is not dramatic in the time domain — the waveform still looks
+like a sine wave if you glance at it quickly — but it accumulates across an
+entire building's load mix, and a spectrum analyser makes the harmonics
+unmistakeable.
 
 `examples/shad/b4-electronic/main.py` synthesises a realistic mains waveform:
 
@@ -92,11 +121,27 @@ The goal: suppress the 5th, 7th, and 9th mains harmonics from a sensitive
 analogue measurement circuit. You install a 2nd-order Sallen-Key low-pass
 filter with a cutoff at 300 Hz.
 
-The Sallen-Key transfer function (normalised LP):
+The Sallen-Key transfer function (normalised LP)²:
+
+(² R.P. Sallen and E.L. Key published this active-filter topology in a 1955
+paper while working at MIT Lincoln Laboratory — a few years after commercial
+op-amps had made active filters economically viable. The topology is sometimes
+described as "two RC stages and an op-amp", which is accurate the same way
+that a lever is "a plank and a fulcrum". Its practical virtue was that it
+achieved a 2nd-order response with no inductors, which in the 1950s was a
+meaningful advantage — audio-frequency inductors are large, expensive, and
+have a tendency to pick up interference from nearby transformers.)
 
 ```
 H(f) = 1 / (1 + j*(f/fc)/Q - (f/fc)^2)
 ```
+
+**Do not panic about the** `j` **in that expression.** The `j` is the imaginary
+unit (√−1), and it is doing one specific job here: encoding the phase shift the
+filter introduces at each frequency — a real physical effect, not a
+mathematical inconvenience. The modulus |H(f)| — the amplitude response, which
+is what the figures show — comes out to a real positive number after the
+arithmetic, and that is the only number you need to read a plot.
 
 For a Butterworth (maximally flat) response: Q = 1/sqrt(2) = 0.707.
 Above the cutoff the response rolls off at −40 dB/decade (factor of 100 in
@@ -144,6 +189,23 @@ A superheterodyne receiver (every AM radio, FM radio, and most SDR dongles
 uses this principle) wants to shift an incoming RF signal at an arbitrary
 frequency down to a fixed intermediate frequency (IF) where it can be filtered
 and amplified efficiently.
+
+The mechanism is elegant enough to deserve a moment of appreciation before the
+algebra. In 1918, Edwin Howard Armstrong — an American electrical engineer with
+a remarkable gift for invention and an equally remarkable gift for acquiring
+enemies — demonstrated that you could shift *any* incoming signal to a single
+fixed intermediate frequency by multiplying it against a tunable local
+oscillator³. The receiver's filters and amplifiers could then be designed once,
+for that fixed IF, and every station in the broadcast band would arrive through
+the same processing chain. This is the superheterodyne principle.
+
+(³ Armstrong's superheterodyne patent was contested by Lee de Forest and later
+by RCA for years. Armstrong won the legal arguments but spent most of his
+fortune doing so, and did not live to see the principle become the architectural
+basis of every radio receiver manufactured for the rest of the twentieth
+century. He died in 1954. The basic trigonometric product predates him —
+Reginald Fessenden described it in 1901 — but Armstrong turned it into a
+practical receiver architecture, which is the part the industry kept.)
 
 The mechanism: **multiply the RF signal by a local oscillator (LO) in the time
 domain.** Trigonometric identity:
@@ -194,6 +256,10 @@ Why does this matter beyond radios? The same heterodyne principle appears in:
   in the optical domain.
 - **Software-defined radio (SDR)**: the RTL-SDR dongle you can buy for €20
   does exactly this in silicon at GHz frequencies.
+- **Gravitational wave detectors**: LIGO uses optical heterodyne
+  interferometry to detect mirror displacements smaller than one-thousandth of
+  a proton diameter — which is, by some margin, the most demanding application
+  of the trigonometric identity four paragraphs above.
 
 ---
 
@@ -205,7 +271,8 @@ language for active circuits.**
 An oscilloscope shows you what happened. A spectrum analyser shows you what
 will happen if you add a filter, swap a component, or mix in an oscillator. The
 difference between B3 (observation) and B4 (design) is the difference between
-diagnosis and engineering.
+diagnosis and engineering. The spectrum doesn't care which one you're doing.
+It reports the frequencies. It has always reported the frequencies.
 
 B5 takes this one step further: Doppler radar uses the heterodyne principle to
 measure velocity, not just frequency. The spectrum of the returned pulse tells

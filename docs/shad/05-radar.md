@@ -2,6 +2,12 @@
 
 ## The premise
 
+Christian Hülsmeyer was a German engineer with a sensible idea and unfortunate timing. In 1904, he demonstrated a device he called the Telemobiloskop — a radio transmitter and receiver arranged to detect ships in fog by listening for the echoes off their hulls. The Imperial German Navy inspected the demonstration, concluded that they already had binoculars, and declined to purchase. The device was patented, exhibited at a shipping conference in Rotterdam, and then largely set aside for thirty years, until a world war created sufficient demand for the concept to be independently reinvented, by several countries simultaneously, with considerably better funding¹.
+
+(¹ The British reinvention — Chain Home, operational by 1937 — formed part of an integrated air-defence system whose contribution to the Battle of Britain is difficult to overstate. Hülsmeyer is celebrated as the inventor of radar in the footnotes of the history books. The footnotes of the history books are not a comfortable place to be celebrated.)
+
+What Hülsmeyer had demonstrated — and what thirty years of intermittent neglect somewhat obscures — is that radio echoes carry quantitative information. Not merely "something is there" information, but *where* it is and *how fast* it is moving, both derivable from the timing and frequency of the returning signal. Extracting those quantities cleanly, from a radar echo buried in noise, turns out to be the problem the Fourier transform was built to solve.
+
 B4 showed you circuits that multiply in frequency domain — filters that kill
 frequencies, mixers that shift them. The math was entirely under your control.
 You designed the transfer function; Fourier told you what the circuit would do
@@ -39,8 +45,9 @@ The transmit waveform is a linear-FM chirp:
 s_tx(t) = exp(j·π·K·t²),   0 ≤ t < τ
 ```
 
-where `K = BW / τ` is the chirp rate (Hz/s). In our NEXRAD-analogue
-simulation:
+where `K = BW / τ` is the chirp rate (Hz/s). The `j` in the exponent is the imaginary unit. **Do not panic about this.** It means the chirp is represented as a complex-valued signal — a bookkeeping convention that keeps the phase arithmetic clean through the three Fourier stages that follow. The actual waveform transmitted is the real part of this expression; the complex form is how the mathematics is most conveniently organised. You do not need to know anything further about complex exponentials to follow what comes next.
+
+In our NEXRAD-analogue simulation:
 
 | Parameter | Value | Physical meaning |
 |-----------|-------|-----------------|
@@ -51,7 +58,7 @@ simulation:
 | Sample rate f_s | 2 MHz | = 2 × BW (Nyquist) |
 
 Range resolution from the bandwidth: **δR = c / (2·BW) = 240 m**.
-You cannot distinguish two targets closer than 240 m in range.
+You cannot distinguish two targets closer than 240 m in range. Two objects 200 metres apart in range would produce a single smeared return — the system genuinely cannot resolve them, and no amount of subsequent signal processing changes this. The 240 m boundary is a resolved consequence of the bandwidth, fixed at the moment you choose BW.
 
 ### The input
 
@@ -146,7 +153,7 @@ def matched_filter_compress(raw_matrix, chirp):
 ```
 
 After compression: T1's echo (30 km, SNR 0 dB raw) now appears as a sharp
-spike at the correct range bin. Processing gain: ~20 dB from 64-pulse CPI.
+spike at the correct range bin. Processing gain: ~20 dB from 64-pulse CPI. The echo that was indistinguishable from noise is now the tallest feature in the range profile — not because the signal grew stronger, but because the noise does not add coherently while the signal does.
 
 ---
 
@@ -170,7 +177,9 @@ phase is shifting between pulses. The phase shift per PRI is:
 
 where `f_d = 2·v_r·f_c/c` is the Doppler frequency and `v_r` is the radial
 velocity. T1 at +20 m/s imprints f_d = 373 Hz. T2 at 0 m/s imprints 0 Hz.
-T3 at −35 m/s imprints −653 Hz.
+T3 at −35 m/s imprints −653 Hz.²
+
+(² Named for Christian Doppler, an Austrian physicist who described the effect in 1842 — in a paper concerned primarily with the colour of binary stars, which is a theoretically correct application of the principle and also one where the frequency shift is entirely invisible to the human eye at any stellar distance a 19th-century telescope could resolve. The applications he could not have anticipated — ship detection, weather radar, medical ultrasound, traffic enforcement — substantially outnumber the ones he did.)
 
 A DFT across the 64-pulse (slow-time) dimension of each range bin extracts
 this phase history and converts it to velocity. This is the **Doppler DFT**.
@@ -286,10 +295,12 @@ The radar pipeline is three Fourier operations:
    target's position and velocity, simultaneously, from 64 transmitted pulses
    lasting a total of 64 ms.
 
-This is not a trick. The WSR-88D weather radar that issues tornado warnings
+4. **The same three operations, unmodified, running at continental scale.** The WSR-88D weather radar that issues tornado warnings
 in the United States is doing exactly these three operations — on 10 cm
 wavelength S-band pulses, a 12-m dish, and hardware that processes 750,000
 range-Doppler cells per second. The core algorithm fits in 30 lines of Python.
+
+This is not a trick. The targets found by this pipeline over decades of operational deployment include approaching storm fronts, tornado circulations, and the occasional large flock of starlings — which registers on the range-Doppler map as a distributed clutter return and requires the ground clutter filter to make a judgment call about biological targets.
 
 B6 takes the same machinery to radio astronomy, where the signals are a
 billion times fainter and the targets haven't moved in recorded history.

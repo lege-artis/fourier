@@ -2,9 +2,13 @@
 
 ## The premise
 
-B1 had a clean tone. B2 had a chord. **Real industrial machines don't produce clean tones.** A rotating bearing produces a fundamental shaft rate plus integer-multiple harmonics (imbalance, misalignment, looseness) plus non-integer features (bearing-fault signatures, gearmesh sidebands) plus a broadband noise floor.
+There is a particular skill, practiced by experienced maintenance engineers on factory floors, of listening to a machine and knowing whether something is wrong¹. They walk the floor with nothing but a screwdriver, press the handle against a motor casing, put an ear to the blade end, and diagnose by sound. The 1× shaft tone feels like a hum; an imbalance adds a subtler oscillation; a worn bearing has a characteristic tick at a frequency that varies with rotational speed. This sounds like superstition — and in the hands of an inexperienced listener, it is. In the hands of somebody who has spent five years doing it, it's surprisingly reliable.
 
-A trained vibration engineer reads these spectra the way a doctor reads an ECG. This chapter shows you the basics.
+(¹ The limitation being that two ears, one brain, and ambient factory noise are not a calibrated measurement system. The engineers are not wrong that they can hear something; they are sometimes wrong about what it is.)
+
+It is also not scalable. What you can have instead is an accelerometer, a data logger, a DFT, and the knowledge of what to look for in the resulting **vibration spectrum**. The math does the listening at scale, and the spectrum does what the screwdriver-and-ear method always wanted to do but couldn't quite manage: quantify.
+
+B1 had a clean tone. B2 had a chord. **Real industrial machines don't produce clean tones.** A rotating bearing produces a fundamental shaft rate plus integer-multiple harmonics (imbalance, misalignment, looseness) plus non-integer features (bearing-fault signatures, gearmesh sidebands) plus a broadband noise floor. A trained vibration engineer reads these spectra the way a doctor reads an ECG. This chapter shows you the basics.
 
 ## The setup
 
@@ -19,7 +23,9 @@ A trained vibration engineer reads these spectra the way a doctor reads an ECG. 
 
 Plus a white-noise floor at 5% amplitude.
 
-The first three are *harmonics* of the shaft rate. The BPFO at 142.4 Hz is **not** an integer multiple of 30 Hz — it's determined by the bearing geometry (number of balls, ball diameter, pitch diameter, contact angle). On this bearing, the calculated BPFO is 4.746× shaft rate, giving 142.4 Hz at 30 Hz shaft.
+The first three are *harmonics* of the shaft rate — integer multiples of 30 Hz, predictable from the shaft speed alone. The BPFO at 142.4 Hz is a different matter entirely. **Do not panic if the number looks strange.** The BPFO is **not** an integer multiple of 30 Hz — it's determined by the bearing geometry (number of balls, ball diameter, pitch diameter, contact angle)². On this bearing, the calculated BPFO is 4.746× shaft rate, giving 142.4 Hz at 30 Hz shaft. The non-integer comes from the geometry of the balls rolling against the outer race, not from any fault in the math.
+
+(² Every bearing has a published BPFO — the manufacturer provides it, or you calculate it from the geometry using a formula that has been in the engineering literature since the 1960s. If the spectrum shows a peak at exactly that frequency, the outer race is damaged. If it doesn't: either the bearing is healthy, or you need better windowing to surface the peak from the noise floor.)
 
 ## The input
 
@@ -61,7 +67,9 @@ This is the kind of analysis that turns spectrum plots into maintenance schedule
 
 **Spectrum as diagnostic.** The spectral pattern carries more information than the time-domain trace because *each rotating-machinery failure mode has its own signature frequency*. Misalignment is always at integer harmonics. Bearing faults are always at one of the four ball-related frequencies (BPFO, BPFI, BSF, FTF). Gearmesh defects are always at the gearmesh frequency. Once you know the catalogue, the spectrum reads itself.
 
-Vibration analysis is the most mature "spectrum is the answer" engineering domain — it's been the standard for predictive maintenance since the 1970s. The math you just learned in B1 and B2 is the *entirety* of the math behind a multi-billion-dollar industry's bread-and-butter analysis tool.
+Vibration analysis is the most mature "spectrum is the answer" engineering domain — it's been the standard for predictive maintenance since the 1970s³. The math you just learned in B1 and B2 is the *entirety* of the math behind a multi-billion-dollar industry's bread-and-butter analysis tool.
+
+(³ Cooley and Tukey published the FFT in 1965. By the 1970s, it had migrated from university mainframes to dedicated portable analysers small enough to carry onto a factory floor. An algorithm that went from a four-page journal paper to a ubiquitous industrial instrument in under a decade is, by historical standards, moving rather fast.)
 
 ## Try it yourself
 

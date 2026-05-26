@@ -8,14 +8,15 @@ result, without first learning calculus.
 
 | # | Title | Status | Adds |
 |---|-------|--------|------|
-| 00 | [Prologue](00-prologue.md) | shipped v0.2.x | Who this is for, how to read |
-| 01 | [B1 — Oscilloscope](01-oscilloscope.md) | rebuilt v0.2.x (real data) | DFT as time → frequency machine — 4 real fixtures (muon MCA, square wave, triangle wave, RLC damped) |
-| 02 | [B2 — Audio](02-audio.md) | shipped v0.2.x | Multiple peaks + leakage + windowing |
-| 03 | [B3 — Vibration](03-vibration.md) | shipped v0.2.x | Harmonics + fault signatures + diagnostic reading |
-| 04 | [B4 — Electronic systems](04-electronic.md) | shipped v0.2.x | AC mains harmonics + active filter + heterodyne mixer |
-| 05 | [B5 — Radar](05-radar.md) | shipped v0.2.x | Doppler + range-Doppler + pulse compression |
-| 06 | B6 — Radioastronomy | queued v0.2.x | Faint signals + integration time + pulsar timing |
-| 07 | B7 — Nuclear-reactor capstone | queued v0.3+ | Beyond-Fourier: Welch PSD, Rossi-alpha, HHT/EMD |
+| 00 | [Prologue](00-prologue.md) | shipped v0.3.0 | Who this is for, how to read |
+| 01 | [B1 — Oscilloscope](01-oscilloscope.md) | shipped v0.3.0 | DFT as time → frequency machine — 4 real fixtures (muon MCA, square wave, triangle wave, RLC damped) |
+| 02 | [B2 — Audio](02-audio.md) | shipped v0.3.0 | Multiple peaks + leakage + windowing |
+| 03 | [B3 — Vibration](03-vibration.md) | shipped v0.3.0 | Harmonics + fault signatures + diagnostic reading |
+| 04 | [B4 — Electronic systems](04-electronic.md) | shipped v0.3.0 | AC mains harmonics + active filter + heterodyne mixer |
+| 05 | [B5 — Radar](05-radar.md) | shipped v0.3.0 | Doppler + range-Doppler + pulse compression |
+| 05.5 | [B5.5 — JWST-L2](05-jwst-l2.md) | shipped v0.3.0 | Rigid-body Euler precession → FFT cross-check; structured numerical dynamics as Fourier diagnostic |
+| 06 | [B6 — Radioastronomy](06-radioastronomy.md) | shipped v0.3.0 | Faint signals + sqrt(T) integration law + pulsar timing + aperture synthesis (EHT) |
+| 07 | [B7 — Nuclear-reactor capstone](07-nuclear-reactor.md) | shipped v0.3.0 | Beyond-DFT toolkit: Welch PSD + Lorentzian fit + STFT + CWT + Rossi-alpha + Feynman-alpha + bispectrum + coherence |
 
 ## Example scripts
 
@@ -27,6 +28,9 @@ The figures in each chapter are rendered by the corresponding script in
 - [`b3-vibration/main.py`](../../examples/shad/b3-vibration/main.py) → `figures/fig-b3-*.png`
 - [`b4-electronic/main.py`](../../examples/shad/b4-electronic/main.py) → `figures/fig-b4-*.png`
 - [`b5-radar/main.py`](../../examples/shad/b5-radar/main.py) → `figures/fig-b5-*.png`
+- [`b6-radioastronomy/main.py`](../../examples/shad/b6-radioastronomy/main.py) → `figures/fig-b6-*.png`
+- [`b7-nuclear-reactor/main.py`](../../examples/shad/b7-nuclear-reactor/main.py) → `figures/fig-b7-*.png`
+- [`jwst-l2-tumble-spectrum/main.py`](../../examples/jwst-l2-tumble-spectrum/main.py) → FFT cross-check output (B5.5 text-only chapter)
 
 Each script runs on its own (no internet required) with `python main.py`.
 Requires Python 3.10+, NumPy, Matplotlib. A real-data extension sketch
@@ -35,10 +39,10 @@ workflow on actual scope captures, .wav files, or NASA bearing data.
 
 ## Iconography
 
-The Shad-tier voice is signalled by a placeholder dragon avatar (Miyazaki
-register; smoking weed, drinking tea, looking mildly amused). The custom
-asset is queued; for v0.2.x the placeholder marker stays in
-[`00-prologue.md`](00-prologue.md).
+The Shad-tier voice is signalled by the Shaddack-Fourier-Galaxy dragon
+avatar (Row 30 canonical asset, vermilion hanko-stamp register). The
+cover asset lives at `figures/dragon-cover.png`; the chapter icon at
+`figures/dragon-icon.png`.
 
 ## License
 

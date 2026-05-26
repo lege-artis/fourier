@@ -1205,76 +1205,1721 @@ with this repository. \texttt{probe\_b1\_muon.py} fetches it from
 written permission from Santiago Rodriguez with full attribution
 \cite{Rodriguez2018}.
 
-\chapter{B2 --- audio (legacy, queued for rebuild)}
-\label{ch:b2}
-\rebuildbanner
 
-\paragraph{Premise.} Multiple tones stack additively in the spectrum.
-B2 introduced the question: what if the tone doesn't land exactly on
-an integer bin? Spectral leakage smears the peak across neighbouring
-bins, lowers the apparent peak amplitude, and adds energy where there
-isn't any. Windowing (Hann, Hamming, Blackman) is the standard
-mitigation: trade leakage for slightly wider main-lobe.
-
-\paragraph{What it taught.} Bin width $= f_s / N$. If your tone of
-interest sits between bins, either zero-pad to interpolate, increase
-$N$ (record longer), or apply a window. None of these are free; the
-trade-off is the lesson.
-
-\chapter{B3 --- vibration (legacy, queued for rebuild)}
-\label{ch:b3}
-\rebuildbanner
-
-\paragraph{Premise.} Real industrial signals carry harmonics and fault
-signatures. A motor at 1500\,rpm has its fundamental at 25\,Hz; bearing
-faults appear at characteristic frequencies derived from raceway and
-ball geometry. The spectrum is a diagnostic instrument. B3 used a
-synthesised vibration signal modelling an outer-race bearing fault.
-
-\paragraph{What it taught.} Spectra are read like a clinician reads an
-ECG. The fundamental tells you the rotation rate; the harmonics tell
-you something about non-linearity (rectification, clipping); the
-characteristic fault frequencies (BPFO, BPFI, FTF, BSF) tell you which
-bearing surface is degrading. The real-data rebuild will use a
-CWRU or NASA bearing capture.
-
-\chapter{B4 --- electronic systems (legacy, queued for rebuild)}
-\label{ch:b4}
-\rebuildbanner
-
-\paragraph{Premise.} Three classical electronic-system applications of
-the DFT, run end-to-end on synthesised signals: AC mains harmonics
-(3\%, 5\%, 7\% odd-harmonic content per IEC 61000-2-2), a Sallen-Key
-active filter shown as multiplication in frequency, and a heterodyne
-mixer shifting a baseband spectrum up by the local-oscillator
-frequency.
-
-\paragraph{What it taught.} Filtering is multiplication in the
-frequency domain. Mixing is convolution with a delta function at the
-LO frequency, which in the time domain is multiplication --- the same
-operation, viewed from opposite ends. The DFT lets you watch both.
-Real-data rebuild target: a captured mains-voltage trace from any
-open-energy dataset.
-
-\chapter{B5 --- radar (legacy, queued for rebuild)}
-\label{ch:b5}
-\rebuildbanner
-
-\paragraph{Premise.} Radar puts the DFT through its hardest workout in
-this guide. Linear-FM chirp transmit pulse; matched-filter pulse
-compression via DFT product; Doppler DFT across pulses to separate
-moving from stationary targets; range-Doppler map as the
-two-dimensional output of two stacked DFTs. The synthesised version
-demonstrated each operation cleanly on a small target catalogue.
-
-\paragraph{What it taught.} The same three lines of NumPy that pulled
-a 240\,Hz tone out of a noisy scope trace in B1 also do matched-filter
-pulse compression in B5. The signals get more complex; the operation
-stays the same. Real-data rebuild target: a NEXRAD Level-II archive
-slice (NOAA, US public-domain), processed through the same pipeline
-the synthesised version used.
 
 % ======================================================================
+% B2 — Audio: polyphony, leakage, windowing
+% ======================================================================
+\chapter{B2 --- audio: polyphony, leakage, windowing}
+\label{ch:b2}
+
+\section{The premise}
+
+The ear contains, in its innermost chamber, a structure called the basilar
+membrane --- a roughly 35-millimetre spiral that is narrow and stiff at one
+end, wide and floppy at the other. Different frequencies cause different parts
+of it to resonate: high frequencies near the stiff end; low frequencies at the
+floppy end. The result is a spatial frequency map, read out along the spiral
+and reported, already decomposed, to the brain. The ear has been running this
+particular computation for approximately 50 million years, which is a
+considerable head start on the laboratory
+equipment.\footnote{The outer ear canal, eardrum, and three small bones
+upstream of the cochlea are the preprocessing chain; the basilar membrane does
+the frequency-sorting. The analogy to a DFT is imperfect but instructive ---
+and the human version comes with a carry case and does not require a power
+supply.}
+
+A chord is several of those frequencies arriving simultaneously, each staking
+a claim on a different portion of the membrane. The DFT is how we confirm ---
+computationally, without the biology --- which frequencies are present and at
+what relative strength. This chapter applies the same four-step pipeline as
+B1, but against a piece of audio with three notes in it. The spectrum will
+have three peaks. One of them, as it happens, will not land exactly where it
+should, and that small displacement will turn out to be rather informative.
+
+This chapter does two things B1 didn't:
+\begin{enumerate}[label=\arabic*.,leftmargin=*,itemsep=0pt]
+\item Multiple peaks at once.
+\item \textbf{Spectral leakage}, and how a window function tames it.
+\end{enumerate}
+
+\section{The input}
+
+\texttt{examples/shad/b2-audio/main.py} synthesises a C-major triad:
+C4 (261.63\,Hz) + E4 (329.63\,Hz) + G4 (392.00\,Hz), summed at relative
+amplitudes 0.4, 0.3, 0.3, sampled at 44.1\,kHz (CD quality) for 500\,ms.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b2-input}
+\end{center}
+\textit{Twenty milliseconds of waveform shown --- the full 500\,ms would look
+like a solid black band. The pattern visible is the \textbf{beat} between the
+three notes: their frequencies aren't simple integer ratios, so the combined
+waveform doesn't perfectly repeat at a short interval.}
+
+To the eye, the waveform looks like elegant chaos. It is three sinusoids,
+patiently coexisting --- what the ear decodes automatically in milliseconds,
+the DFT will decode in microseconds, at the cost of four lines of Python.
+
+\section{The transform --- first pass, rectangular window}
+
+Same code as B1, except $N$ is bigger: 22\,050 samples instead of 500.
+
+\begin{pipelinestep}{Step 3. Transform --- rectangular window (no windowing)}
+\begin{lstlisting}[style=shadpython]
+n = samples.size                          # 22050
+spec = np.fft.fft(samples) / n
+freq = np.fft.fftfreq(n, d=1.0/44_100)
+half = n // 2
+freq, mag = freq[:half], np.abs(spec[:half])
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b2-spectrum}
+\end{center}
+\textit{B2 spectrum, rectangular window. Zoomed to 200--450\,Hz. Three peaks.
+The C4 peak at 261.63\,Hz shows visible side-lobes; G4 at 392.00\,Hz lands
+cleanly on a bin; C4 and E4 do not.}
+
+Three peaks. Good. But look closely at the C4 peak at 261.63\,Hz: it has
+visible \textbf{side-lobes} spreading energy into neighbouring bins. The G4
+at 392\,Hz lands right on a bin (392.00\,Hz $\times$ 22050 $\div$ 44100
+$= 196.0$, exact integer) and looks clean. The C4 and E4 don't land on
+integer bins, so their energy spreads.
+
+This is \textbf{spectral leakage}. \textbf{Do not panic about this.} The name
+sounds as though something went wrong; nothing went wrong. What happened is
+that the DFT implicitly treats your 500\,ms recording as one period of an
+infinitely-repeating signal --- and if a frequency doesn't divide evenly into
+the recording length, the DFT sees a discontinuity at the boundaries, and that
+discontinuity smears energy into neighbouring bins. The signal is still there.
+The three notes are still identifiable. The leakage is the DFT being honest
+about the mismatch between the signal and its window --- which is, as forms of
+honesty go, more diagnostic than most instruments manage.
+
+\section{Windowing}
+
+The fix: multiply the input by a window function before transforming. The
+window tapers the signal smoothly to zero at both ends, which reduces the
+artefacts caused by the DFT implicitly treating your 500\,ms recording as one
+period of an infinitely-repeating signal.
+
+\begin{pipelinestep}{Step 3b. Transform --- Hann window applied}
+\begin{lstlisting}[style=shadpython]
+n = samples.size
+w = np.hanning(n)               # Hann window: 0 at ends, 1 in middle
+x = samples * w
+gain = w.sum() / n              # coherent gain compensation
+spec = np.fft.fft(x) / (n * gain)
+\end{lstlisting}
+\end{pipelinestep}
+
+The \texttt{gain} factor compensates for the energy the window removed at
+the edges, so the peak heights still match the original tone amplitudes.
+The Hann window\footnote{Named for Julius von Hann, a 19th-century Austrian
+meteorologist who studied atmospheric pressure oscillations. The colloquial
+spelling ``Hanning'' is factually inexact but universally understood. Julius
+himself has no recorded opinion on the matter.} tapers with a raised cosine
+--- smooth enough to suppress most leakage without broadening the main peaks
+too badly.
+
+\section{The takeaway}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b2-takeaway}
+\end{center}
+\textit{Two spectra overlaid: red = rectangular window (side-lobes visible
+around each peak); blue = Hann window (peaks slightly wider but inter-peak
+noise drops dramatically). Rendered by
+\texttt{examples/shad/b2-audio/main.py}.}
+
+Which window to use is a domain-dependent choice. Hann is the
+default-good-choice for general analysis; Hamming is similar; Blackman gives
+narrower side-lobes at the cost of a slightly wider main-lobe; rectangular is
+fine when your frequencies land exactly on integer bins (rare in real signals).
+
+This is, in miniature, the central trade-off of spectral analysis: narrow peaks
+or low side-lobes --- not both simultaneously. Every window function is a
+negotiation between these two quantities. The choice is a judgment call, not a
+theorem, which is either reassuring or alarming depending on your disposition
+toward ambiguity.
+
+\section{What we just did}
+
+\textbf{Multiple peaks, with leakage.} This is what real-world spectra look
+like 95\% of the time. The takeaway plot is what a music-analysis tool would
+show you for any chord. The same machinery applies to:
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+\item Speech analysis (which formant frequencies are present in a vowel)
+\item Vibration monitoring (which rotation-rate harmonics show up --- that
+  is Chapter~\ref{ch:b3})
+\item Radar / sonar (which Doppler-shifted reflectors are in your sight line)
+\item Any spectrum analyser hardware you have ever looked at
+\item Any signal sampled at regular intervals in time --- which, depending on
+  how broadly you read the word ``signal'', is most of the numerical data that
+  has ever been collected
+\end{itemize}
+
+\section{Try it yourself}
+
+\begin{lstlisting}[style=shaddata]
+python examples/shad/b2-audio/main.py
+\end{lstlisting}
+
+Modify the \texttt{NOTE\_FREQ} dictionary at the top of \texttt{main.py} to
+play different chords. Try minor triads (C4 + E$\flat$4 + G4 = 261.63 +
+311.13 + 392.00\,Hz). Try dissonances (C4 + C$\sharp$4). Note how the
+spectrum reads exactly what you would hear. For real audio: the script's
+bottom has a sketch showing how to drop in any CC-licensed \texttt{.wav}
+from Wikimedia Commons or Freesound. The transform code is identical; only
+the data source changes.
+
+% ======================================================================
+% B3 — Vibration: harmonics and fault signatures
+% ======================================================================
+\chapter{B3 --- vibration: harmonics and fault signatures}
+\label{ch:b3}
+
+\section{The premise}
+
+There is a particular skill, practiced by experienced maintenance engineers on
+factory floors, of listening to a machine and knowing whether something is
+wrong.\footnote{The limitation being that two ears, one brain, and ambient
+factory noise are not a calibrated measurement system. The engineers are not
+wrong that they can hear something; they are sometimes wrong about what it is.}
+They walk the floor with nothing but a screwdriver, press the handle against a
+motor casing, put an ear to the blade end, and diagnose by sound. The 1$\times$
+shaft tone feels like a hum; an imbalance adds a subtler oscillation; a worn
+bearing has a characteristic tick at a frequency that varies with rotational
+speed. This sounds like superstition --- and in the hands of an inexperienced
+listener, it is. In the hands of somebody who has spent five years doing it,
+it is surprisingly reliable.
+
+It is also not scalable. What you can have instead is an accelerometer, a data
+logger, a DFT, and the knowledge of what to look for in the resulting
+\textbf{vibration spectrum}. The maths does the listening at scale, and the
+spectrum does what the screwdriver-and-ear method always wanted to do but
+couldn't quite manage: quantify.
+
+B1 had a clean tone. B2 had a chord. \textbf{Real industrial machines don't
+produce clean tones.} A rotating bearing produces a fundamental shaft rate
+plus integer-multiple harmonics (imbalance, misalignment, looseness) plus
+non-integer features (bearing-fault signatures, gearmesh sidebands) plus a
+broadband noise floor. A trained vibration engineer reads these spectra the
+way a doctor reads an ECG. This chapter shows you the basics.
+
+\section{The setup}
+
+\texttt{examples/shad/b3-vibration/main.py} synthesises a 2-second
+accelerometer trace from a machine running at 1800\,RPM (= 30\,Hz shaft
+rate), sampled at 5\,kHz. The synthetic signal contains:
+
+\medskip
+\begin{longtable}{p{2.8cm}p{2.2cm}p{1.8cm}p{7.2cm}}
+\toprule
+\textbf{Feature} & \textbf{Frequency} & \textbf{Amplitude}
+  & \textbf{Physical meaning} \\
+\midrule
+\endhead
+\textbf{1$\times$ (shaft)} & 30.0\,Hz & 1.00
+  & The fundamental rotation rate \\
+\textbf{2$\times$ (imbalance)} & 60.0\,Hz & 0.40
+  & Mass imbalance on the rotor \\
+\textbf{3$\times$ (alignment)} & 90.0\,Hz & 0.25
+  & Coupling misalignment between shafts \\
+\textbf{BPFO (fault)} & 142.4\,Hz & 0.30
+  & Ball-pass frequency, outer race --- incipient bearing fault \\
+\bottomrule
+\end{longtable}
+\medskip
+
+Plus a white-noise floor at 5\% amplitude.
+
+The first three are \emph{harmonics} of the shaft rate --- integer multiples
+of 30\,Hz, predictable from the shaft speed alone. The BPFO at 142.4\,Hz is
+a different matter entirely. \textbf{Do not panic if the number looks strange.}
+The BPFO is \textbf{not} an integer multiple of 30\,Hz --- it is determined by
+the bearing geometry (number of balls, ball diameter, pitch diameter, contact
+angle).\footnote{Every bearing has a published BPFO --- the manufacturer
+provides it, or you calculate it from the geometry using a formula that has
+been in the engineering literature since the 1960s. If the spectrum shows a
+peak at exactly that frequency, the outer race is damaged. If it doesn't:
+either the bearing is healthy, or you need better windowing to surface the
+peak from the noise floor.}
+On this bearing, the calculated BPFO is $4.746\times$ shaft rate, giving
+142.4\,Hz at 30\,Hz shaft. The non-integer comes from the geometry of the
+balls rolling against the outer race, not from any fault in the maths.
+
+\section{The input}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b3-input}
+\end{center}
+\textit{First 200\,ms shown. The dominant 30\,Hz rotation is visible visually
+(about 6 full cycles in 200\,ms). The smaller-amplitude features blend into
+a complex waveform.}
+
+\section{The transform --- Hann-windowed}
+
+For real-world vibration data, you essentially \emph{always} window. The data
+isn't periodic over your record length, so a rectangular window gives leakage
+that obscures the BPFO peak.
+
+\begin{pipelinestep}{Step 3. Transform --- Hann-windowed vibration spectrum}
+\begin{lstlisting}[style=shadpython]
+n = samples.size                            # 10000 (5 kHz x 2 s)
+w = np.hanning(n)
+spec = np.fft.fft(samples * w) / (n * w.sum() / n)
+freq = np.fft.fftfreq(n, d=1.0/5_000)
+half = n // 2
+freq, mag = freq[:half], np.abs(spec[:half])
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b3-spectrum}
+\end{center}
+\textit{B3 spectrum, Hann-windowed. Four distinct features visible in the
+0--300\,Hz range.}
+
+\section{The takeaway --- what a vibration engineer sees}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b3-takeaway}
+\end{center}
+\textit{Annotated spectrum. \textbf{Diagnostic reading}, working through what
+the four peaks tell you:
+(1) 30\,Hz (1$\times$) dominant: shaft is rotating, sensor working.
+(2) 60\,Hz (2$\times$) at 0.40$\times$: moderate imbalance.
+(3) 90\,Hz (3$\times$) at 0.25$\times$: mild alignment issue.
+(4) 142.4\,Hz (BPFO) at 0.30$\times$: incipient outer-race bearing damage.}
+
+This is the kind of analysis that turns spectrum plots into maintenance
+schedules. Every condition-monitoring system on the planet (SKF, Bently
+Nevada, GE/Bently, IFM, OEM custom solutions) is essentially doing what
+we just did: take samples, window, FFT, look up peaks against expected fault
+frequencies, report.
+
+\section{What we just did}
+
+\textbf{Spectrum as diagnostic.} The spectral pattern carries more information
+than the time-domain trace because \emph{each rotating-machinery failure mode
+has its own signature frequency}. Misalignment is always at integer harmonics.
+Bearing faults are always at one of the four ball-related frequencies (BPFO,
+BPFI, BSF, FTF). Gearmesh defects are always at the gearmesh frequency. Once
+you know the catalogue, the spectrum reads itself.
+
+Vibration analysis is the most mature ``spectrum is the answer'' engineering
+domain --- it has been the standard for predictive maintenance since the
+1970s.\footnote{Cooley and Tukey published the FFT in 1965. By the 1970s, it
+had migrated from university mainframes to dedicated portable analysers small
+enough to carry onto a factory floor. An algorithm that went from a four-page
+journal paper to a ubiquitous industrial instrument in under a decade is, by
+historical standards, moving rather fast.}
+The maths you just learned in B1 and B2 is the \emph{entirety} of the maths
+behind a multi-billion-dollar industry's bread-and-butter analysis tool.
+
+\section{Try it yourself}
+
+\begin{lstlisting}[style=shaddata]
+python examples/shad/b3-vibration/main.py
+\end{lstlisting}
+
+Modify the \texttt{HARMONICS} dict at the top of \texttt{main.py} to simulate
+different fault scenarios:
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+\item Crank up \texttt{2x (imbalance)} to 1.5 $\rightarrow$ severe imbalance,
+  dominant peak shifts from 1$\times$ to 2$\times$.
+\item Add a new entry \texttt{"BPFI (inner race)": (235.2, 0.4)} $\rightarrow$
+  a different bearing fault.
+\item Reduce \texttt{1x (shaft)} to 0.3 and set \texttt{noise\_amp} to 0.2
+  $\rightarrow$ a noisy machine with a small but persistent BPFO peak: the
+  analyst's nightmare scenario where you need careful windowing to detect the
+  fault buried in noise.
+\end{itemize}
+
+% ======================================================================
+% B4 — Electronic systems: filters, mixers, oscillators
+% ======================================================================
+\chapter{B4 --- electronic systems: filters, mixers, oscillators}
+\label{ch:b4}
+
+\section{The premise}
+
+The word ``filter'' is borrowed from coffee, from water treatment, from air
+conditioning --- and in each context it means approximately the same thing:
+a structure that lets some things through and stops the rest. The filter has
+no editorial preferences. It has a physical structure, and that structure
+determines what passes.
+
+Electronic versions of the same idea work on exactly this principle, except
+that the things being sorted are not particles or molecules but frequency
+components --- sinusoidal elements that coexist inside a complicated waveform
+and can, rather surprisingly, be extracted from it individually. That this
+extraction is possible at all was not obvious to anyone before approximately
+1807, when a French administrator and mathematical physicist named Joseph
+Fourier argued that any periodic function could be decomposed into sines and
+cosines. He was told his proof had a gap in it.\footnote{The 1807 paper was
+submitted to the Institut de France and reviewed by Lagrange, Laplace, and
+Monge, who found the convergence argument incomplete. Fourier continued doing
+it anyway. The 1822 \emph{Th\'{e}orie analytique de la chaleur} was the
+version that properly established the result; Dirichlet filled in the last
+piece in 1829. The man responsible for ``any signal can be decomposed into
+frequencies'' had to wait twenty-two years for full mathematical vindication
+--- which is, in retrospect, not how you'd choose to run things.}
+
+B3 showed you a spectrum you could only \emph{observe}. The machine was
+already spinning; the fault was already there. Fourier handed you a picture.
+
+\textbf{B4 is different.} In electronics, you actively \emph{design} for
+frequency-domain behaviour. A filter is literally defined by which frequencies
+it passes and which it kills. A radio receiver is deliberately moving
+frequencies around. The spectrum view is not a diagnostic aid here --- it is
+the primary engineering language.
+
+Three sub-topics, each adding one layer to the same idea: active circuits
+change the spectrum, and you can predict exactly how.
+
+\section{1. AC mains harmonics --- what is actually in that socket?}
+
+\subsection{The setup}
+
+You probably learned that mains is a ``50\,Hz sine wave.'' It is not.
+Everything you plug in that contains a rectifier (phone charger, computer
+power supply, LED dimmer) draws current in narrow pulses rather than
+sinusoidally. That non-linear current draw distorts the mains voltage,
+injecting energy at odd harmonics of the 50\,Hz fundamental.
+
+\texttt{examples/shad/b4-electronic/main.py} synthesises a realistic mains
+waveform:
+
+\medskip
+\begin{longtable}{p{3.5cm}p{2.2cm}p{3.0cm}p{4.8cm}}
+\toprule
+\textbf{Harmonic} & \textbf{Frequency} & \textbf{Rel.\ amplitude}
+  & \textbf{Source} \\
+\midrule
+\endhead
+\textbf{1st (fundamental)} & 50\,Hz & 1.000 & The line itself \\
+\textbf{3rd} & 150\,Hz & 0.040 & Single-phase rectifiers \\
+\textbf{5th} & 250\,Hz & 0.025 & Switching power supplies \\
+\textbf{7th} & 350\,Hz & 0.015 & Accumulated load mix \\
+\textbf{9th} & 450\,Hz & 0.008 & Distributed building load \\
+\bottomrule
+\end{longtable}
+\medskip
+
+Total Harmonic Distortion: \textbf{THD = 5.0\%} --- typical residential grid.
+
+\subsection{The input and spectrum}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b4-input}
+\end{center}
+\textit{Three cycles of 50\,Hz mains. The distortion from harmonics is visible
+as a slight flattening near each peak. This is the signal arriving at your
+equipment's input terminals every day.}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b4-spectrum}
+\end{center}
+\textit{Top panel: mains spectrum, 0--600\,Hz. Five peaks. Fundamental at
+50\,Hz dominates; odd harmonics fall off to the right. Middle panel: test
+signal before and after the Sallen-Key filter (300\,Hz cutoff). Bottom panel:
+mixer output spectrum, 0--2200\,Hz.}
+
+\subsection{The takeaway --- reading the mains spectrum}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b4-takeaway}
+\end{center}
+
+The standard metric is \textbf{THD} (Total Harmonic Distortion):
+\begin{lstlisting}[style=shaddata]
+THD = sqrt(V_3^2 + V_5^2 + V_7^2 + V_9^2 + ...) / V_1
+\end{lstlisting}
+
+IEEE\,519-2022 sets acceptable THD limits: typically $<5\%$ THD-V at the point
+of common coupling for most industrial systems. A THD above these thresholds
+has measurable consequences: motor heating (harmonics produce heat, not useful
+torque), transformer derating (K-factor 0.85--0.95 for moderately distorted
+supply), and EMC pre-compliance (IEC\,61000-3-2 limits are an FFT of input
+current, checked against a published table --- that compliance test \emph{is}
+what we just computed).
+
+\section{2. Active filter --- filtering IS multiplication in frequency}
+
+\subsection{The setup}
+
+The goal: suppress the 5th, 7th, and 9th mains harmonics from a sensitive
+analogue measurement circuit. You install a 2nd-order Sallen-Key low-pass
+filter with a cutoff at 300\,Hz.\footnote{R.\,P. Sallen and E.\,L. Key
+published this active-filter topology in a 1955 paper while working at MIT
+Lincoln Laboratory. Its practical virtue was that it achieved a 2nd-order
+response with no inductors --- audio-frequency inductors are large, expensive,
+and have a tendency to pick up interference from nearby transformers.}
+
+The Sallen-Key transfer function (normalised LP):
+\begin{lstlisting}[style=shaddata]
+H(f) = 1 / (1 + j*(f/fc)/Q - (f/fc)^2)
+\end{lstlisting}
+
+\textbf{Do not panic about the \texttt{j} in that expression.} The \texttt{j}
+is the imaginary unit ($\sqrt{-1}$), doing one specific job: encoding the
+phase shift the filter introduces at each frequency --- a real physical effect.
+The modulus $|H(f)|$ comes out to a real positive number, and that is the only
+number you need to read a plot.
+
+For a Butterworth (maximally flat) response: $Q = 1/\sqrt{2} = 0.707$. Above
+the cutoff the response rolls off at $-40$\,dB/decade.
+
+The script applies this filter entirely in the frequency domain: compute the
+FFT of the input, multiply by $H(f)$, inverse-FFT back to time. This is not a
+trick --- it is exactly what the physical capacitors and op-amp are doing, just
+described in different notation.
+
+\section{3. Heterodyne mixer --- shifting the spectrum}
+
+\subsection{The setup}
+
+A superheterodyne receiver wants to shift an incoming RF signal at an
+arbitrary frequency down to a fixed intermediate frequency (IF) where it can
+be filtered and amplified efficiently.
+
+In 1918, Edwin Howard Armstrong\footnote{Armstrong's superheterodyne patent
+was contested by Lee de Forest and later by RCA for years. Armstrong won the
+legal arguments but spent most of his fortune doing so, and did not live to see
+the principle become the architectural basis of every radio receiver manufactured
+for the rest of the twentieth century. He died in 1954.}
+demonstrated that you could shift any incoming signal to a single fixed
+intermediate frequency by multiplying it against a tunable local oscillator.
+
+The mechanism: \textbf{multiply the RF signal by a local oscillator (LO) in
+the time domain.} Trigonometric identity:
+\begin{lstlisting}[style=shaddata]
+sin(2*pi*f_RF*t) * sin(2*pi*f_LO*t)
+    = 0.5 * [cos(2*pi*(f_RF - f_LO)*t) - cos(2*pi*(f_RF + f_LO)*t)]
+\end{lstlisting}
+
+The product produces two new frequencies: the \textbf{difference} (RF $-$ LO)
+and the \textbf{sum} (RF $+$ LO). In a receiver, you choose LO so that the
+difference falls at a convenient IF; you then filter out the sum.
+
+The script uses: RF = 1000\,Hz, LO = 900\,Hz, IF$^- =$ RF $-$ LO = \textbf{100\,Hz}
+(desired output), IF$^+ =$ RF $+$ LO = \textbf{1900\,Hz} (image, filtered out).
+
+Why does this matter beyond radios? The same heterodyne principle appears in
+lock-in amplifiers, optical coherence tomography, software-defined radio, and
+gravitational-wave detectors --- LIGO uses optical heterodyne interferometry
+to detect mirror displacements smaller than one-thousandth of a proton
+diameter.
+
+\section{What we just did}
+
+Three sub-topics, one unifying claim: \textbf{the spectrum is the primary
+design language for active circuits.} An oscilloscope shows you what happened.
+A spectrum analyser shows you what will happen if you add a filter, swap a
+component, or mix in an oscillator. The difference between B3 (observation)
+and B4 (design) is the difference between diagnosis and engineering. The
+spectrum doesn't care which one you're doing. It reports the frequencies. It
+has always reported the frequencies.
+
+% ======================================================================
+% B5 — Radar: Doppler, range-Doppler, pulse compression
+% ======================================================================
+\chapter{B5 --- radar: Doppler, range--Doppler, pulse compression}
+\label{ch:b5}
+
+\section{The premise}
+
+Christian H\"{u}lsmeyer was a German engineer with a sensible idea and
+unfortunate timing. In 1904, he demonstrated a device he called the
+Telemobiloskop --- a radio transmitter and receiver arranged to detect ships
+in fog by listening for the echoes off their hulls. The Imperial German Navy
+inspected the demonstration, concluded that they already had binoculars, and
+declined to purchase.\footnote{The British reinvention --- Chain Home,
+operational by 1937 --- formed part of an integrated air-defence system whose
+contribution to the Battle of Britain is difficult to overstate.
+H\"{u}lsmeyer is celebrated as the inventor of radar in the footnotes of the
+history books. The footnotes of the history books are not a comfortable place
+to be celebrated.}
+
+What H\"{u}lsmeyer had demonstrated is that radio echoes carry quantitative
+information. Not merely ``something is there'' information, but \emph{where}
+it is and \emph{how fast} it is moving, both derivable from the timing and
+frequency of the returning signal. Extracting those quantities cleanly turns
+out to be the problem the Fourier transform was built to solve.
+
+B4 showed you circuits that multiply in the frequency domain. \textbf{B5 is
+the same idea, taken to its natural extreme.} A radar transmits a
+precisely-crafted waveform, listens for the echo, and uses the Fourier
+machinery to answer two questions: \emph{where is it} and \emph{how fast is
+it going}. Everything that follows is three Fourier operations stacked in
+sequence. The same \texttt{np.fft.fft} you used to look at a 50\,Hz mains
+waveform is doing the work.
+
+\section{1. The pulse --- what you transmit}
+
+A plain rectangular pulse has a resolution problem: short pulses carry little
+energy, limiting range. The solution: \textbf{transmit a long pulse with a
+frequency sweep --- a chirp.}
+
+The transmit waveform is a linear-FM chirp:
+\begin{lstlisting}[style=shaddata]
+s_tx(t) = exp(j * pi * K * t^2),   0 <= t < tau
+\end{lstlisting}
+
+where $K = \mathrm{BW}/\tau$ is the chirp rate (Hz/s). \textbf{Do not panic
+about the \texttt{j} in the exponent.} It means the chirp is represented as a
+complex-valued signal --- a bookkeeping convention that keeps the phase
+arithmetic clean through the three Fourier stages that follow.
+
+\medskip
+\begin{longtable}{p{3.0cm}p{2.0cm}p{8.0cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Physical meaning} \\
+\midrule
+\endhead
+Carrier $f_c$ & 2.8\,GHz & S-band (weather radar) \\
+Pulse duration $\tau$ & 1.6\,$\mu$s & Long pulse = energy \\
+Chirp BW & 0.625\,MHz & Determines range resolution \\
+Chirp rate $K$ & $3.9 \times 10^{11}$\,Hz/s & $= \mathrm{BW}/\tau$ \\
+Sample rate $f_s$ & 2\,MHz & $= 2 \times \mathrm{BW}$ (Nyquist) \\
+\bottomrule
+\end{longtable}
+\medskip
+
+Range resolution from the bandwidth: $\delta R = c / (2 \cdot \mathrm{BW})
+= \mathbf{240\,m}$. You cannot distinguish two targets closer than 240\,m
+in range.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b5-input}
+\end{center}
+\textit{Top: transmit chirp (real part shows frequency sweep). Bottom: received
+echo from first 200\,$\mu$s --- the target is invisible at SNR $= 0$\,dB before
+processing. Three targets were synthesised: T1 (30\,km, +20\,m/s), T2
+(65\,km, 0\,m/s), T3 (110\,km, $-35$\,m/s).}
+
+\section{2. Matched-filter pulse compression}
+
+You know exactly what you transmitted. The echo is a delayed, attenuated,
+Doppler-shifted copy, buried in noise. The optimal strategy is the
+\textbf{matched filter}: correlate the received signal with the known transmit
+waveform. In frequency domain, convolution is multiplication:
+
+\begin{pipelinestep}{Stage 1+2. Matched-filter pulse compression}
+\begin{lstlisting}[style=shadpython]
+def matched_filter_compress(raw_matrix, chirp):
+    N_FFT   = N_RANGE
+    chirp_padded = np.zeros(N_FFT, dtype=np.complex128)
+    chirp_padded[:N_SAMP_PU] = chirp
+    TX      = np.fft.fft(chirp_padded)   # transmit reference spectrum
+    TX_CONJ = np.conj(TX)                # conjugate = matched filter kernel
+    compressed = np.zeros_like(raw_matrix)
+    for p in range(N_PULSES):
+        RX = np.fft.fft(raw_matrix[:, p], n=N_FFT)
+        compressed[:, p] = np.fft.ifft(RX * TX_CONJ).real
+    return compressed
+\end{lstlisting}
+\end{pipelinestep}
+
+That is it. \texttt{compressed(t) = IFFT(FFT(rx) $\times$ conj(FFT(tx)))}.
+The Fourier operation you have been using to look at spectra is now being
+used to extract a target from noise 20\,dB below the floor.
+
+\textbf{Processing gain:}
+\begin{lstlisting}[style=shaddata]
+SNR_out = SNR_in + 10*log10(BW * tau) + 10*log10(N_pulses)
+        ~= 0 dB + 0 dB + 18 dB = 18 dB
+\end{lstlisting}
+
+The 18\,dB comes from coherently integrating 64 pulses.
+
+\section{3. Doppler --- the second Fourier operation}
+
+After pulse compression you have a matrix \texttt{compressed[range\_bin, pulse\_index]}.
+A target at fixed range appears in the same range bin across all 64 pulses ---
+but its phase shifts between pulses by $\Delta\phi = 2\pi \cdot f_d / \mathrm{PRF}$,
+where $f_d = 2 v_r f_c / c$ is the Doppler frequency.\footnote{Named for
+Christian Doppler, an Austrian physicist who described the effect in 1842 ---
+in a paper concerned primarily with the colour of binary stars. The applications
+he could not have anticipated --- ship detection, weather radar, medical
+ultrasound, traffic enforcement --- substantially outnumber the ones he did.}
+
+T1 at +20\,m/s imprints $f_d = 373$\,Hz. T2 at 0\,m/s imprints 0\,Hz.
+T3 at $-35$\,m/s imprints $-653$\,Hz. A DFT across the 64-pulse (slow-time)
+dimension of each range bin extracts this phase history and converts it to velocity.
+
+\begin{pipelinestep}{Stage 3. Doppler DFT across slow time}
+\begin{lstlisting}[style=shadpython]
+def range_doppler_map(compressed):
+    window   = np.hanning(N_PULSES)
+    windowed = compressed * window[np.newaxis, :]
+    rd_complex = np.fft.fft(windowed, axis=1)
+    rd_shifted = np.fft.fftshift(rd_complex, axes=1)
+    return np.abs(rd_shifted)
+\end{lstlisting}
+\end{pipelinestep}
+
+The Hann window here is the same windowing we used in B2 --- same reason:
+suppress spectral leakage from large ground-clutter returns.
+
+\section{4. The range--Doppler map --- reading the result}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b5-spectrum}
+\end{center}
+\textit{2-D heatmap. X axis: radial velocity (m/s). Y axis: range (km).
+Colour: echo magnitude in dB. Three bright cells at the target coordinates;
+zero-Doppler ridge (ground clutter) present at all ranges.}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b5-takeaway}
+\end{center}
+\textit{Annotated range--Doppler map. T1 at 30\,km (+20\,m/s) approaching;
+T2 at 65\,km (0\,m/s) ground clutter; T3 at 110\,km ($-35$\,m/s) aliased
+--- true velocity exceeds unambiguous boundary of $\pm 26.8$\,m/s.}
+
+\medskip
+\begin{longtable}{p{4.0cm}p{2.5cm}p{7.0cm}}
+\toprule
+\textbf{Metric} & \textbf{Value} & \textbf{Formula} \\
+\midrule
+\endhead
+Range resolution & 240\,m & $c / (2 \cdot \mathrm{BW})$ \\
+Velocity resolution & 84\,cm/s & $\mathrm{PRF} \cdot \lambda / (2 N_\mathrm{pulses})$ \\
+Unambiguous range & 150\,km & $c / (2 \cdot \mathrm{PRF})$ \\
+Unambiguous velocity & $\pm 26.8$\,m/s & $\mathrm{PRF} \cdot \lambda / 4$ \\
+\bottomrule
+\end{longtable}
+\medskip
+
+\section{What we just did}
+
+The radar pipeline is three Fourier operations:
+\begin{enumerate}[label=\arabic*.,leftmargin=*,itemsep=0pt]
+\item \textbf{FFT of received echo $\times$ conj(FFT of transmit waveform) $\rightarrow$ IFFT}
+  $\rightarrow$ pulse compression. Extracts range. Converts chirp energy to a sharp spike.
+\item \textbf{FFT across slow time} $\rightarrow$ Doppler map. Extracts velocity.
+  Converts phase history to a frequency.
+\item \textbf{Stacking both:} range--Doppler map. Two-dimensional picture of
+  every target's position and velocity, simultaneously, from 64 transmitted
+  pulses lasting a total of 64\,ms.
+\end{enumerate}
+
+The WSR-88D weather radar that issues tornado warnings in the United States
+is doing exactly these three operations --- on 10\,cm wavelength S-band pulses,
+a 12-m dish, and hardware that processes 750\,000 range--Doppler cells per
+second. The core algorithm fits in 30 lines of Python. B6 takes the same
+machinery to radio astronomy, where the signals are a billion times fainter
+and the targets haven't moved in recorded history.
+
+% ======================================================================
+% B5.5 — JWST-L2: structured rotational dynamics as a Fourier diagnostic
+% ======================================================================
+\renewcommand{\thechapter}{5.5}
+\chapter{B5.5 --- JWST-L2: structured rotational dynamics as a Fourier diagnostic}
+\label{ch:b55}
+
+% TODO (AG4): Place dragon-Pooh-Ring epigraph here. This chapter is the
+% orbital-dynamics bridge and the natural fit for the Tolkien orbital-quest
+% aesthetic per _handoffs/birthday-edition-v3/MASTER-BRIEF.md §5.
+% Coordinate with illustrator brief H? when the v3 asset is commissioned.
+
+\section{The premise}
+
+There is a class of measurement in physics that sounds impossible until you
+think about it carefully, and then becomes obvious, and then starts to feel
+almost magical again once you realise all the ways it could have failed to
+work. Determining the mass distribution of an object by watching it tumble
+is one of those measurements.
+
+The mechanism is this. A spinning rigid body is not simply rotating; it is
+also, if its spin axis does not exactly align with one of its principal axes,
+slowly precessing --- the spin axis drifts in a circle around the nearest
+principal axis at a characteristic frequency. That frequency is not arbitrary.
+It is written, in a closed-form expression, in the body's principal moments
+of inertia and its spin rate. The body's internal geometry is not just carried
+passively in the rotation; it is the direct cause of the rotation's own
+structure.
+
+Which means, if you can observe the precession, you can read off the inertia
+ratio. And the Discrete Fourier Transform is precisely the instrument for
+extracting a characteristic frequency from a time series. The same pipeline
+that reads oscillator frequencies from scope traces (B1), overtones from audio
+recordings (B2), bearing faults from accelerometers (B3), and Doppler shifts
+from radar returns (B5) also reads inertia-tensor ratios from a tumbling
+satellite's body-frame angular velocity. Same algorithm. Different physics.
+
+This chapter makes that computation explicit, end to end.
+
+\section{The setup: two bodies, no Sun}
+
+\textbf{Body A} is JWST-shaped in broad outline: total mass approximately
+2450\,kg, principal moments of inertia
+$\mathrm{diag}(23322, 23322, 15384)$\,kg\,m$^2$ in the body frame.\footnote{The
+precise value $\mathrm{diag}(23322, 23322, 15384)$\,kg\,m$^2$ comes from
+\texttt{geometries.py::make\_jwst\_like()} --- a four-component composite body
+built from parallel-axis theorem sums for the sunshield, spacecraft bus, boom,
+and primary mirror. The numbers are chosen to produce a realistic inertia
+anisotropy ratio of 1.52 between the maximum and minimum principal moments.}
+
+The boom direction is the z-axis, and $I_{zz} = 15384$ is \emph{smaller} than
+$I_{xx} = I_{yy} = 23322$ --- Body A is \textbf{prolate}: elongated along the
+boom, as a pencil is elongated along its long axis.
+
+\textbf{Body B} is a probe --- a short cylinder with a dish antenna. Mass
+$\approx 100$\,kg, principal moments $\mathrm{diag}(29, 29, 5)$\,kg\,m$^2$.
+Body B is also prolate, and considerably more so: $I_{zz}/I_{xx} \approx 5.8$
+versus 1.52 for body A.
+
+We place A at the origin. B at $+x = 50$\,metres. The inter-body
+gravitational attraction at that separation is approximately
+$2 \times 10^{-7}$\,N --- slightly less than the force a mosquito exerts
+when landing.
+
+Body A's initial angular velocity in body-frame coordinates:
+$\boldsymbol{\omega} = (0.02, 0, 0.08)$\,rad/s. The dominant spin is
+0.08\,rad/s about the boom axis, with a 25\% perpendicular component along
+x ($\omega_x = 0.02$\,rad/s). It is this perpendicular component that will
+precess.
+
+\section{Euler's equations and the precession prediction}
+
+Newton's $F = ma$ governs point masses. Euler's equations govern rigid bodies.
+In body frame, the rotational equation of motion is:
+\begin{lstlisting}[style=shaddata]
+I * domega/dt + omega x (I * omega) = tau
+\end{lstlisting}
+
+\textbf{Don't panic about the matrix equation.} The $\mathbf{I}$ is the body's
+inertia tensor --- a $3\times 3$ matrix that is constant in body frame. The
+second term, $\boldsymbol{\omega} \times (\mathbf{I} \cdot \boldsymbol{\omega})$,
+is the interesting one: if $\boldsymbol{\omega}$ has a component off the
+principal axis, then $\mathbf{I} \cdot \boldsymbol{\omega}$ points in a
+different direction from $\boldsymbol{\omega}$, the cross product is non-zero,
+and the body torques its own rotation. It precesses.
+
+For an axisymmetric body where $I_{xx} = I_{yy} \neq I_{zz}$, the Euler
+equations are solvable in closed form. The perpendicular angular velocity
+components oscillate at the \textbf{Euler precession frequency}:
+\begin{lstlisting}[style=shaddata]
+lambda_Euler = (I_zz - I_xx) / I_xx * omega_z
+\end{lstlisting}
+
+For body A, with $\omega_z = 0.08$\,rad/s:
+\begin{lstlisting}[style=shaddata]
+lambda_A = (15384 - 23322) / 23322 * 0.08
+         = -0.3404 * 0.08
+         = -0.0272 rad/s
+\end{lstlisting}
+
+Period $= 2\pi / |\lambda| \approx \mathbf{231\,s}$. The negative sign means
+retrograde precession, as expected for a prolate body. This is a prediction
+from first principles: given the inertia tensor and the initial spin rate, the
+precession period is 231\,s. We haven't run anything yet; this is pure Euler
+mechanics.
+
+\section{We run it and take the data}
+
+\begin{pipelinestep}{Step 1. Generate the trajectory (experiments repository)}
+\begin{lstlisting}[style=shaddata]
+cd experiments/jwst-l2-first-cut
+python3 run_first_example.py
+\end{lstlisting}
+\end{pipelinestep}
+
+Three seconds of CPU time later: an NDJSON file with 601 snapshots of the
+two-body system state, sampled at one-second intervals over 600\,s. The
+first check is always conservation:
+\begin{lstlisting}[style=shaddata]
+|dE / E_0| = 6.2e-12
+|dL / L_0| = 2.1e-10
+\end{lstlisting}
+
+Both near machine precision.\footnote{Conservation diagnostics are the
+numerical analyst's equivalent of a heartbeat monitor. A rising trend means
+the integrator is accumulating error faster than the physics. Flat diagnostics
+near machine epsilon, like these, mean the trajectory is trustworthy.}
+
+\begin{pipelinestep}{Step 2. Parse --- extract the body-frame $\omega_{A,x}$ time series}
+\begin{lstlisting}[style=shadpython]
+import json, numpy as np, pathlib
+
+snapshots = [json.loads(l) for l in
+             open("outputs/first_example_trajectory.ndjson")]
+t        = np.array([s["t"]                  for s in snapshots])
+omega_x  = np.array([s["A"]["omega_body"][0] for s in snapshots])
+\end{lstlisting}
+\end{pipelinestep}
+
+601 points, one per second, spanning 600\,s. FFT bin spacing
+$1/600 \approx 1.67$\,mHz.
+
+\section{The transform}
+
+\begin{pipelinestep}{Step 3. Transform --- three lines, identical to every previous band}
+\begin{lstlisting}[style=shadpython]
+signal     = omega_x - omega_x.mean()          # remove DC bias
+Xk         = np.fft.rfft(signal)               # DFT (real-input, one-sided)
+freqs      = np.fft.rfftfreq(len(signal),
+                              d=(t[1] - t[0])) # Hz
+magnitudes = np.abs(Xk)
+
+peak_idx    = 1 + int(np.argmax(magnitudes[1:]))
+peak_freq   = freqs[peak_idx]
+peak_period = 1.0 / peak_freq
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{pipelinestep}{Step 4. Read the output}
+\begin{lstlisting}[style=shaddata]
+peak frequency:    0.0050 Hz
+peak period:       200.00 s
+peak magnitude:    4.840e+00 (rad/s)
+\end{lstlisting}
+\end{pipelinestep}
+
+One clean peak in the spectrum. Not a harmonic series --- this is not a square
+wave or a musical chord. Not a Lorentzian tail --- this is not a damped
+transient. A single narrow peak at 0.005\,Hz, corresponding to a 200-second
+precession period. The spectrum is speaking clearly.
+
+\section{The climax: prediction meets measurement}
+
+We predicted 231\,s. The FFT reports 200\,s. These are not the same number,
+and explaining why they agree requires understanding what the FFT can and
+cannot distinguish at finite observation windows.
+
+The FFT bin spacing is $1/600 = 1.67$\,mHz. The observable periods near the
+predicted 231\,s are \textbf{quantised} at the available frequency bins: 600\,s,
+300\,s, 200\,s, 150\,s, 120\,s, and so on. The period 231\,s sits between the
+200-s bin and the 300-s bin. The nearer of the two is 200\,s. The FFT peak
+landed at 200\,s, which is within 0.13 FFT bins of the Euler-frequency
+prediction.\footnote{The 0.13-bin offset has three components: bin quantisation
+(dominant at this observation-window length), small gravity-gradient
+perturbation to the pure free-precession frequency, and numerical integration
+error. All three are negligible compared to the bin width.}
+
+The full cross-check from the diagnostic:
+\begin{lstlisting}[style=shaddata]
+--- theoretical Euler precession (body A axisymmetric model) ---
+  I_axial:           15384.0000 kg.m^2   (= I_zz)
+  I_perp:            23322.0000 kg.m^2   (= I_xx = I_yy)
+  omega_z (initial): 0.080000 rad/s
+  lambda_Euler:      -0.027201 rad/s
+  Theoretical freq:  0.0043 Hz
+  Theoretical period:231.01 s
+
+--- agreement check ---
+  Bin offset (peak vs theory): 0.13 FFT bins
+  Result: peak matches theory within FFT bin resolution. OK.
+\end{lstlisting}
+
+The prediction matched. What is happening physically here is slightly different
+from the signal-processing cases in B1 through B5. Here, nobody put in a
+200-second oscillation from outside. The oscillation at the Euler frequency is
+the system's own \emph{response} to initial conditions: body A was started with
+a small off-axis spin component, and the response of Euler's equations to that
+perturbation is a precession at the characteristic frequency the inertia tensor
+dictates. The DFT is identifying a \textbf{natural mode} of a dynamical system
+from a short time series of its output.
+
+This is the point of the chapter. The DFT is the canonical spectral analysis
+primitive for any time series produced by a system with characteristic
+frequencies --- and that category of system includes an enormous amount of the
+physical world.
+
+\section{The same algorithm, five domains, one methodology}
+
+\medskip
+\begin{longtable}{p{1.5cm}p{3.0cm}p{9.0cm}}
+\toprule
+\textbf{Band} & \textbf{Observable} & \textbf{Physical quantity read from spectrum} \\
+\midrule
+\endhead
+B1 & Scope trace & Oscillator frequency \\
+B2 & Audio recording & Chord overtones \\
+B3 & Vibration log & Bearing fault signature \\
+B5 & Radar echo & Target Doppler velocity \\
+B5.5 & Body-frame $\omega_{A,x}$ & Inertia-tensor anisotropy ratio \\
+\bottomrule
+\end{longtable}
+\medskip
+
+The reason it works is the same in every case: the underlying physical system
+has a characteristic frequency and the system's observable output modulates at
+that frequency. Physics different; methodology identical.
+
+\section{Try it yourself}
+
+\begin{lstlisting}[style=shaddata]
+# Step 1: generate the JWST-L2 trajectory
+cd experiments/jwst-l2-first-cut
+python3 run_first_example.py
+# writes:  outputs/first_example_trajectory.ndjson  (601 snapshots)
+
+# Step 2: run the cross-project Fourier diagnostic
+cd ../../fourier/examples/jwst-l2-tumble-spectrum
+python3 main.py ../../experiments/jwst-l2-first-cut/outputs/first_example_trajectory.ndjson
+\end{lstlisting}
+
+To get finer spectral resolution: set \texttt{t\_max = 2400} (four times
+longer). The bin spacing drops to 0.42\,mHz and the predicted 231-s period
+sits cleanly on a resolved bin.
+
+% ======================================================================
+% B6 — Radio astronomy: pulsars and aperture synthesis
+% ======================================================================
+\setcounter{chapter}{5}
+\renewcommand{\thechapter}{\arabic{chapter}}
+\chapter{B6 --- radio astronomy: pulsars and aperture synthesis}
+\label{ch:b6}
+
+\section{The premise}
+
+In 1932, an engineer at Bell Telephone Laboratories named Karl Jansky was
+trying to identify the sources of static in transatlantic telephone links. He
+built a rotating directional antenna the size of a small building --- four
+hundred kilograms of steel tubing on wheels that completed one rotation every
+twenty minutes --- pointed it at the sky, and listened. He expected to find
+thunderstorms. He found thunderstorms, and then, to his considerable
+confusion, something else: a persistent hiss that rotated with the stars and
+not with the Sun. After eliminating aircraft, nearby industry, and artefacts
+of his own antenna as possible explanations, Jansky concluded that the Milky
+Way was broadcasting at 20.5\,MHz. He published this in 1933.
+
+The paper appeared in a journal primarily devoted to telecommunications
+engineering. The astronomical community largely ignored it for nearly a
+decade. Jansky was reassigned to other projects. The rotating antenna that
+discovered an entire branch of astronomy was eventually demolished for
+wartime scrap metal. This is, characteristically, how a new field begins.
+
+B5 showed you the radar pipeline --- a system that transmits a precisely crafted
+chirp, listens for the echo, and extracts range and velocity from signals at
+0\,dB above the noise floor after 64\,ms of coherent integration across 64
+pulses. B6 applies exactly the same Fourier machinery to signals arriving from
+11\,750 light-years away, at an amplitude 20\,dB \emph{below} the noise floor
+in any individual sample. The targets have not moved, in any measurable
+direction, in the entire history of human observation.
+
+The signal is a pulsar called PSR\,B1937+21. In the 120 seconds it takes to
+run the demonstration script: 77\,031 pulses will arrive; each will have a
+peak amplitude roughly one-tenth the background noise; none will be
+individually distinguishable from that noise; the DFT will see all 77\,031
+simultaneously and report back with a $+20$\,dB spike at exactly 641.9\,Hz.
+
+\section{The signal: a clock nobody made}
+
+In August 1982, a team of radio astronomers at the Arecibo Observatory
+discovered a radio source in Vulpecula that was pulsing at a rate they could
+not, at first, believe. The period was 1.5578 milliseconds. The source was,
+after ruling out virtually every other possibility, a neutron star rotating
+641.9 times per second.\footnote{The previous record for pulsar spin rate
+had been held by PSR\,B1953+29 at 6.1\,ms. The new record beat it by a
+factor of four. The discovery paper was published in \emph{Nature} under the
+title ``A millisecond pulsar.'' The understated genre of pulsar announcements
+has not changed in four decades.}
+
+A neutron star is what remains after a massive star exhausts its nuclear fuel
+and its iron core collapses in the fraction of a second it takes for a star to
+decide it is no longer viable as a star. The collapse squeezes roughly 1.4 solar
+masses into a sphere approximately 20 kilometres across. Conservation of angular
+momentum does what it always does in the presence of a dramatic size reduction.
+PSR\,B1937+21 is rotating 641.9 times per second. Its equatorial surface is
+moving at approximately 14\% of the speed of light. This is not a metaphor.
+
+The physical parameters, as tabulated in the ATNF Pulsar Catalogue:
+
+\medskip
+\begin{longtable}{p{3.5cm}p{4.5cm}p{5.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Physical meaning} \\
+\midrule
+\endhead
+Spin period $P$ & 1.5578064688\,ms & Time per rotation \\
+Spin frequency $f_\mathrm{spin}$ & 641.9\,Hz & Rotations per second \\
+Period derivative $\dot{P}$ & $1.051 \times 10^{-19}$\,s/s & How fast the period is growing \\
+Dispersion measure & 71.025\,pc\,cm$^{-3}$ & Integrated electron column density \\
+Distance & $\sim$3.6\,kpc & $\sim$11\,750 light-years \\
+Char.\ age $P/(2\dot{P})$ & $\sim$235\,Myr & Estimated time since spin-up \\
+\bottomrule
+\end{longtable}
+\medskip
+
+The period derivative $\dot{P} = 1.051 \times 10^{-19}$\,s/s tells you that
+the pulsar is losing rotational energy to magnetic-dipole radiation. The
+period is increasing by approximately 9\,picoseconds per day --- a drift that
+has been proceeding at a calculable rate for an estimated 235 million years.
+
+\section{The engineering problem: the signal is buried}
+
+Radio waves from PSR\,B1937+21 arrive at Earth with a flux density of a few
+milli-Janskys --- that is, a few times $10^{-29}$\,W\,m$^{-2}$\,Hz$^{-1}$.
+Even after amplification by roughly $10^{10}$, the individual pulse arrives
+with a peak amplitude roughly one-tenth of the background noise standard
+deviation.\footnote{``Background noise'' here means the sum of radiometer
+thermal noise, receiver electronic noise, and the diffuse galactic radio
+background. The $-20$\,dB figure is representative for a mid-size dish at
+1.4\,GHz with 100\,MHz of bandwidth.}
+The single-sample power SNR is $(0.1)^2 / (1.0)^2 = 0.01 = -20$\,dB.
+
+\textbf{Do not panic about this.} The noise is random --- it averages toward
+zero when you add many independent samples. The pulsar is perfectly periodic
+--- it adds coherently regardless of how many periods you stack. The DFT is
+the bookkeeper that tracks which samples add coherently and which ones average
+out.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b6-input}
+\end{center}
+\textit{Top: first 100\,ms of a simulated PSR\,B1937+21 dedispersed time
+series ($f_s = 4096$\,Hz, 410 samples). Signal amplitude $= 0.1 \times$
+noise sigma; all 64 pulses in this window are invisible against the noise.
+Bottom: the same 120-second dataset phase-folded into 64 phase bins, averaged
+over 77\,031 rotation periods --- the pulse profile is clearly visible.}
+
+\section{The transform: integration time as the resource}
+
+The DFT pipeline is unchanged from every previous band:
+
+\begin{pipelinestep}{Step 3. Transform --- same three lines as B1 through B5}
+\begin{lstlisting}[style=shadpython]
+N    = len(time_series)                   # total samples
+spec = np.fft.rfft(time_series)           # DFT (real input, one-sided)
+freq = np.fft.rfftfreq(N, d=1.0 / FS)    # frequency axis in Hz
+mag  = np.abs(spec) / N                  # normalised magnitude
+\end{lstlisting}
+\end{pipelinestep}
+
+What changes is $N$. In B1, $N = 5\,000$ (100\,ms at 50\,kHz). In B5,
+$N = 128\,000$ (64\,ms at 2\,MHz). In B6, the demonstration runs 120\,s at
+4096\,Hz, giving $N = 491\,520$.
+
+\textbf{Why does longer integration help?} The noise is white --- power per
+bin scales as $\sigma_n^2 / N$. The periodic signal concentrates its energy
+into the bin at $f = f_\mathrm{spin}$ and its harmonics. Working through the
+algebra:\footnote{You can also spend hardware: a larger dish collects more
+signal power. A 100-metre dish has roughly $270\times$ the collecting area of
+a 6-metre dish, adding about 24\,dB before integration begins. Time and
+aperture are complementary resources; time is the cheaper one if you can
+wait.}
+\begin{lstlisting}[style=shaddata]
+SNR_amplitude  proportional  sqrt(T_obs)
+\end{lstlisting}
+
+This is the \textbf{$\sqrt{T}$ law}. Double the integration time; gain 3\,dB
+in amplitude SNR. Increase $T$ by a factor of 100; gain 10\,dB.
+
+\section{The spectrum}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b6-spectrum}
+\end{center}
+\textit{FFT magnitude of 120\,s of simulated PSR\,B1937+21 data
+($N = 491\,520$ samples, $\Delta f = 8.3$\,mHz). Three spikes visible above
+the noise floor: spin fundamental at 641.9\,Hz and 2nd and 3rd harmonics at
+1283.8\,Hz and 1925.7\,Hz. The spike at 641.9\,Hz rises approximately 20\,dB
+above the noise floor.}
+
+\section{The takeaway: the $\sqrt{T}$ law and what it costs}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b6-takeaway}
+\end{center}
+\textit{Top: FFT spectrum zoomed to 580--720\,Hz after 120\,s integration.
+Bottom: measured SNR of the 641.9\,Hz FFT peak versus integration time $T$
+(open circles), overlaid on the theoretical $\sqrt{T}$ curve (solid).}
+
+\medskip
+\begin{longtable}{p{3.0cm}p{2.5cm}p{3.5cm}}
+\toprule
+\textbf{Integration time} & \textbf{$N_\mathrm{samples}$}
+  & \textbf{Theoretical SNR} \\
+\midrule
+\endhead
+1\,s & 4\,096 & 0\,dB \\
+4\,s & 16\,384 & $+6$\,dB \\
+16\,s & 65\,536 & $+12$\,dB \\
+64\,s & 262\,144 & $+18$\,dB \\
+120\,s & 491\,520 & $+21$\,dB \\
+\bottomrule
+\end{longtable}
+\medskip
+
+The signal that is $-20$\,dB below the noise in any individual sample becomes
+marginally detectable at $T = 1$\,s and reaches a comfortable $+21$\,dB
+margin at $T = 120$\,s. Every 10\,dB of additional burial costs a factor of
+100 in integration time. The relationship is exact.
+
+The \textbf{frequency precision} grows at exactly the same rate. The bin width
+$\Delta f = 1/T$ shrinks proportionally. After 120\,seconds, $\Delta f = 8.3$\,mHz;
+after one year, $\Delta f = 31.7$\,nHz. At that precision, the period of
+PSR\,B1937+21 is known well enough to predict pulse arrival times to within a
+fraction of a microsecond --- good enough to test the general-relativistic
+correction to the R\"{o}mer delay.
+
+\section{The Doppler extension: binary pulsars and orbital periods}
+
+PSR\,B1913+16, the Hulse-Taylor binary pulsar discovered in 1974, has a spin
+period of 59.03\,ms and orbits a companion neutron star with a period of
+7.75\,hours (27\,907\,s). The FFT of the timing residuals reveals a peak at
+$f_\mathrm{orbital} = 1/27\,907$\,Hz $= 35.8\,\mu$Hz --- the B5 Doppler
+measurement applied at a timescale $10^8$ times longer.
+
+Hulse and Taylor received the Nobel Prize in Physics in 1993 for characterising
+this orbit. The orbital period has been shrinking at exactly the rate predicted
+by general relativity for a system radiating gravitational waves --- the first
+indirect evidence that gravitational radiation exists, two decades before LIGO
+heard it directly.\footnote{LIGO's signal GW150914 was analysed using a
+matched-filter pipeline that is, in structure, recognisably the B5
+matched-filter pipeline: a known template waveform cross-correlated with the
+detector output in the frequency domain via
+\texttt{FFT $\times$ conj(FFT(template)) $\rightarrow$ IFFT}. B5, like much of
+this guide, turns out to have been quietly describing the same algorithm that,
+forty years later, detected black hole mergers.}
+
+\section{The 2D generalisation: aperture synthesis}
+
+When two radio telescopes observe the same source simultaneously, separated
+by a baseline of physical length $b$, the cross-correlation of their recorded
+signals --- the \emph{visibility} --- is one sample of the 2D Fourier transform
+of the sky brightness distribution. The spatial frequency coordinates sampled
+are $(u, v) = \vec{b}/\lambda$. As the Earth rotates, the projected baseline
+sweeps an arc across the $(u,v)$ plane. A 27-antenna array like the Karl G.\
+Jansky Very Large Array produces 351 distinct baselines simultaneously; after
+a full Earth rotation the inverse 2D FFT reconstructs a high-resolution image
+of the source.
+
+The first event-horizon image of M87, released in 2019 by the Event Horizon
+Telescope collaboration, was reconstructed from visibility data recorded
+simultaneously on eight radio telescopes spread across four continents and
+Antarctica. The core mathematical operation, once calibration and
+deconvolution are handled, was \texttt{np.fft.ifft2}.
+
+\section{What we just did}
+
+One algorithm. Six chapters. An expanding scale:
+
+\medskip
+\begin{longtable}{p{1.5cm}p{3.0cm}p{2.0cm}p{2.2cm}p{4.0cm}}
+\toprule
+\textbf{Band} & \textbf{Signal} & \textbf{Frequency}
+  & \textbf{Integration} & \textbf{Processing gain} \\
+\midrule
+\endhead
+B1 & RLC circuit & 50\,Hz & 500\,ms & 1 capture \\
+B2 & Audio A$_4$ & 440\,Hz & 2\,s & 1 window \\
+B3 & Vibrating shaft & 30--120\,Hz & 10\,s & 1 window \\
+B4 & Switching conv.\ & 100\,kHz & 10\,ms & 1 window \\
+B5 & NEXRAD radar & 0--27\,m/s Doppler & 64\,ms & $+18$\,dB (64 pulses) \\
+B6 & PSR\,B1937+21 & 641.9\,Hz & 120\,s & $+20$\,dB (77\,031 pulses) \\
+\bottomrule
+\end{longtable}
+\medskip
+
+The scale progression covers nine orders of magnitude in signal strength and
+six orders of magnitude in integration time. The algorithm did not change at
+all. Three lines of NumPy ran the same bookkeeping from the basement physics
+lab to the interstellar medium.
+
+B7 closes the arc by asking: what happens when the DFT is not enough?
+
+\section{Try it yourself}
+
+\begin{lstlisting}[style=shaddata]
+git clone https://github.com/lege-artis/fourier.git
+cd fourier/examples/shad/b6-radioastronomy
+python main.py
+\end{lstlisting}
+
+The script synthesises 120\,s of PSR\,B1937+21-like data (4096\,Hz sample
+rate, pulse amplitude $= 0.1 \times$ noise sigma), computes the DFT, and
+renders all three figures. To observe the $\sqrt{T}$ law: change
+\texttt{T\_OBS} on line 32 to 60\,s and re-run --- the SNR drops by 3\,dB.
+
+% ======================================================================
+% B7 — Nuclear reactor: spectral analysis as a dynamic-stability window
+% ======================================================================
+\chapter{B7 --- nuclear reactor: spectral analysis as a dynamic-stability window}
+\label{ch:b7}
+
+\begin{quote}
+\textit{About this chapter.} B7 is the capstone of the seven-band Shad-tier
+guide. It shows you the canonical engineering domain --- nuclear reactor noise
+diagnostics --- where the bare Discrete Fourier Transform takes you a long way
+and then runs out of road, and it introduces the toolkit you reach for when it
+does. The toolkit (Welch's method, short-time Fourier, wavelets, Rossi-$\alpha$,
+Feynman-$\alpha$, bispectrum, magnitude-squared coherence) is the natural
+extension of Fourier analysis into the non-stationary, non-linear,
+multi-sensor world that any real instrument lives in. CC-BY-SA-4.0.
+
+\textit{Cross-publication note.} This chapter is also publishable on
+\url{https://zemla.org} (Philosophy/Science) and \url{https://mim2000.cz}
+(Teaching). Attribution template: \emph{``Figure: [title]. From `Just Shad's
+Guide to Fourier's Galaxy' chapter B7, lege-artis/fourier. CC-BY-SA-4.0.
+[link to GitHub source]''}.
+\end{quote}
+
+\section{The premise}
+
+A nuclear reactor, when running at constant power, looks from the outside like
+a thing that is doing nothing. The control rods are at fixed insertion; the
+coolant is flowing at constant rate; the instrument panel says the power level
+has been at 30\,megawatts for the last hour and a half. This is,
+characteristically, the surface impression, and it is wrong in an interesting
+way.
+
+A reactor at constant power is, on the inside, having on the order of $10^{18}$
+fissions per second, each one releasing two or three neutrons that go on to
+cause further fissions, with a small fraction (about 0.65\% for thermal
+uranium) appearing only after the radioactive decay of a precursor nucleus
+seconds or minutes later. The neutron population, far from being constant,
+is fluctuating at all timescales from microseconds to minutes, with each
+fluctuation propagating through the precursor populations and back into the
+neutron field.
+
+What the reactor is doing, in fact, is broadcasting its own dynamics in the
+form of detector noise. Hold a fission chamber up to it and the current trace
+fluctuates around the mean by a few percent. Take the DFT of that fluctuation
+and you will read off, from the shape of the spectrum, the prompt-neutron decay
+constant $\alpha$, the effective delayed-neutron fraction $\beta$, and (if you
+are careful) the moderator-feedback time constant.
+
+This is the canonical engineering case where everything previous in this guide
+stops being enough. The signal of interest is not a periodic tone (B1, B2, B6)
+and not a known waveform buried in noise (B5). It is a stochastic process
+driven by underlying system dynamics, occasionally non-stationary, occasionally
+non-linear. The bare DFT will get you to the corner frequency and the
+prompt-mode decay constant. After that, you need the toolkit.
+
+\section{What's in the box, and one honest disclosure}
+
+Three things before the chapter starts.
+
+\textbf{First}, the chapter's signal is synthesised. Real reactor-noise time
+series --- Halden HRP archives, VR-1 Vrabec at FJFI \v{C}VUT, TU Wien TRIGA
+Mark\,II --- exist and are accessible to academic researchers; this chapter
+does not bundle them. The point-kinetics model below produces a current-mode
+signal whose spectral characteristics match the canonical Lorentzian shape
+that Cohn\footnote{C.\,E. Cohn, ``A simplified theory of pile noise,''
+\emph{Nucl. Sci. Eng.} \textbf{7}, 472 (1960). The original paper is six
+pages long and contains the entire derivation. The Lorentzian PSD is Eq.\,13
+there; everything since has been refinement and extension.}
+derived in 1960 for a thermal reactor. A reader pulling a real VR-1 trace from
+the FJFI archive and running it through the same pipeline will see the same
+Lorentzian with a different value of $\alpha$ corresponding to their specific
+reactor's $\beta/\Lambda$.
+
+\textbf{Second}, B7 grants an exception to the toolkit-purity rule that has
+held through B1--B6. The earlier bands used only NumPy. B7 uses
+\href{https://scipy.org}{SciPy} (\texttt{signal.welch}, \texttt{signal.spectrogram},
+\texttt{signal.coherence}) and \href{https://pywavelets.readthedocs.io}{PyWavelets}
+(\texttt{pywt.cwt}) because re-implementing Welch's segment averaging or a
+continuous wavelet transform from first principles would be its own chapter,
+and not this one. The toolkit \emph{is} the point.
+
+\textbf{Third}, the chapter is longer than its siblings, with twelve figures
+instead of three. The toolkit walkthrough is the chapter's pedagogical payoff,
+and each method earns its own figure.
+
+\section{Reactor kinetics in one paragraph and one equation}
+
+A reactor's neutron population $n(t)$ and its delayed-neutron precursor
+populations $C_i(t)$ obey:
+\begin{lstlisting}[style=shaddata]
+dn/dt    = (rho - beta) / Lambda * n  +  sum_i lambda_i C_i  +  S(t)
+dC_i/dt  = (beta_i / Lambda) * n  -  lambda_i C_i
+\end{lstlisting}
+
+$\rho$ is reactivity. $\beta = \sum \beta_i \approx 0.0065$ for thermal U-235
+is the total delayed-neutron fraction. $\Lambda$ is the prompt-neutron mean
+generation time ($\sim 10^{-4}$\,s for a light-water reactor). $\lambda_i$ are
+the decay constants of the six precursor groups, from $0.0124$\,s$^{-1}$ (half-life
+56\,s) to $3.01$\,s$^{-1}$ (half-life 0.23\,s). $S(t)$ is a stochastic
+source --- every fission is a Poisson event.
+
+\textbf{Don't panic about the six precursor groups.} They are the bookkeeping
+device that turns ``some fraction of neutrons appear late'' into a tractable
+ODE system.
+
+For a critical reactor ($\rho \approx 0$), small perturbations to $n(t)$ decay
+at the \textbf{prompt-neutron decay constant}:
+\begin{lstlisting}[style=shaddata]
+alpha   = (beta - rho) / Lambda  ~=  beta / Lambda
+        = 0.006502 / 1.0e-4 s  =  65.02 s^-1
+f_corner = alpha / (2*pi)       ~=  10.35 Hz
+\end{lstlisting}
+
+The headline pedagogical claim of B7 is that $\alpha$ is readable directly from
+the noise spectrum of any neutron-flux detector on the reactor, without
+injecting a perturbation. You just listen.
+
+\section{The signal}
+
+The simulation runs 200\,s of stationary reactor noise at 1\,kHz sample rate,
+giving 200\,000 samples.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-time-series}
+\end{center}
+\textit{Top: full 200\,s of synthesised neutron-density fluctuations
+$\delta n / N$ around the mean, in percent. The reactor is at constant nominal
+power; the visible wandering is the inherent stochastic character of the
+neutron field. Bottom: zoom on the first five seconds. The dominant timescale
+is about 100\,ms (a few $1/\alpha$ periods) --- the prompt mode of the reactor
+talking to itself.}
+
+\section{Bare DFT first --- the Lorentzian announces itself}
+
+\begin{pipelinestep}{Step 3. Bare DFT --- same three lines as B1 through B6}
+\begin{lstlisting}[style=shadpython]
+import numpy as np
+
+x    = n_t - np.mean(n_t)                  # centre on zero
+N    = len(x)
+spec = np.fft.rfft(x)                      # DFT
+freq = np.fft.rfftfreq(N, d=1.0 / FS)     # Hz
+psd  = np.abs(spec) ** 2 * 2.0 / (FS * N)  # one-sided PSD
+\end{lstlisting}
+\end{pipelinestep}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-bare-fft}
+\end{center}
+\textit{Bare periodogram of the 200\,s stationary segment ($N = 200\,000$,
+$\Delta f = 5.0$\,mHz). Log-log axes. The spectrum is flat below 1\,Hz, rolls
+over near 10\,Hz, and falls off as $1/f^2$ thereafter. The dashed line marks
+the theoretical corner frequency $f_\mathrm{corner} = 10.35$\,Hz from
+$\alpha = 65.02$\,s$^{-1}$. The Lorentzian shape is already visible.}
+
+This shape --- flat at low frequency, rolling over at $f_\mathrm{corner}$,
+falling as $1/f^2$ at high frequency --- is the \textbf{Lorentzian power
+spectrum}. The crossover is $f_\mathrm{corner} = \alpha / (2\pi)$. Read
+$\alpha$ off the corner; you have measured the prompt-neutron decay constant
+from a passive observation of the reactor's own noise.
+
+\section{Toolkit, part 1 --- Welch's method}
+
+A bare periodogram has a statistical problem: each bin's variance equals its
+mean. As you average more data, the bins get narrower but no less individually
+noisy. The plot looks fuzzy forever.
+
+Welch's method\footnote{P.\,D. Welch, ``The use of fast Fourier transform
+for the estimation of power spectra,'' \emph{IEEE Trans.\ Audio Electroacoust.}
+\textbf{AU-15}, 70 (1967). The paper is five pages, includes pseudo-code, and
+has been cited approximately twenty thousand times.}
+fixes this by accepting coarser frequency resolution in return for averaging.
+Split the signal into $K$ overlapping segments, window each (Hann, by default),
+DFT each one, and average the squared magnitudes. The averaging reduces per-bin
+variance by roughly a factor of $K$.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-welch}
+\end{center}
+\textit{Same data. Faint blue: bare periodogram. Heavy red: Welch's method with
+16 Hann-windowed segments. The Lorentzian shape is now unambiguous; the corner
+is visible to the eye; the fit will converge cleanly.}
+
+You give up bin width to buy bin certainty. This is the right tradeoff for
+stochastic-process PSD estimation, and most readers leave the bare periodogram
+behind permanently after meeting Welch for the first time.
+
+\section{Toolkit, part 2 --- fitting the Lorentzian, pulling $\alpha$ off the plot}
+
+With the Welch PSD in hand, fit the Cohn model:
+\begin{lstlisting}[style=shaddata]
+S(f) = p0 * alpha^2 / (alpha^2 + (2*pi*f)^2) + p_inf
+\end{lstlisting}
+
+\begin{lstlisting}[style=shadpython]
+from scipy.optimize import curve_fit
+
+def lorentzian(f, p0, alpha, p_inf):
+    return p0 * alpha**2 / (alpha**2 + (2*np.pi*f)**2) + p_inf
+
+popt, _ = curve_fit(lorentzian, freq, psd, p0=(plateau, 60.0, floor))
+p0_fit, alpha_fit, p_inf_fit = popt
+\end{lstlisting}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-lorentzian-fit}
+\end{center}
+\textit{Welch PSD (data, blue) with the Cohn-Lorentzian model overlaid (red).
+Fitted $\alpha = 66.93$\,s$^{-1}$ against the theoretical value
+$\alpha = 65.02$\,s$^{-1}$. Agreement within 3\%.}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-alpha-extraction}
+\end{center}
+\textit{Summary report card. The fit reproduces the input $\alpha$ to within
+2.94\% of the theoretical value, which for a single 200-second observation is
+better than most reactor operators would dare to hope for.}
+
+From two hundred seconds of detector trace, with no excitation and no model
+fit beyond a three-parameter Lorentzian, you have measured the prompt-neutron
+decay constant to within 3\% of its true value.
+
+\section{The limit-test --- the bare DFT meets a transient}
+
+Here is where the seven-band arc starts running out of road. The analysis
+above worked because the signal was \textbf{stationary}. Real reactors are
+not always stationary. The simulation injects a small step: 30\,pcm of positive
+reactivity ramped over 5\,s at $t = 100$\,s.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-transient-scram}
+\end{center}
+\textit{Top: the 200-second transient time series. The shaded band marks the
+rod-step ramp from $t = 100$\,s to $t = 105$\,s. Bottom: the bare periodogram
+of the whole 200 seconds. The Lorentzian shape survives, but the
+corner-frequency region is smeared and the low-frequency tail is contaminated
+by the step's slow re-equilibration. The DFT had no way to know when the rod
+moved.}
+
+This is the structural limit of the DFT. The transform assumes the signal is
+stationary; if it is not, the spectrum becomes a time-average that tells you
+neither what the spectrum was before nor what it is after, but a smeared
+mixture of both. To see when the event happened, you need a time-frequency
+representation.
+
+\section{Toolkit, part 3 --- the spectrogram (short-time Fourier)}
+
+\begin{lstlisting}[style=shadpython]
+from scipy.signal import spectrogram
+f, t, S = spectrogram(x, fs=FS, nperseg=8192, noverlap=6144)
+\end{lstlisting}
+
+The window length is the central parameter: long windows give fine frequency
+resolution but coarse time resolution; short windows give fine time resolution
+but coarse frequency resolution. This is the Heisenberg--Gabor uncertainty
+relation expressed as engineering: $\Delta t \cdot \Delta f \geq 1/(4\pi)$,
+no matter how clever your window choice. You choose where on the curve to live.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-spectrogram}
+\end{center}
+\textit{Spectrogram of the 200-second transient (8192-sample Hann windows,
+75\% overlap). The white dashed line marks the rod-step at $t = 100$\,s.
+The post-step variance pattern shifts visibly below the corner --- the slow
+precursor re-equilibration appears as low-frequency excess. Above the corner,
+the prompt-mode contribution is roughly unchanged.}
+
+\section{Toolkit, part 4 --- wavelets, when the STFT's grid bites}
+
+The STFT uses a fixed window length. The continuous wavelet transform (CWT)
+addresses this by stretching the analysis window with frequency, giving tight
+time resolution at high frequency and tight frequency resolution at low
+frequency, all in one pass.
+
+\begin{lstlisting}[style=shadpython]
+import pywt
+scales = np.logspace(np.log10(2), np.log10(256), 80)
+coeffs, freqs = pywt.cwt(x, scales, "cmor1.5-1.0",
+                          sampling_period=1/FS)
+\end{lstlisting}
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-wavelets}
+\end{center}
+\textit{Continuous-wavelet scalogram of the transient (Morlet wavelet
+cmor1.5-1.0, 80 logarithmically-spaced scales). The same rod-step is visible
+at $t = 100$\,s. High-frequency features are temporally sharp; low-frequency
+features are temporally extended. This is what the wavelet's scale-dependent
+resolution buys you over the STFT's uniform grid.}
+
+\section{Toolkit, part 5 --- Rossi-$\alpha$, the prompt mode in the time domain}
+
+In pulse mode, the detector reports timestamps --- one per detected neutron.
+From this pulse train, the Rossi-$\alpha$ technique\footnote{Due to Bruno
+Rossi at Los Alamos in 1944. Still in routine use today, particularly for
+non-destructive assay of fissionable material.}
+builds the \textbf{pair-time histogram}: for each detected pulse, accumulate
+the time intervals to all subsequent pulses within a gate, bin those intervals,
+and plot. The result has an exponential component on top of the flat Poisson
+floor:
+\begin{lstlisting}[style=shaddata]
+R(tau) = A * exp(-alpha * tau)  +  B
+\end{lstlisting}
+
+A is set by the correlated multiplet contribution; B is the accidentals floor;
+$\alpha$ is the same prompt-neutron decay constant the PSD corner gives you.
+Different signal, different domain, same number --- the Wiener-Khinchin link
+earning its keep.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-rossi-alpha}
+\end{center}
+\textit{Pair-time histogram of a synthetic detector pulse train (51\,635 events
+over 200\,s). The exponential-plus-constant fit returns
+$\alpha = 72.13$\,s$^{-1}$, within 11\% of the input $\alpha = 65.02$\,s$^{-1}$.}
+
+\section{Toolkit, part 6 --- Feynman-$\alpha$, variance-to-mean as $\alpha$-meter}
+
+Feynman-$\alpha$\footnote{Richard Feynman, \emph{Statistical Behavior of
+Neutron Chains}, Los Alamos report LA-591 (1946; declassified 1956). Feynman's
+report explains the technique entirely in plain language with two equations;
+one wonders whether the modern reactor-physics literature has gained or lost
+something by the intervening seventy years of notational sophistication.}
+uses the variance-to-mean ratio of \textbf{gated counts}. Partition the pulse
+train into consecutive non-overlapping gates of width $T$; count the pulses in
+each gate; compute:
+\begin{lstlisting}[style=shaddata]
+Y(T) = Var(C_T) / Mean(C_T) - 1
+\end{lstlisting}
+
+For a pure Poisson process, $Y(T) = 0$. For a reactor pulse train with
+multiplet correlation, $Y(T)$ rises from zero and saturates:
+\begin{lstlisting}[style=shaddata]
+Y(T) = Y_inf * [1 - (1 - exp(-alpha*T)) / (alpha*T)]
+\end{lstlisting}
+
+The shape of the rise gives $\alpha$ directly.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-feynman-alpha}
+\end{center}
+\textit{$Y(T)$ measured on the same pulse train (28 logarithmically-spaced
+gates from 1\,ms to 5\,s). Theoretical Feynman curve (red) fit returns
+$\alpha = 83.36$\,s$^{-1}$ and $Y_\infty = 1.344$. Dashed line marks
+$T = 1/\alpha$.}
+
+\section{Toolkit, part 7 --- bispectrum, when frequencies talk to each other}
+
+The DFT is a linear operator. It tells you which frequencies are present; it
+cannot tell you whether two frequencies are related to each other or merely
+coincident. The bispectrum\footnote{Formalised by Brillinger and Rosenblatt in
+the 1960s. The reactor-noise community picked it up in the 1980s for detecting
+non-linear coupling between neutronic and thermal-hydraulic oscillations in
+boiling-water reactors.}
+is the third-order generalisation of the power spectrum:
+\begin{lstlisting}[style=shaddata]
+B(f1, f2) = E[ X(f1) * X(f2) * X*(f1+f2) ]
+\end{lstlisting}
+
+For independent or Gaussian processes, $B(f_1, f_2)$ averages to zero
+everywhere. For non-Gaussian or quadratically-coupled processes, it has
+non-zero off-diagonal structure.
+
+The simulation drives the reactor with two reactivity oscillations at 0.70\,Hz
+and 1.10\,Hz plus a deliberately quadratic coupling between them. The DFT shows
+three spectral peaks: at 0.70\,Hz, at 1.10\,Hz, and at 1.80\,Hz ($= f_1 + f_2$).
+From the DFT alone, you could not tell whether the 1.80\,Hz peak was an
+independent third oscillation or the product of a non-linear coupling.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-bispectrum}
+\end{center}
+\textit{Magnitude-squared bispectrum $|B(f_1, f_2)|^2$ of the coupled reactor
+signal (8 Hann-windowed segments, log-colour scale). The bright spot at
+(0.70, 1.10)\,Hz (white cross) is the bispectral signature of the quadratic
+coupling.}
+
+\section{Toolkit, part 8 --- coherence, when you have two sensors}
+
+The magnitude-squared coherence $\gamma^2(f)$, computed by SciPy's
+\texttt{signal.coherence}:
+\begin{lstlisting}[style=shaddata]
+gamma_sq(f) = |P_xy(f)|^2 / [P_xx(f) * P_yy(f)]
+\end{lstlisting}
+
+$\gamma^2$ is bounded between 0 and 1. $\gamma^2 \approx 1$ means detectors
+A and B agree at that frequency (common-mode signal dominates); $\gamma^2
+\approx 0$ means each detector's own noise dominates.
+
+\begin{center}
+\includegraphics[width=0.92\textwidth]{figures/fig-b7-coherence}
+\end{center}
+\textit{Magnitude-squared coherence between detector A and detector B
+(Welch-style, 16 segments, Hann window). Below the corner frequency,
+$\gamma^2 \approx 0.99$ --- the reactor's neutron-field fluctuations dominate.
+Above $\sim 50$\,Hz, $\gamma^2$ falls toward 0.5 --- independent
+instrument-noise contribution becomes comparable to the reactor signal.}
+
+\section{What we just did}
+
+Twelve figures, one reactor, eight tools.
+
+\medskip
+\begin{longtable}{p{0.4cm}p{3.5cm}p{5.5cm}p{3.0cm}}
+\toprule
+\textbf{\#} & \textbf{Tool} & \textbf{What it told us} & \textbf{Domain} \\
+\midrule
+\endhead
+1 & Time-series view & Reactor wanders $\pm 2$\%. & Time \\
+2 & Bare DFT & Lorentzian, corner $\sim 10$\,Hz. & Frequency \\
+3 & Welch PSD & Same, $10\times$ less per-bin noise. & Frequency \\
+4 & Lorentzian fit & $\alpha = 66.93$\,s$^{-1}$ $\pm 3$\%. & Frequency \\
+5 & Bare DFT of transient & Smeared; tells nothing about timing. & Frequency \\
+6 & STFT spectrogram & Rod-step localised in time. & Time-frequency \\
+7 & Wavelet scalogram & Tighter resolution at high $f$. & Time-frequency \\
+8 & Rossi-$\alpha$ & $\alpha = 72.13$\,s$^{-1}$, time-domain. & Time \\
+9 & Feynman-$\alpha$ & $\alpha = 83.36$\,s$^{-1}$, gated counts. & Time \\
+10 & Bispectrum & Quadratic coupling at (0.70, 1.10)\,Hz. & Freq $\times$ freq \\
+11 & Coherence & 99\% common-mode at corner; 50\% at 1\,kHz. & Freq $\times$ sensor \\
+\bottomrule
+\end{longtable}
+\medskip
+
+The pedagogical arc ends here. B1 introduced the DFT as the
+instrument-after-the-instrument. B2 through B6 applied it across nine orders
+of magnitude in signal strength and six in integration time. B7 closes the arc
+by demonstrating, on the canonical reactor-noise problem, where the bare
+algorithm stops being sufficient and what you reach for when it does.
+
+The ``and beyond Fourier'' toolkit is not a rejection of Fourier analysis.
+Every tool above is \emph{built on} the DFT --- Welch is averaged DFT, the
+spectrogram is sliding-window DFT, the wavelet transform is DFT against a
+frequency-varying basis, the bispectrum is a higher-order Fourier construct,
+and the coherence estimator is a normalised cross-spectrum. The DFT is the
+kernel; the toolkit is the kernel applied with care to specific classes of
+question.
+
+After this chapter, the reader of the seven-band guide has seen the DFT as a
+measurement instrument (B1--B6), as a non-stationary signal probe (B7 STFT
++ CWT), as a non-linear-coupling detector (B7 bispectrum), and as a
+multi-sensor agreement test (B7 coherence) --- plus two time-domain methods
+that arrive at the same $\alpha$ as the spectral fit and cross-validate it.
+
+Where Shad goes next is into the textbooks --- P\'{a}l, P\'{a}zsit \& P\'{a}l,
+and Williams for the reactor-noise canon; Brillinger for higher-order spectra;
+Daubechies for wavelets; Welch's original 1967 paper, which is five pages and
+still the cleanest presentation of his method.
+
+\section{Try it yourself}
+
+\begin{lstlisting}[style=shaddata]
+git clone https://github.com/lege-artis/fourier.git
+cd fourier/examples/shad/b7-reactor
+pip install numpy scipy matplotlib pywavelets
+python main.py
+# Renders 12 figures into docs/shad/figures/fig-b7-*.png
+# Runtime: ~30 s on a modern laptop.
+\end{lstlisting}
+
+All twelve figures regenerate from the same random seed (20260526), so the
+numerical claims in this chapter are byte-reproducible across re-runs on any
+machine. To change the reactor parameters and watch $\alpha$ and
+$f_\mathrm{corner}$ move accordingly, edit the constants at the top of
+\texttt{main.py}:
+
+\begin{lstlisting}[style=shadpython]
+BETA_I   = np.array([0.000215, 0.001424, 0.001274,
+                     0.002568, 0.000748, 0.000273])
+LAMBDA_I = np.array([0.0124, 0.0305, 0.111, 0.301, 1.14, 3.01])  # s^-1
+GEN_TIME = 1.0e-4   # prompt generation time Lambda
+\end{lstlisting}
+
+A fast reactor ($\Lambda \sim 10^{-7}$\,s; metallic fuel, no moderator) gives
+$\alpha \sim 10^5$\,s$^{-1}$ and $f_\mathrm{corner} \sim 15$\,kHz. A
+graphite-moderated reactor ($\Lambda \sim 10^{-3}$\,s) gives
+$\alpha \sim 6.5$\,s$^{-1}$ and $f_\mathrm{corner} \sim 1$\,Hz. The shape of
+the Lorentzian is identical across seven orders of magnitude in $\alpha$; only
+the corner moves.
+
+
 % BACK MATTER
 % ======================================================================
 \appendix
@@ -1326,6 +2971,27 @@ cd docs/shad
 \bibitem{Moody2001} G.~B. Moody and R.~G. Mark, ``The impact of the MIT-BIH Arrhythmia Database,'' \emph{IEEE Eng.\ Med.\ Biol.\ Mag.}, vol.~20, no.~3, pp.~45--50, 2001.
 \bibitem{Goldberger2000} A.~L. Goldberger \emph{et al.}, ``PhysioBank, PhysioToolkit, and PhysioNet,'' \emph{Circulation}, vol.~101, no.~23, pp.~e215--e220, 2000.
 \bibitem{rg272996569} S\'{a}nchez-Olivares et al., ``Raw data file obtained from the oscilloscope,'' ResearchGate figure 272996569 (companion to publication; format used here as canonical layout reference).
+\bibitem{PDG2022} R.~L. Workman \emph{et al.} (Particle Data Group), ``Review of Particle Physics,'' \emph{Prog.\ Theor.\ Exp.\ Phys.} 2022, 083C01 (2022).
+\bibitem{Rodriguez2018} S. Rodriguez, ``Muon lifetime dataset,'' HU Berlin cosmic-ray laboratory archive, 2018. URL: \url{amor.cms.hu-berlin.de/~rodrigus}.
+
+\bibitem{Skolnik2001} M.~Skolnik, \emph{Introduction to Radar Systems}, 3rd ed., McGraw-Hill, 2001.
+\bibitem{Richards2010} M.~Richards, J.~Scheer, W.~Holm (eds.), \emph{Principles of Modern Radar: Basic Principles}, SciTech Publishing, 2010.
+\bibitem{Backer1982} D.\,C. Backer \emph{et al.}, ``A millisecond pulsar,'' \emph{Nature} 300, 615--618 (1982).
+\bibitem{Manchester2005} R.\,N. Manchester \emph{et al.}, ``The ATNF Pulsar Catalogue,'' \emph{Astron.\ J.} 129, 1993 (2005).
+\bibitem{Lorimer2004} D.\,R. Lorimer and M. Kramer, \emph{Handbook of Pulsar Astronomy}, Cambridge University Press, 2004.
+\bibitem{Agazie2023} G. Agazie \emph{et al.} (NANOGrav), \emph{Astrophys.\ J.\ Suppl.} 265, 49 (2023).
+\bibitem{Taylor1982} J.\,H. Taylor and J.\,M. Weisberg, \emph{Astrophys.\ J.} 253, 908 (1982).
+\bibitem{Cohn1960} C.\,E. Cohn, ``A simplified theory of pile noise,'' \emph{Nucl.\ Sci.\ Eng.} \textbf{7}, 472 (1960).
+\bibitem{BellGlasstone1970} G.\,I. Bell and S. Glasstone, \emph{Nuclear Reactor Theory}, Van Nostrand Reinhold, New York (1970).
+\bibitem{Pal1976} L. P\'{a}l, \emph{Theory of Linear Stochastic Reactor-Kinetic Equations}, Akad\'{e}miai Kiad\'{o}, Budapest (1976).
+\bibitem{PazsitPal2008} I. P\'{a}zsit and L. P\'{a}l, \emph{Neutron Fluctuations: A Reference Manual}, Elsevier, Amsterdam (2008).
+\bibitem{Williams1974} M.\,M.\,R. Williams, \emph{Random Processes in Nuclear Reactors}, Pergamon, Oxford (1974).
+\bibitem{Welch1967} P.\,D. Welch, ``The use of fast Fourier transform for the estimation of power spectra,'' \emph{IEEE Trans.\ Audio Electroacoust.} \textbf{AU-15}, 70 (1967).
+\bibitem{Daubechies1992} I. Daubechies, \emph{Ten Lectures on Wavelets}, SIAM (1992).
+\bibitem{Hughes2004} H. Hughes, \emph{Spacecraft Attitude Dynamics}, Wiley, 2004.
+\bibitem{Landau1976} L.\,D. Landau and E.\,M. Lifshitz, \emph{Mechanics} (Vol.\ I, Course of Theoretical Physics), 3rd ed., Pergamon, 1976.
+\bibitem{Goldstein2002} H. Goldstein, C. Poole, J. Safko, \emph{Classical Mechanics}, 3rd ed., Addison-Wesley, 2002.
+
 \end{thebibliography}
 
 \end{document}

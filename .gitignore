@@ -96,3 +96,15 @@ credentials.yaml
 *.p12
 .env.local
 .env.production
+
+# LaTeX build artifacts (Birthday Edition v3 build pipeline)
+docs/shad/*.aux
+docs/shad/*.out
+docs/shad/*.toc
+docs/shad/*.log
+docs/shad/*.fls
+docs/shad/*.fdb_latexmk
+docs/shad/*.synctex.gz
+
+# Build-in-place EPUB duplicate — canonical lives at _deliverables/birthday-edition/inspection/
+docs/shad/shad-guide.epub
